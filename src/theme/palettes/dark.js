@@ -16,12 +16,18 @@ module.exports = {
   id: 'control-dark',
   label: 'CONTROL Dark',
   game: 'Control (2019) — The Oldest House',
+  type: 'dark',
+  /** Lugar del juego que muestra la barra de estado. */
+  location: 'THE OLDEST HOUSE',
 
   bg: {
     editor: '#17181A',
-    sidebar: '#121315', // sidebar, activity bar, panel, barras de título y estado
+    sidebar: '#121315', // sidebar, panel inferior y panel secundario (chat)
     elevated: '#1E1F22', // hover, sugerencias, Command Palette, menús
     input: '#202125',
+    // «Monolito»: Activity Bar, barra de estado, barra de título y franja del
+    // título de la sidebar. Tres profundidades: monolito < sidebar < editor.
+    chrome: '#0D0E0F',
   },
   border: '#2A2B2F',
 
@@ -32,12 +38,17 @@ module.exports = {
     placeholder: '#77746E',
     disabled: '#5E5C59',
     onAccent: '#FFFFFF',
+    chrome: '#D9D6CF',
+    chromeMuted: '#8E8B85',
+    chromeActive: '#FFFFFF', // la «luz astral»: elementos activos del marco
   },
 
   accent: {
-    main: '#E0352B', // Rojo FBC: cursor, foco, pestaña activa, indicadores
+    main: '#E0352B', // Rojo FBC: selección, foco, listas, píldoras
+    line: '#E0352B', // líneas de señalética: cursor, bordes activos, separadores
     solid: '#C42B22', // fondo de badges y botones (texto blanco encima)
     text: '#E5675D', // acento usado como texto (coincidencias de búsqueda…)
+    onChrome: '#E5675D', // acento como texto sobre el monolito (lugar en la barra de estado)
   },
 
   /** Opacidad del acento en la selección del editor. */

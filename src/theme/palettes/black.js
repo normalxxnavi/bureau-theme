@@ -9,7 +9,8 @@ const dark = require('./dark');
  * Hereda TODO de CONTROL Dark y solo cambia lo necesario para un fondo casi
  * negro. No es `#000000` puro: en pantallas OLED el negro absoluto provoca
  * «black smear» al hacer scroll. El texto se atenúa un poco para evitar el
- * halo del blanco sobre negro.
+ * halo del blanco sobre negro. El marco (monolito) sí es negro puro: no se
+ * desplaza, así que no hay smear.
  *
  * @type {import('../build').Palette}
  */
@@ -18,16 +19,18 @@ module.exports = {
   id: 'control-black',
   label: 'CONTROL Black',
   game: 'Control (2019) — Black Rock',
+  location: 'BLACK ROCK',
 
   bg: {
     editor: '#0A0A0B',
     sidebar: '#070708',
     elevated: '#111113',
     input: '#141416',
+    chrome: '#000000',
   },
   border: '#1C1C1F',
 
-  fg: { ...dark.fg, main: '#CFCCC5' },
+  fg: { ...dark.fg, main: '#CFCCC5', chrome: '#CFCCC5' },
 
   // Rojo todavía más contenido.
   selectionAlpha: 0.15,

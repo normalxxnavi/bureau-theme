@@ -17,12 +17,15 @@ module.exports = {
   id: 'control-resonant',
   label: 'CONTROL Resonant',
   game: 'Control Resonant (2026) — Patterned Manhattan',
+  type: 'dark',
+  location: 'PATTERNED MANHATTAN',
 
   bg: {
     editor: '#15171B',
     sidebar: '#101215',
     elevated: '#1C1F24',
     input: '#1E2127',
+    chrome: '#0B0D10', // hierro y asfalto de noche
   },
   border: '#272B31',
 
@@ -33,12 +36,17 @@ module.exports = {
     placeholder: '#737A84',
     disabled: '#5A6069',
     onAccent: '#FFFFFF',
+    chrome: '#D5D8DC',
+    chromeMuted: '#8A9099',
+    chromeActive: '#FFFFFF',
   },
 
   accent: {
     main: '#6FCFDC', // la Hedron
+    line: '#6FCFDC',
     solid: '#24707B',
     text: '#6FCFDC',
+    onChrome: '#6FCFDC',
   },
 
   selectionAlpha: 0.15,

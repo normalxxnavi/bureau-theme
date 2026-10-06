@@ -23,9 +23,12 @@ const MIN = { text: 7, code: 4.5, comment: 4.3, ui: 4.5, graphic: 3, placeholder
  */
 function checksFor(p) {
   const { bg, fg, accent, status, git, syntax: s } = p;
+  const isLight = p.type === 'light';
   const selection = over(`${accent.main}${Math.round(p.selectionAlpha * 255).toString(16).padStart(2, '0')}`, bg.editor);
-  const listActive = mix(bg.sidebar, accent.main, 0.2);
+  const listActive = mix(bg.sidebar, accent.main, isLight ? 0.12 : 0.2);
+  const sectionHeader = over(isLight ? '#00000009' : '#FFFFFF09', bg.sidebar);
   const terminal = bg.sidebar;
+  const block = (/** @type {string} */ c, t = 0.55) => mix(bg.chrome, c, t);
 
   const checks = [
     { group: 'Texto', label: 'texto / editor', fg: fg.main, bg: bg.editor, min: MIN.text },
@@ -40,11 +43,21 @@ function checksFor(p) {
     { group: 'Selección', label: 'comentario / selección', fg: s.comment, bg: selection, min: 3.5 },
     { group: 'Selección', label: 'subrayado de error / selección', fg: status.error, bg: selection, min: MIN.graphic },
     { group: 'Selección', label: 'texto / fila activa en listas', fg: fg.bright, bg: listActive, min: MIN.text },
-    { group: 'Selección', label: 'texto / pestaña activa (modern UI)', fg: fg.bright, bg: mix(bg.editor, accent.main, 0.14), min: MIN.text },
-    { group: 'Selección', label: 'texto / pestaña activa del panel (modern UI)', fg: fg.bright, bg: mix(bg.sidebar, accent.main, 0.18), min: MIN.text },
+    { group: 'Selección', label: 'texto / pestaña activa (modern UI)', fg: fg.bright, bg: mix(bg.editor, accent.main, isLight ? 0.1 : 0.14), min: MIN.text },
+    { group: 'Selección', label: 'texto / pestaña activa del panel (modern UI)', fg: fg.bright, bg: mix(bg.sidebar, accent.main, isLight ? 0.12 : 0.18), min: MIN.text },
     { group: 'Selección', label: 'coincidencia / fila activa', fg: accent.text, bg: listActive, min: MIN.graphic },
 
-    { group: 'Acento', label: 'acento (cursor, bordes) / editor', fg: accent.main, bg: bg.editor, min: MIN.graphic },
+    { group: 'Laterales', label: 'texto del monolito (título, barra de título)', fg: fg.chrome, bg: bg.chrome, min: MIN.text },
+    { group: 'Laterales', label: 'texto secundario del monolito (barra de estado)', fg: fg.chromeMuted, bg: bg.chrome, min: MIN.ui },
+    { group: 'Laterales', label: 'luz astral / monolito (título de la sidebar)', fg: fg.chromeActive, bg: bg.chrome, min: MIN.text },
+    { group: 'Laterales', label: 'icono activo / placa de la Activity Bar', fg: fg.chromeActive, bg: mix(bg.chrome, accent.line, 0.3), min: MIN.ui },
+    { group: 'Laterales', label: 'línea del acento / monolito', fg: accent.line, bg: bg.chrome, min: MIN.graphic },
+    { group: 'Laterales', label: 'línea del acento / sidebar', fg: accent.line, bg: bg.sidebar, min: MIN.graphic },
+    { group: 'Laterales', label: 'cabecera de sección / sidebar', fg: fg.bright, bg: sectionHeader, min: MIN.text },
+    { group: 'Laterales', label: 'acento como texto / sidebar', fg: accent.text, bg: bg.sidebar, min: MIN.ui },
+    { group: 'Laterales', label: 'lugar en la barra de estado', fg: accent.onChrome, bg: bg.chrome, min: MIN.ui },
+
+    { group: 'Acento', label: 'acento (cursor, bordes) / editor', fg: accent.line, bg: bg.editor, min: MIN.graphic },
     { group: 'Acento', label: 'blanco / acento sólido (badges, botones)', fg: fg.onAccent, bg: accent.solid, min: MIN.ui },
     { group: 'Acento', label: 'coincidencias / widgets', fg: accent.text, bg: bg.elevated, min: MIN.ui },
     { group: 'Acento', label: 'enlaces / widgets', fg: p.link, bg: bg.elevated, min: MIN.ui },
@@ -54,8 +67,8 @@ function checksFor(p) {
   for (const [k, v] of Object.entries(status)) {
     checks.push({ group: 'Estados', label: `${k} / editor`, fg: v, bg: bg.editor, min: MIN.ui });
   }
-  checks.push({ group: 'Estados', label: 'blanco / item de error en status bar', fg: fg.onAccent, bg: mix(bg.sidebar, status.error, 0.55), min: MIN.ui });
-  checks.push({ group: 'Estados', label: 'blanco / item de warning en status bar', fg: fg.onAccent, bg: mix(bg.sidebar, status.warning, 0.45), min: MIN.ui });
+  checks.push({ group: 'Estados', label: 'blanco / item de error en status bar', fg: fg.onAccent, bg: block(status.error), min: MIN.ui });
+  checks.push({ group: 'Estados', label: 'blanco / item de warning en status bar', fg: fg.onAccent, bg: block(status.warning, 0.45), min: MIN.ui });
 
   for (const [k, v] of Object.entries(git)) {
     checks.push({ group: 'Git', label: `${k} / sidebar`, fg: v, bg: bg.sidebar, min: k === 'ignored' || k === 'submodule' ? MIN.disabled : MIN.ui });
@@ -67,9 +80,13 @@ function checksFor(p) {
   }
   p.brackets.forEach((b, i) => checks.push({ group: 'Sintaxis', label: `corchetes nivel ${i + 1}`, fg: b, bg: bg.editor, min: MIN.code }));
 
+  // El color ANSI que hace de «fondo» depende del tema: negro en los oscuros,
+  // blanco en el claro. Ese no se comprueba como texto.
+  const backgroundLike = isLight ? ['white', 'brightWhite'] : ['black'];
+  const dimmed = isLight ? 'white' : 'brightBlack';
   for (const [k, v] of Object.entries(p.ansi)) {
-    if (k === 'black') continue; // se usa como fondo
-    const min = k === 'brightBlack' ? MIN.placeholder : MIN.code;
+    if (backgroundLike.includes(k)) continue;
+    const min = k === dimmed || k === 'brightBlack' ? MIN.placeholder : MIN.code;
     checks.push({ group: 'Terminal', label: `ansi ${k}`, fg: v, bg: terminal, min });
   }
   return checks;

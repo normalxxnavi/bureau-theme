@@ -64,6 +64,9 @@ function main() {
   const version = JSON.parse(fs.readFileSync(path.join(appRoot, 'package.json'), 'utf8')).version;
   console.log(`  VS Code ${version}: ${appRoot}`);
 
+  // …y las que aporta esta misma extensión (contributes.colors).
+  for (const c of JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).contributes.colors ?? []) contributed.add(c.id);
+
   const keys = Object.keys(buildTheme(palettes[0]).colors);
   const unknown = keys.filter((k) => !contributed.has(k) && !bundle.includes(`"${k}"`));
   if (unknown.length) {

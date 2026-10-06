@@ -89,3 +89,41 @@ test('los comandos declarados se registran en extension.js', () => {
   const src = fs.readFileSync(path.join(ROOT, 'src', 'extension', 'extension.js'), 'utf8');
   for (const c of pkg.contributes.commands) assert.ok(src.includes(`'${c.command}'`), c.command);
 });
+
+test('el tema de iconos apunta a SVG que existen y son válidos', () => {
+  const iconTheme = pkg.contributes.iconThemes[0];
+  const file = path.join(ROOT, iconTheme.path);
+  const theme = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const dir = path.dirname(file);
+  for (const [id, def] of Object.entries(theme.iconDefinitions)) {
+    const svgPath = path.join(dir, /** @type {any} */ (def).iconPath);
+    assert.ok(fs.existsSync(svgPath), `${id}: falta ${svgPath}`);
+    const svg = fs.readFileSync(svgPath, 'utf8');
+    assert.match(svg, /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg" viewBox="0 0 16 16">[\s\S]*<\/svg>\n$/, id);
+    for (const tag of svg.matchAll(/<\w+([^>]*)>/g)) {
+      const attrs = [...tag[1].matchAll(/ ([\w-]+)=/g)].map((m) => m[1]);
+      assert.equal(new Set(attrs).size, attrs.length, `${id}: atributo duplicado en ${tag[0]}`);
+    }
+    assert.ok(!/<text[^>]*>[^<]*[<>&][^<]*<\/text>/.test(svg.replace(/&(amp|lt|gt);/g, '')), `${id}: texto sin escapar`);
+  }
+  const used = new Set();
+  const collect = (/** @type {any} */ m) => {
+    for (const v of Object.values(m)) {
+      if (typeof v === 'string') used.add(v);
+      else if (v && typeof v === 'object') collect(v);
+    }
+  };
+  collect({ ...theme, iconDefinitions: undefined, hidesExplorerArrows: undefined });
+  for (const id of used) assert.ok(id in theme.iconDefinitions, `referencia a un icono inexistente: ${id}`);
+  assert.ok(theme.light && theme.light.file, 'debe tener variante para temas claros');
+});
+
+test('el indicador de la barra de estado conoce el lugar de cada tema', () => {
+  const { palettes } = require('../src/theme/build');
+  const src = fs.readFileSync(path.join(ROOT, 'src', 'extension', 'location.js'), 'utf8');
+  for (const p of palettes) {
+    assert.ok(src.includes(`'${p.label}': {\n    location: '${p.location}'`), `${p.label} → ${p.location}`);
+  }
+  assert.equal(properties['bureauTheme.statusBar.showLocation'].default, true);
+  assert.ok(pkg.contributes.colors.some((/** @type {any} */ c) => c.id === 'bureauTheme.statusBar.location'));
+});

@@ -38,7 +38,24 @@
 | `npm run preview` | Vistas previas HTML en `.preview/` e informe de scopes sin color |
 | `npm run sounds` | Regenerar los 22 sonidos y su documentación |
 | `npm run test:integration` | Test en VS Code real (abre una ventana unos segundos) |
+| `npm run icons` | Regenerar el tema de iconos Bureau Icons |
 | `npm run package` | Generar el `.vsix` |
+| `npm run install:local` | Empaquetar e instalar en tu VS Code (sin publicar) |
+
+### Versión 0.6.0: el Plano Astral y los laterales
+
+Pedido: «meter cosas del lore del Plano Astral y darle más diseño a los laterales, que no solo se reflejen los colores».
+
+| Qué | Dónde | Verificado |
+|---|---|---|
+| **CONTROL Astral** (4º tema, claro): vacío blanco, monolito negro, acento estructural negro y rojo solo en detalles | `src/theme/palettes/astral.js` | Contrastes WCAG; captura real |
+| **Monolito**: Activity Bar, barra de estado y barra de título en un bloque oscuro (roles `bg.chrome`, `fg.chrome*`) | `workbench.js` | Píxeles de las capturas |
+| **Señalética**: título de la sidebar como franja del monolito con línea del acento; reglas del acento entre secciones; guías del árbol; «luz astral» blanca en los elementos activos | `workbench.js` (`accent.line`, `fg.chromeActive`) | Píxeles de las capturas |
+| **Chat** (panel secundario): burbujas, código, avatares e indicadores de sesión | `workbench.js` (`chat.*`) | Claves validadas en VS Code 1.140 |
+| **Bureau Icons**: tema de iconos con 178 SVG (oscuro y claro), etiquetas tipo expediente, carpetas de hormigón; lore: `.env` tachado, hexágono de la Hedron en tests, pirámide del Consejo como carpeta raíz | `scripts/icons.js` → `icons/` | Hoja de revisión + test que valida cada SVG |
+| **Indicador de lugar** en la barra de estado (`▼ THE OLDEST HOUSE`…) | `src/extension/location.js` | Test de integración en VS Code real |
+
+Nota: los paneles de otras extensiones (como el de Claude Code) son *webviews*: usan los colores del tema que ellas deciden, así que el tema no puede cambiar su maquetación, solo los colores que comparten.
 
 ---
 

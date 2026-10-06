@@ -110,10 +110,21 @@ async function run() {
     assert.equal(api.soundsStarted, false);
   });
 
-  await step('los tres temas están registrados', async () => {
+  await step('los cuatro temas están registrados', async () => {
     const labels = ext.packageJSON.contributes.themes.map((/** @type {any} */ t) => t.label);
-    assert.deepEqual(labels, ['CONTROL Dark', 'CONTROL Black', 'CONTROL Resonant']);
+    assert.deepEqual(labels, ['CONTROL Dark', 'CONTROL Black', 'CONTROL Resonant', 'CONTROL Astral']);
     assert.equal(vscode.window.activeColorTheme.kind, vscode.ColorThemeKind.Dark);
+  });
+
+  await step('indicador de la barra de estado: lugar de cada tema', async () => {
+    for (const [theme, place] of [['CONTROL Dark', 'THE OLDEST HOUSE'], ['CONTROL Black', 'BLACK ROCK'], ['CONTROL Resonant', 'PATTERNED MANHATTAN'], ['CONTROL Astral', 'ASTRAL PLANE']]) {
+      await setTheme(theme);
+      await waitFor(() => api.locationText === `$(triangle-down) ${place}`, `${theme} → ${place}`);
+    }
+    await setTheme('Default Dark Modern');
+    await waitFor(() => api.locationText === null, 'oculto con un tema que no es CONTROL');
+    await setTheme('CONTROL Dark');
+    await waitFor(() => api.locationText !== null, 'visible otra vez');
   });
 
   await step('activar los sonidos registra los listeners', async () => {
