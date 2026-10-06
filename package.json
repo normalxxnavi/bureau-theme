@@ -241,6 +241,7 @@
     "test:integration": "node scripts/integration.js",
     "check": "npm run build && npm run contrast && npm run validate && npm test",
     "package": "vsce package",
+    "install:local": "node scripts/install-local.js",
     "vscode:prepublish": "npm run build && npm run contrast && npm test"
   },
   "devDependencies": {
