@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Federal Bureau of Control — Directorio interno</title>
+  <link rel="stylesheet" href="css.css">
+  <style>
+    .redacted { background: #000; color: transparent; }
+  </style>
+</head>
+<body class="bureau" data-sector="research">
+  <!-- Cabecera del directorio -->
+  <header id="top">
+    <h1>Directorio interno &mdash; <span class="redacted">CLASIFICADO</span></h1>
+    <nav aria-label="Sectores">
+      <a href="#maintenance" class="sector-link">Mantenimiento</a>
+      <a href="#research" class="sector-link active">Investigación</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="research">
+      <h2>Objetos de poder</h2>
+      <ul>
+        <li data-threat="2">Proyector de diapositivas</li>
+        <li data-threat="1" hidden>Teléfono rojo</li>
+      </ul>
+      <button type="button" onclick="alert('Acceso denegado')" disabled>Abrir archivo</button>
+      <input type="text" placeholder="Código de acceso" required>
+    </section>
+  </main>
+
+  <script>
+    const items = document.querySelectorAll('[data-threat]');
+    items.forEach((item) => item.classList.toggle('critical', Number(item.dataset.threat) > 1));
+  </script>
+</body>
+</html>

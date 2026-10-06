@@ -1,0 +1,9 @@
+Registro de turnos — Sector de Mantenimiento
+
+Lunes: revisión de ventilación.
+<<<<<<< HEAD
+Martes: inspección de la sala de calderas (turno de noche).
+=======
+Martes: inspección de la sala de calderas (turno de mañana, con escolta).
+>>>>>>> feature/turno-manana
+Miércoles: inventario de objetos alterados.

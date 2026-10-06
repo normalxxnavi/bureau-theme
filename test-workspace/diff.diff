@@ -1,0 +1,16 @@
+diff --git a/src/archive.ts b/src/archive.ts
+index 3f2a1c4..9b8e7d2 100644
+--- a/src/archive.ts
++++ b/src/archive.ts
+@@ -12,9 +12,11 @@ export class Archive<T extends ObjectOfPower> {
+   add(item: T): boolean {
+-    if (this.items.length >= 40) {
++    if (this.#items.size >= MAX_ITEMS || this.#items.has(item.id)) {
+       return false;
+     }
+-    this.items.push(item);
++    this.#items.set(item.id, item);
++    this.listeners.forEach((listener) => listener(item));
+     return true;
+   }
+ }

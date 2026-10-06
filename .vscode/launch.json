@@ -1,0 +1,14 @@
+{
+  // F5 abre una segunda ventana de VS Code (Extension Development Host) con
+  // los tres temas y el módulo de sonido cargados, y la carpeta test-workspace.
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Probar la extensión (test-workspace)",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}", "${workspaceFolder}/test-workspace"],
+      "preLaunchTask": "npm: build"
+    }
+  ]
+}

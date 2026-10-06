@@ -1,0 +1,36 @@
+// Archivo de prueba del tema: SCSS
+@use 'sass:math';
+
+$fbc-red: #e0352b;
+$hedron: #6fcfdc;
+$sectors: (maintenance: 1, research: 2, containment: 3);
+
+@mixin alert($color, $weight: 2px) {
+  border-left: $weight solid $color;
+  padding-left: math.div(16px, 2);
+}
+
+@function threat-color($level) {
+  @if $level > 1 {
+    @return $fbc-red;
+  }
+  @return $hedron;
+}
+
+.sector {
+  @include alert($fbc-red);
+
+  &__title {
+    font-weight: 700;
+  }
+
+  @each $name, $level in $sectors {
+    &--#{$name} {
+      color: threat-color($level);
+    }
+  }
+
+  &:not(.sector--sealed):hover {
+    opacity: 0.85;
+  }
+}

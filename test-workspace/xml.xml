@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Archivo de prueba del tema: XML -->
+<bureau:archive xmlns:bureau="urn:fbc:archive" version="2.1">
+  <bureau:sector id="research" floor="3" sealed="false">
+    <object code="OOP-0042-PROJECTOR" threat="2">
+      <name>Slide Projector</name>
+      <notes><![CDATA[Proyecta imágenes de <otro lugar> & cambia de posición.]]></notes>
+    </object>
+    <object code="OOP-0007-PHONE" threat="1"/>
+  </bureau:sector>
+  <entity>&amp; &lt;clasificado&gt;</entity>
+</bureau:archive>

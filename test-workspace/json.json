@@ -1,0 +1,22 @@
+{
+  "bureau": "Federal Bureau of Control",
+  "director": null,
+  "sectors": [
+    {
+      "name": "Research",
+      "floor": 3,
+      "threat": 0.75,
+      "sealed": false,
+      "objects": ["Slide Projector", "Red Phone"]
+    },
+    {
+      "name": "Maintenance",
+      "floor": -2,
+      "threat": 1.2e-3,
+      "sealed": true,
+      "objects": []
+    }
+  ],
+  "escape": "Línea 1\nLínea 2\t\"citada\"",
+  "unicode": "é"
+}

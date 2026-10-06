@@ -1,0 +1,16 @@
+{
+  // Se abre ya con el tema principal. Cambia de tema con Ctrl+K Ctrl+T.
+  "workbench.colorTheme": "CONTROL Dark",
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active",
+  "editor.inlayHints.enabled": "on",
+  "editor.stickyScroll.enabled": true,
+  "editor.minimap.enabled": true,
+  "editor.renderWhitespace": "boundary",
+  "editor.semanticHighlighting.enabled": true,
+  "terminal.integrated.shellIntegration.enabled": true,
+  "typescript.inlayHints.parameterNames.enabled": "literals",
+  "typescript.inlayHints.variableTypes.enabled": true,
+  // Para probar los sonidos: activa "bureauTheme.sounds.enabled" en tus ajustes
+  // de usuario (Ctrl+,) o con el comando "CONTROL: Activar/desactivar sonidos".
+}
