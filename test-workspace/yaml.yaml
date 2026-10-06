@@ -1,0 +1,16 @@
+# Archivo de prueba del tema: YAML
+bureau: Federal Bureau of Control
+version: 2.1
+sealed: false
+defaults: &defaults
+  threat: 0
+  escort: null
+sectors:
+  - name: Research
+    floor: 3
+    <<: *defaults
+  - name: "Maintenance"
+    floor: -2
+    notes: |
+      Revisar la sala de calderas.
+      No abrir la puerta 113.

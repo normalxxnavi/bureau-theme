@@ -1,0 +1,50 @@
+/* Archivo de prueba del tema: CSS */
+@import url('https://fonts.googleapis.com/css2?family=Inter&display=swap');
+
+:root {
+  --fbc-red: #e0352b;
+  --concrete: #17181a;
+  --gap: 1.5rem;
+}
+
+*,
+*::before {
+  box-sizing: border-box;
+}
+
+body.bureau {
+  margin: 0;
+  font: 400 16px/1.5 'Inter', system-ui, sans-serif;
+  background-color: var(--concrete);
+  color: rgb(217 214 207 / 90%);
+}
+
+#top > h1 {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-bottom: 2px solid var(--fbc-red) !important;
+}
+
+.sector-link:hover,
+.sector-link.active {
+  color: var(--fbc-red);
+  transition: color 120ms ease-in-out;
+}
+
+li[data-threat='2']::after {
+  content: ' \2014  crítico';
+  color: hsl(4deg 74% 52%);
+}
+
+@media (max-width: 640px) {
+  nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: calc(var(--gap) / 2);
+  }
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}

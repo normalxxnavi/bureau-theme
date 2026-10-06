@@ -1,0 +1,26 @@
+{
+  // Tareas para probar los sonidos de build (Terminal → Run Task…).
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "dotnet: build",
+      "type": "process",
+      "command": "dotnet",
+      "args": ["build", "${workspaceFolder}/ThemeTests.csproj", "-nologo", "-v", "q"],
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "Tarea que termina bien",
+      "type": "shell",
+      "command": "node -e \"console.log('Sector sellado'); process.exit(0)\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "Tarea que falla",
+      "type": "shell",
+      "command": "node -e \"console.error('Brecha de contención'); process.exit(1)\"",
+      "problemMatcher": []
+    }
+  ]
+}

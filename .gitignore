@@ -1,0 +1,13 @@
+node_modules/
+*.vsix
+.vscode-test/
+
+# test-workspace: artefactos de compilación de .NET
+test-workspace/bin/
+test-workspace/obj/
+
+# Referencias visuales personales (pueden tener copyright)
+references/
+
+# Salidas temporales de los scripts de preview
+.preview/

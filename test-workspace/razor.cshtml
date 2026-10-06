@@ -1,0 +1,34 @@
+@page "/sectors"
+@model FederalBureau.Control.OldestHouse
+@using FederalBureau.Control
+@{
+    ViewData["Title"] = "Sectores";
+    var sectors = new[] { new Sector("Research", 3), new Sector("Maintenance", -2) };
+    const int MaxVisible = 10;
+}
+
+@* Comentario de Razor: no llega al HTML *@
+<h1 class="title">@ViewData["Title"]</h1>
+
+<ul class="sectors">
+    @foreach (var sector in sectors.Take(MaxVisible))
+    {
+        <li class="@(sector.IsUnderground() ? "underground" : "surface")" data-floor="@sector.Floor">
+            <strong>@sector.Name</strong> — @Model.Describe(sector)
+        </li>
+    }
+</ul>
+
+@if (sectors.Length == 0)
+{
+    <p>No hay sectores registrados.</p>
+}
+else
+{
+    <p>Total: @sectors.Length sectores. Archivo: @Model.Department</p>
+}
+
+<form asp-action="Seal" method="post">
+    <input asp-for="Count" class="form-control" />
+    <button type="submit" disabled="@(Model.Count == 0)">Sellar</button>
+</form>

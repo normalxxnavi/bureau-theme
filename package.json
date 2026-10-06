@@ -1,0 +1,252 @@
+{
+  "name": "bureau-theme",
+  "displayName": "%displayName%",
+  "description": "%description%",
+  "version": "0.5.0",
+  "publisher": "JaviHexer",
+  "license": "MIT",
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#121315",
+    "theme": "dark"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JaviHexer/bureau-theme"
+  },
+  "engines": {
+    "vscode": "^1.93.0"
+  },
+  "categories": [
+    "Themes",
+    "Other"
+  ],
+  "keywords": [
+    "theme",
+    "dark",
+    "black",
+    "oled",
+    "control",
+    "control resonant",
+    "remedy",
+    "brutalist",
+    "red",
+    "sounds"
+  ],
+  "main": "./src/extension/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "extensionKind": [
+    "ui",
+    "workspace"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true
+    },
+    "virtualWorkspaces": true
+  },
+  "l10n": "./l10n",
+  "contributes": {
+    "themes": [
+      {
+        "label": "CONTROL Dark",
+        "uiTheme": "vs-dark",
+        "path": "./themes/control-dark-color-theme.json"
+      },
+      {
+        "label": "CONTROL Black",
+        "uiTheme": "vs-dark",
+        "path": "./themes/control-black-color-theme.json"
+      },
+      {
+        "label": "CONTROL Resonant",
+        "uiTheme": "vs-dark",
+        "path": "./themes/control-resonant-color-theme.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "bureauTheme.toggleSounds",
+        "title": "%command.toggleSounds%",
+        "category": "CONTROL"
+      },
+      {
+        "command": "bureauTheme.previewSounds",
+        "title": "%command.previewSounds%",
+        "category": "CONTROL"
+      },
+      {
+        "command": "bureauTheme.openSoundSettings",
+        "title": "%command.openSoundSettings%",
+        "category": "CONTROL"
+      }
+    ],
+    "configuration": [
+      {
+        "title": "%config.sounds.title%",
+        "order": 1,
+        "properties": {
+          "bureauTheme.sounds.enabled": {
+            "type": "boolean",
+            "default": false,
+            "order": 0,
+            "markdownDescription": "%config.sounds.enabled%"
+          },
+          "bureauTheme.sounds.pack": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "control",
+              "resonant"
+            ],
+            "enumDescriptions": [
+              "%config.sounds.pack.auto%",
+              "%config.sounds.pack.control%",
+              "%config.sounds.pack.resonant%"
+            ],
+            "default": "auto",
+            "order": 1,
+            "description": "%config.sounds.pack%"
+          },
+          "bureauTheme.sounds.volume": {
+            "type": "number",
+            "default": 50,
+            "minimum": 0,
+            "maximum": 100,
+            "order": 2,
+            "description": "%config.sounds.volume%"
+          },
+          "bureauTheme.sounds.onlyWithControlTheme": {
+            "type": "boolean",
+            "default": true,
+            "order": 3,
+            "description": "%config.sounds.onlyWithControlTheme%"
+          },
+          "bureauTheme.sounds.errorTrigger": {
+            "type": "string",
+            "enum": [
+              "onSave",
+              "live"
+            ],
+            "enumDescriptions": [
+              "%config.sounds.errorTrigger.onSave%",
+              "%config.sounds.errorTrigger.live%"
+            ],
+            "default": "onSave",
+            "order": 4,
+            "description": "%config.sounds.errorTrigger%"
+          },
+          "bureauTheme.sounds.cooldownMs": {
+            "type": "number",
+            "default": 1500,
+            "minimum": 0,
+            "maximum": 10000,
+            "order": 5,
+            "description": "%config.sounds.cooldownMs%"
+          },
+          "bureauTheme.sounds.customFolder": {
+            "type": "string",
+            "default": "",
+            "scope": "application",
+            "order": 6,
+            "markdownDescription": "%config.sounds.customFolder%"
+          }
+        }
+      },
+      {
+        "title": "%config.events.title%",
+        "order": 2,
+        "properties": {
+          "bureauTheme.sounds.events.startup": {
+            "type": "boolean",
+            "default": false,
+            "order": 0,
+            "description": "%config.events.startup%"
+          },
+          "bureauTheme.sounds.events.themeActivated": {
+            "type": "boolean",
+            "default": true,
+            "order": 1,
+            "description": "%config.events.themeActivated%"
+          },
+          "bureauTheme.sounds.events.save": {
+            "type": "boolean",
+            "default": false,
+            "order": 2,
+            "description": "%config.events.save%"
+          },
+          "bureauTheme.sounds.events.newError": {
+            "type": "boolean",
+            "default": true,
+            "order": 3,
+            "description": "%config.events.newError%"
+          },
+          "bureauTheme.sounds.events.allClear": {
+            "type": "boolean",
+            "default": true,
+            "order": 4,
+            "description": "%config.events.allClear%"
+          },
+          "bureauTheme.sounds.events.buildSuccess": {
+            "type": "boolean",
+            "default": true,
+            "order": 5,
+            "description": "%config.events.buildSuccess%"
+          },
+          "bureauTheme.sounds.events.buildFail": {
+            "type": "boolean",
+            "default": true,
+            "order": 6,
+            "description": "%config.events.buildFail%"
+          },
+          "bureauTheme.sounds.events.terminalFail": {
+            "type": "boolean",
+            "default": false,
+            "order": 7,
+            "description": "%config.events.terminalFail%"
+          },
+          "bureauTheme.sounds.events.debugStart": {
+            "type": "boolean",
+            "default": true,
+            "order": 8,
+            "description": "%config.events.debugStart%"
+          },
+          "bureauTheme.sounds.events.breakpoint": {
+            "type": "boolean",
+            "default": true,
+            "order": 9,
+            "description": "%config.events.breakpoint%"
+          },
+          "bureauTheme.sounds.events.gitCommit": {
+            "type": "boolean",
+            "default": true,
+            "order": 10,
+            "description": "%config.events.gitCommit%"
+          }
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "build": "node src/theme/build.js",
+    "watch": "node --watch src/theme/build.js",
+    "contrast": "node scripts/contrast.js",
+    "validate": "node scripts/validate-keys.js",
+    "preview": "node scripts/preview.js",
+    "sounds": "node scripts/sounds/generate.js",
+    "icon": "node scripts/icon.js",
+    "test": "node --test test/",
+    "check": "npm run build && npm run contrast && npm run validate && npm test",
+    "package": "vsce package",
+    "vscode:prepublish": "npm run build && npm run contrast && npm test"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "~1.93.0",
+    "@vscode/vsce": "^3.6.0",
+    "vscode-oniguruma": "^2.0.1",
+    "vscode-textmate": "^9.2.0"
+  }
+}

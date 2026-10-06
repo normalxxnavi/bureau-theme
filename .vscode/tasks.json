@@ -1,0 +1,30 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "npm",
+      "script": "build",
+      "label": "npm: build",
+      "group": "build",
+      "problemMatcher": [],
+      "presentation": { "reveal": "silent" }
+    },
+    {
+      // Regenera themes/*.json cada vez que guardas un archivo de src/theme.
+      // Con el Extension Development Host abierto, el cambio se ve al instante.
+      "type": "npm",
+      "script": "watch",
+      "label": "npm: watch",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "type": "npm",
+      "script": "check",
+      "label": "npm: check",
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": []
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "files.exclude": {
+    "**/node_modules": true
+  },
+  "search.exclude": {
+    "themes/**": true,
+    "docs/palette.md": true
+  }
+}
