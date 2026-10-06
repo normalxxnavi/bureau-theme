@@ -238,6 +238,7 @@
     "sounds": "node scripts/sounds/generate.js",
     "icon": "node scripts/icon.js",
     "test": "node --test \"test/*.test.js\"",
+    "test:integration": "node scripts/integration.js",
     "check": "npm run build && npm run contrast && npm run validate && npm test",
     "package": "vsce package",
     "vscode:prepublish": "npm run build && npm run contrast && npm test"

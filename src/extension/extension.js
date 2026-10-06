@@ -25,6 +25,16 @@ function activate(context) {
   );
 
   controller.init();
+
+  // API interna para el test de integración (test/integration). No es pública.
+  return {
+    get soundHistory() {
+      return controller.history;
+    },
+    get soundsStarted() {
+      return controller.started;
+    },
+  };
 }
 
 function deactivate() {}

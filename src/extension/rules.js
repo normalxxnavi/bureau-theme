@@ -45,6 +45,55 @@ function classifyErrorChange(previous, current) {
 }
 
 /**
+ * Sigue el número de errores y decide cuándo hay «errores nuevos» o «todo
+ * resuelto» por culpa de TUS cambios.
+ *
+ * - Mientras no editas, la referencia sigue a los diagnósticos en silencio:
+ *   abrir un archivo que ya tenía errores, que el servidor de C# termine de
+ *   cargar o cerrar un archivo no hace ruido.
+ * - En cuanto editas, la referencia se congela hasta la siguiente comprobación
+ *   (al guardar, o tras la pausa en modo `live`), y entonces se compara.
+ *
+ * @param {number} initialCount
+ */
+function createErrorTracker(initialCount) {
+  let baseline = initialCount;
+  let dirty = false;
+  return {
+    get baseline() {
+      return baseline;
+    },
+    get dirty() {
+      return dirty;
+    },
+    /** El usuario ha cambiado el contenido de un documento. */
+    edited() {
+      dirty = true;
+    },
+    /**
+     * Los diagnósticos han dejado de cambiar.
+     * @param {number} count @param {'onSave' | 'live'} mode
+     * @returns {'newError' | 'allClear' | null}
+     */
+    settled(count, mode) {
+      if (dirty && mode === 'live') return this.check(count);
+      if (!dirty) baseline = count;
+      return null;
+    },
+    /**
+     * Comprobación explícita (después de guardar o en modo `live`).
+     * @param {number} count
+     */
+    check(count) {
+      const change = classifyErrorChange(baseline, count);
+      baseline = count;
+      dirty = false;
+      return change;
+    },
+  };
+}
+
+/**
  * Sonido para el final de una tarea (build, test…).
  * @param {number | undefined} exitCode
  * @returns {'buildSuccess' | 'buildFail' | null}
@@ -126,6 +175,7 @@ function shouldPlay(config, event, controlThemeActive) {
 module.exports = {
   createGate,
   classifyErrorChange,
+  createErrorTracker,
   taskExitSound,
   terminalExitSound,
   isBreakpointStop,

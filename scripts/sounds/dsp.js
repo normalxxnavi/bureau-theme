@@ -204,7 +204,7 @@ function reverb(source, { mix = 0.25, size = 1, damp = 0.35 } = {}) {
 /**
  * Eco con realimentación y un filtro paso bajo dentro del bucle (cada
  * repetición suena más apagada: el «Patterning» de Resonant).
- * @param {Float32Array} input @param {{time: number, feedback: number, mix: number, cutoff?: number}} o
+ * @param {Float32Array} source @param {{time: number, feedback: number, mix: number, cutoff?: number}} o
  */
 function echo(source, { time, feedback, mix, cutoff = 3000 }) {
   const input = pad(source, time * 5);
