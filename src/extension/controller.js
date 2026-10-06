@@ -23,11 +23,10 @@ const ERROR_SETTLE_MS = 1200;
 const ERROR_MAX_WAIT_MS = 5000;
 /** Pausa en modo `live` antes de contar errores. */
 const LIVE_DEBOUNCE_MS = 1000;
-/** Al activar: tiempo para que los servidores de lenguaje publiquen sus errores iniciales. */
-const BASELINE_DELAY_MS = 4000;
-/** Tras cerrar un archivo sus errores desaparecen: eso no es «todo resuelto». */
-const CLOSE_SUPPRESS_MS = 2500;
 const STARTUP_DELAY_MS = 1500;
+
+/** Documentos cuyas ediciones cuentan como «el usuario está escribiendo código». */
+const EDITABLE_SCHEMES = new Set(['file', 'untitled', 'vscode-remote', 'vscode-vfs']);
 
 const WORKBENCH_THEME_KEYS = [
   'workbench.colorTheme',
@@ -80,19 +79,22 @@ class SoundController {
     /** @type {vscode.Disposable[]} */
     this.listeners = [];
     this.started = false;
-    /** @type {number | undefined} */
-    this.errorBaseline = undefined;
+    /** @type {ReturnType<typeof rules.createErrorTracker> | null} */
+    this.errors = null;
     /** @type {NodeJS.Timeout | undefined} */
     this.errorTimer = undefined;
-    /** @type {NodeJS.Timeout | undefined} */
-    this.baselineTimer = undefined;
     /** @type {number | null} */
     this.errorDeadline = null;
-    this.suppressClearUntil = 0;
     /** @type {Set<string>} */
     this.manualSaves = new Set();
     this.lastThemeLabel = this.activeThemeLabel();
     this.playerWarned = false;
+    /**
+     * Últimos sonidos reproducidos. Lo usa el test de integración a través
+     * de la API que devuelve `activate()`.
+     * @type {Array<{event: import('./catalog').SoundEvent, pack: import('./catalog').Pack, source: 'custom' | 'pack', at: number}>}
+     */
+    this.history = [];
   }
 
   // --- Ciclo de vida --------------------------------------------------------
@@ -124,8 +126,8 @@ class SoundController {
         if (this.manualSaves.delete(doc.uri.toString())) this.play('save');
         if (this.config.errorTrigger === 'onSave') this.scheduleErrorCheck();
       }),
-      vscode.workspace.onDidCloseTextDocument(() => {
-        this.suppressClearUntil = Date.now() + CLOSE_SUPPRESS_MS;
+      vscode.workspace.onDidChangeTextDocument((e) => {
+        if (e.contentChanges.length > 0 && EDITABLE_SCHEMES.has(e.document.uri.scheme)) this.errors?.edited();
       }),
       vscode.languages.onDidChangeDiagnostics(() => this.onDiagnosticsChanged()),
       vscode.tasks.onDidEndTaskProcess((e) => {
@@ -157,9 +159,7 @@ class SoundController {
     }
 
     this.watchGitCommits();
-    this.baselineTimer = setTimeout(() => {
-      if (this.errorBaseline === undefined) this.errorBaseline = countErrors();
-    }, BASELINE_DELAY_MS);
+    this.errors = rules.createErrorTracker(countErrors());
 
     this.log.info(`Sounds enabled (pack: ${this.config.pack}, volume: ${this.config.volume}, errors: ${this.config.errorTrigger})`);
   }
@@ -169,9 +169,8 @@ class SoundController {
     this.started = false;
     for (const l of this.listeners.splice(0)) l.dispose();
     clearTimeout(this.errorTimer);
-    clearTimeout(this.baselineTimer);
     this.errorDeadline = null;
-    this.errorBaseline = undefined;
+    this.errors = null;
     this.manualSaves.clear();
     this.player?.dispose();
     this.player = null;
@@ -236,6 +235,7 @@ class SoundController {
 
   // --- Errores --------------------------------------------------------------
 
+  /** Tras guardar: comprobar cuando los diagnósticos dejen de cambiar (máximo 5 s). */
   scheduleErrorCheck() {
     this.errorDeadline = Date.now() + ERROR_MAX_WAIT_MS;
     this.armErrorTimer(ERROR_SETTLE_MS);
@@ -244,26 +244,31 @@ class SoundController {
   /** @param {number} ms */
   armErrorTimer(ms) {
     clearTimeout(this.errorTimer);
-    this.errorTimer = setTimeout(() => this.checkErrors(), ms);
+    this.errorTimer = setTimeout(() => this.onErrorsSettled(), ms);
   }
 
   onDiagnosticsChanged() {
-    if (this.config.errorTrigger === 'live') {
-      this.armErrorTimer(LIVE_DEBOUNCE_MS);
-    } else if (this.errorDeadline !== null) {
-      // Después de guardar: esperar a que los diagnósticos dejen de cambiar.
+    if (this.errorDeadline !== null) {
       const remaining = this.errorDeadline - Date.now();
       this.armErrorTimer(Math.max(0, Math.min(ERROR_SETTLE_MS, remaining)));
+    } else {
+      this.armErrorTimer(this.config.errorTrigger === 'live' ? LIVE_DEBOUNCE_MS : ERROR_SETTLE_MS);
     }
   }
 
-  checkErrors() {
-    this.errorDeadline = null;
-    const current = countErrors();
-    const change = rules.classifyErrorChange(this.errorBaseline, current);
-    this.log.debug(`Errors: ${this.errorBaseline ?? '—'} → ${current}`);
-    this.errorBaseline = current;
-    if (change === 'allClear' && Date.now() < this.suppressClearUntil) return;
+  onErrorsSettled() {
+    if (!this.errors) return;
+    const count = countErrors();
+    const before = this.errors.baseline;
+    /** @type {'newError' | 'allClear' | null} */
+    let change;
+    if (this.errorDeadline !== null) {
+      this.errorDeadline = null;
+      change = this.errors.check(count);
+    } else {
+      change = this.errors.settled(count, this.config.errorTrigger);
+    }
+    if (before !== count) this.log.debug(`Errors: ${before} → ${count}${change ? ` (${change})` : ''}`);
     if (change) this.play(change);
   }
 
@@ -322,6 +327,8 @@ class SoundController {
       const player = this.ensurePlayer();
       if (!player.available) return;
       player.play(file);
+      this.history.push({ event, pack, source: resolved.source, at: Date.now() });
+      if (this.history.length > 100) this.history.shift();
       this.log.info(`♪ ${event} · ${resolved.source === 'custom' ? 'custom folder' : pack} · ${path.basename(resolved.path)} · volume ${volume}`);
     } catch (err) {
       this.log.warn(`${event}: ${/** @type {Error} */ (err).message}`);

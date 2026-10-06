@@ -35,6 +35,43 @@ test('classifyErrorChange', () => {
   assert.equal(rules.classifyErrorChange(0, 0), null);
 });
 
+test('errores: sin editar, la referencia sigue a los diagnósticos en silencio', () => {
+  const t = rules.createErrorTracker(0);
+  // Abrir un archivo con errores o que cargue el servidor de C#: no suena.
+  assert.equal(t.settled(3, 'onSave'), null);
+  assert.equal(t.baseline, 3);
+  assert.equal(t.settled(3, 'live'), null);
+  // Cerrar ese archivo: sus errores desaparecen, tampoco suena.
+  assert.equal(t.settled(0, 'live'), null);
+  assert.equal(t.baseline, 0);
+});
+
+test('errores (onSave): abrir con errores, corregir y guardar → todo resuelto', () => {
+  const t = rules.createErrorTracker(0);
+  t.settled(3, 'onSave'); // se abre un archivo que ya tenía 3 errores
+  t.edited();
+  assert.equal(t.settled(0, 'onSave'), null, 'mientras escribes no suena nada');
+  assert.equal(t.baseline, 3, 'la referencia queda congelada');
+  assert.equal(t.check(0), 'allClear', 'al guardar');
+  assert.equal(t.dirty, false);
+});
+
+test('errores (onSave): escribir un error y guardar → errores nuevos', () => {
+  const t = rules.createErrorTracker(1);
+  t.edited();
+  t.settled(2, 'onSave');
+  assert.equal(t.check(2), 'newError');
+  assert.equal(t.check(2), null, 'guardar otra vez sin cambios no suena');
+});
+
+test('errores (live): suena en cuanto se estabiliza si has editado', () => {
+  const t = rules.createErrorTracker(0);
+  t.edited();
+  assert.equal(t.settled(1, 'live'), 'newError');
+  t.edited();
+  assert.equal(t.settled(0, 'live'), 'allClear');
+});
+
 test('taskExitSound', () => {
   assert.equal(rules.taskExitSound(0), 'buildSuccess');
   assert.equal(rules.taskExitSound(1), 'buildFail');
