@@ -4,13 +4,14 @@
 /**
  * Punto de entrada de la extensión.
  *
- * Los temas de color no necesitan código: VS Code los lee de package.json. Este
- * archivo solo existe para el módulo de sonidos opcional, que está desactivado
- * por defecto.
+ * Los temas de color y de iconos no necesitan código: VS Code los lee de
+ * package.json. Este archivo añade el módulo de sonidos opcional (desactivado
+ * por defecto) y el indicador de lore de la barra de estado.
  */
 
 const vscode = require('vscode');
 const { SoundController } = require('./controller');
+const { registerLocationIndicator } = require('./location');
 
 /** @param {vscode.ExtensionContext} context */
 function activate(context) {
@@ -25,6 +26,7 @@ function activate(context) {
   );
 
   controller.init();
+  const location = registerLocationIndicator(context);
 
   // API interna para el test de integración (test/integration). No es pública.
   return {
@@ -33,6 +35,9 @@ function activate(context) {
     },
     get soundsStarted() {
       return controller.started;
+    },
+    get locationText() {
+      return location.text;
     },
   };
 }

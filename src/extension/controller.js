@@ -16,6 +16,7 @@ const rules = require('./rules');
 const { resolveSoundFile } = require('./soundbank');
 const { getScaledFile, pruneCache } = require('./volume');
 const { createPlayer } = require('./player');
+const { readActiveThemeLabel, THEME_SETTING_KEYS } = require('./theme-state');
 
 /** Espera tras el último cambio de diagnósticos antes de contar errores. */
 const ERROR_SETTLE_MS = 1200;
@@ -27,15 +28,6 @@ const STARTUP_DELAY_MS = 1500;
 
 /** Documentos cuyas ediciones cuentan como «el usuario está escribiendo código». */
 const EDITABLE_SCHEMES = new Set(['file', 'untitled', 'vscode-remote', 'vscode-vfs']);
-
-const WORKBENCH_THEME_KEYS = [
-  'workbench.colorTheme',
-  'workbench.preferredDarkColorTheme',
-  'workbench.preferredLightColorTheme',
-  'workbench.preferredHighContrastColorTheme',
-  'workbench.preferredHighContrastLightColorTheme',
-  'window.autoDetectColorScheme',
-];
 
 /** @param {import('./catalog').SoundEvent} event */
 function eventLabel(event) {
@@ -185,7 +177,7 @@ class SoundController {
 
   /** @param {vscode.ConfigurationChangeEvent} e */
   onConfigurationChanged(e) {
-    if (WORKBENCH_THEME_KEYS.some((k) => e.affectsConfiguration(k))) this.onThemeChanged();
+    if (THEME_SETTING_KEYS.some((k) => e.affectsConfiguration(k))) this.onThemeChanged();
     if (!e.affectsConfiguration(SECTION)) return;
 
     const previous = this.config;
@@ -206,18 +198,7 @@ class SoundController {
   }
 
   activeThemeLabel() {
-    const c = vscode.workspace.getConfiguration();
-    return rules.activeThemeLabel(
-      {
-        autoDetect: c.get('window.autoDetectColorScheme') === true,
-        colorTheme: c.get('workbench.colorTheme'),
-        preferredDark: c.get('workbench.preferredDarkColorTheme'),
-        preferredLight: c.get('workbench.preferredLightColorTheme'),
-        preferredHighContrast: c.get('workbench.preferredHighContrastColorTheme'),
-        preferredHighContrastLight: c.get('workbench.preferredHighContrastLightColorTheme'),
-      },
-      vscode.window.activeColorTheme.kind
-    );
+    return readActiveThemeLabel();
   }
 
   /** @returns {import('./catalog').Pack | null} */

@@ -3,6 +3,20 @@
 All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [0.6.0] — 2026-10-06
+
+### Added
+
+- **CONTROL Astral**, a light theme inspired by the Astral Plane: a white void framed by black geometry, with red only for details.
+- **Bureau Icons** file icon theme: dossier-style labels and pictograms with a classification band, concrete folders with coloured tabs, dark and light variants. Lore details: redacted `.env` files, Hedron hexagon for tests, the Board's pyramid as root folder.
+- Status bar **location** indicator (`▼ THE OLDEST HOUSE`, `BLACK ROCK`, `PATTERNED MANHATTAN`, `ASTRAL PLANE`). Click to change the theme; setting `bureauTheme.statusBar.showLocation`.
+
+### Changed
+
+- Redesigned frame (Bureau signage): a dark *monolith* for the activity bar, status bar and title bar; sidebar titles as monolith bands with an accent line; accent rules between sections; accent indent guides; "astral light" for active frame elements; accent line on top of the status bar.
+- Chat panels: elevated request bubbles, accent-framed code blocks, monolith avatars and themed session indicators.
+- Floating widgets (Command Palette, notifications) get a thin accent frame.
+
 ## [0.5.0] — 2026-10-06
 
 First functional version (still in development: pending several days of real use before 1.0.0).

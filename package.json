@@ -2,7 +2,7 @@
   "name": "bureau-theme",
   "displayName": "%displayName%",
   "description": "%description%",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "publisher": "JaviHexer",
   "license": "MIT",
   "icon": "images/icon.png",
@@ -31,7 +31,11 @@
     "remedy",
     "brutalist",
     "red",
-    "sounds"
+    "sounds",
+    "light",
+    "icon theme",
+    "file icons",
+    "astral plane"
   ],
   "main": "./src/extension/extension.js",
   "activationEvents": [
@@ -64,6 +68,30 @@
         "label": "CONTROL Resonant",
         "uiTheme": "vs-dark",
         "path": "./themes/control-resonant-color-theme.json"
+      },
+      {
+        "label": "CONTROL Astral",
+        "uiTheme": "vs",
+        "path": "./themes/control-astral-color-theme.json"
+      }
+    ],
+    "iconThemes": [
+      {
+        "id": "bureau-icons",
+        "label": "Bureau Icons",
+        "path": "./icons/bureau-icon-theme.json"
+      }
+    ],
+    "colors": [
+      {
+        "id": "bureauTheme.statusBar.location",
+        "description": "%colors.location%",
+        "defaults": {
+          "dark": "#E5675D",
+          "light": "#B3261E",
+          "highContrast": "#FFFFFF",
+          "highContrastLight": "#000000"
+        }
       }
     ],
     "commands": [
@@ -226,6 +254,17 @@
             "description": "%config.events.gitCommit%"
           }
         }
+      },
+      {
+        "title": "%config.ui.title%",
+        "order": 3,
+        "properties": {
+          "bureauTheme.statusBar.showLocation": {
+            "type": "boolean",
+            "default": true,
+            "description": "%config.ui.showLocation%"
+          }
+        }
       }
     ]
   },
@@ -236,6 +275,7 @@
     "validate": "node scripts/validate-keys.js",
     "preview": "node scripts/preview.js",
     "sounds": "node scripts/sounds/generate.js",
+    "icons": "node scripts/icons.js",
     "icon": "node scripts/icon.js",
     "test": "node --test \"test/*.test.js\"",
     "test:integration": "node scripts/integration.js",

@@ -28,5 +28,8 @@
   "config.events.terminalFail": "When a terminal command fails (requires shell integration).",
   "config.events.debugStart": "When a debug session starts.",
   "config.events.breakpoint": "When the debugger stops at a breakpoint.",
-  "config.events.gitCommit": "When you make a Git commit."
+  "config.events.gitCommit": "When you make a Git commit.",
+  "colors.location": "Color of the CONTROL location shown in the status bar (\"▼ THE OLDEST HOUSE\").",
+  "config.ui.title": "CONTROL Theme — Status Bar",
+  "config.ui.showLocation": "Show the location of the active CONTROL theme in the status bar (▼ THE OLDEST HOUSE, BLACK ROCK, PATTERNED MANHATTAN, ASTRAL PLANE). Click it to change the theme."
 }

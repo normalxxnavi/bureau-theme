@@ -21,10 +21,12 @@ const semantic = require('./semantic');
  * @property {string} id
  * @property {string} label
  * @property {string} game
- * @property {{editor: string, sidebar: string, elevated: string, input: string}} bg
+ * @property {'dark' | 'light'} type
+ * @property {string} location lugar del juego (barra de estado)
+ * @property {{editor: string, sidebar: string, elevated: string, input: string, chrome: string}} bg
  * @property {string} border
- * @property {{bright: string, main: string, muted: string, placeholder: string, disabled: string, onAccent: string}} fg
- * @property {{main: string, solid: string, text: string}} accent
+ * @property {{bright: string, main: string, muted: string, placeholder: string, disabled: string, onAccent: string, chrome: string, chromeMuted: string, chromeActive: string}} fg
+ * @property {{main: string, line: string, solid: string, text: string, onChrome: string}} accent
  * @property {number} selectionAlpha
  * @property {{error: string, warning: string, info: string, success: string}} status
  * @property {string} link
@@ -38,7 +40,7 @@ const ROOT = path.resolve(__dirname, '..', '..');
 const THEMES_DIR = path.join(ROOT, 'themes');
 
 /** @type {Palette[]} */
-const palettes = [require('./palettes/dark'), require('./palettes/black'), require('./palettes/resonant')];
+const palettes = [require('./palettes/dark'), require('./palettes/black'), require('./palettes/resonant'), require('./palettes/astral')];
 
 /** Lista ordenada de las rutas de hojas de un objeto (`syntax.keyword`, `ansi.red`…). */
 function leafPaths(/** @type {any} */ obj, prefix = '') {
@@ -72,7 +74,7 @@ function buildTheme(p) {
   return {
     $schema: 'vscode://schemas/color-theme',
     name: p.label,
-    type: 'dark',
+    type: p.type,
     semanticHighlighting: true,
     colors: workbench(p),
     tokenColors: tokens(p),

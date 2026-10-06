@@ -28,5 +28,8 @@
   "config.events.terminalFail": "Cuando falla un comando de la terminal (requiere shell integration).",
   "config.events.debugStart": "Al iniciar una sesión de depuración.",
   "config.events.breakpoint": "Cuando el depurador se detiene en un breakpoint.",
-  "config.events.gitCommit": "Al hacer un commit de Git."
+  "config.events.gitCommit": "Al hacer un commit de Git.",
+  "colors.location": "Color del lugar de CONTROL que se muestra en la barra de estado («▼ THE OLDEST HOUSE»).",
+  "config.ui.title": "CONTROL Theme — Barra de estado",
+  "config.ui.showLocation": "Muestra en la barra de estado el lugar del tema CONTROL activo (▼ THE OLDEST HOUSE, BLACK ROCK, PATTERNED MANHATTAN, ASTRAL PLANE). Haz clic para cambiar de tema."
 }
