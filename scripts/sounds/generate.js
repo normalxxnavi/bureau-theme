@@ -487,7 +487,83 @@ function main() {
     );
   }
   const total = rows.reduce((s, r) => s + r.kb, 0);
-  console.log(`\n✔ ${rows.length} sonidos generados (${(total / 1024).toFixed(2)} MB)`);
+  writeDocs(rows);
+  console.log(`\n✔ ${rows.length} sonidos generados (${(total / 1024).toFixed(2)} MB) + docs/sound-design.md + sounds/LICENSES.md`);
+}
+
+/** Evento de VS Code que usa cada archivo (para la documentación). */
+const EVENT_OF = {
+  'startup.wav': 'Arranque de VS Code',
+  'theme.wav': 'Activar un tema CONTROL',
+  'save.wav': 'Guardar (manual)',
+  'error.wav': 'Errores nuevos',
+  'clear.wav': 'Todos los errores corregidos',
+  'build-ok.wav': 'Tarea terminada con éxito',
+  'build-fail.wav': 'Tarea fallida',
+  'terminal-fail.wav': 'Comando de terminal fallido',
+  'debug.wav': 'Inicio de depuración',
+  'breakpoint.wav': 'Breakpoint alcanzado',
+  'commit.wav': 'Commit de Git',
+};
+
+/** @param {Array<{pack: string, file: string, dur: number, peak: number, rms: number}>} rows */
+function writeDocs(rows) {
+  const md = [
+    '# Diseño de sonido',
+    '',
+    '> Archivo generado por `npm run sounds` a partir de `scripts/sounds/generate.js`. No lo edites a mano.',
+    '',
+    'Todos los sonidos son **recreaciones originales** sintetizadas con código (osciladores, ruido, filtros,',
+    'envolventes, reverb y eco). No contienen audio, música ni voces de *Control* ni de *Control Resonant*.',
+    '',
+    'Reglas de diseño (plan, sección 5.5):',
+    '',
+    '- La parte audible dura menos de 1,5 s (el arranque, unos 3 s); el resto es una cola de reverb que se apaga.',
+    '- Ataque suave, sin clics al empezar ni cortes al terminar (fundido final y recorte por debajo de −50 dBFS).',
+    '- Pico normalizado por sonido: −4/−6 dBFS los importantes, −8/−12 dBFS los frecuentes (guardar, breakpoint, terminal).',
+    '- Formato: WAV PCM 16 bits, mono, 32 kHz (lo entienden los reproductores de Windows, macOS y Linux).',
+    '',
+  ];
+  for (const [pack, sounds] of Object.entries(PACKS)) {
+    md.push(pack === 'control' ? '## Pack Control — The Oldest House' : '## Pack Resonant — Patterned Manhattan', '');
+    md.push(
+      pack === 'control'
+        ? 'Analógico e institucional: timbres, teléfonos, máquinas de escribir, alarmas y la reverb de una sala de hormigón.'
+        : 'Sintético y «cósmico»: tonos de cristal (FM), caídas de tono por gravedad y ecos que se repiten (el *Patterning*).',
+      ''
+    );
+    md.push('| Evento | Archivo | Sonido | Duración | Pico |', '|---|---|---|---|---|');
+    for (const [file, spec] of Object.entries(sounds)) {
+      const r = rows.find((x) => x.pack === pack && x.file === file);
+      md.push(`| ${/** @type {any} */ (EVENT_OF)[file]} | \`${file}\` | ${spec.describe} | ${r?.dur.toFixed(2)} s | ${r?.peak.toFixed(1)} dB |`);
+    }
+    md.push('');
+  }
+  md.push(
+    '## Cambiar o añadir sonidos',
+    '',
+    '1. Edita la receta en `scripts/sounds/generate.js` (las piezas reutilizables están arriba: `bell`, `click`, `thump`, `whisper`, `whoosh`, `glass`).',
+    '2. Ejecuta `npm run sounds` y escúchalos con el comando **CONTROL: Probar sonidos** (F5 → ventana de pruebas).',
+    '3. Para usar archivos propios sin tocar el código: ajuste `bureauTheme.sounds.customFolder`.',
+    ''
+  );
+  fs.writeFileSync(path.join(ROOT, 'docs', 'sound-design.md'), md.join('\n'));
+
+  const lic = [
+    '# Sound licenses',
+    '',
+    'All files in `sounds/control/` and `sounds/resonant/` are original works, synthesized from scratch by',
+    '`scripts/sounds/generate.js` (oscillators, filtered noise, envelopes, reverb and echo). They contain no',
+    'audio, music or voice recordings from *Control*, *Control Resonant* or any other third-party source.',
+    '',
+    'They are distributed under the same MIT license as the rest of this extension.',
+    '',
+    '| File | Source | License |',
+    '|---|---|---|',
+    ...rows.map((r) => `| \`${r.pack}/${r.file}\` | Synthesized by \`scripts/sounds/generate.js\` | MIT |`),
+    '',
+  ];
+  fs.writeFileSync(path.join(ROOT, 'sounds', 'LICENSES.md'), lic.join('\n'));
 }
 
 if (require.main === module) main();

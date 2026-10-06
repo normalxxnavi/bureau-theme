@@ -28,6 +28,7 @@ module.exports = function workbench(p) {
   const focus = alpha(accent.main, 0.8);
   const buttonHover = mix(accent.solid, '#FFFFFF', 0.1);
   const tabBar = bg.sidebar;
+  const activePill = mix(bg.editor, accent.main, 0.14);
   const shadow = black(0.45);
 
   return {
@@ -282,6 +283,32 @@ module.exports = function workbench(p) {
     'tab.selectedForeground': fg.bright,
     'tab.selectedBorderTop': alpha(accent.main, 0.6),
     'tab.dragAndDropBorder': accent.main,
+
+    // --- «Modern UI» (VS Code 1.140+, activado por defecto) -------------------
+    // Este diseño ignora tab.activeBorderTop: la pestaña activa es una
+    // «píldora» rellena. Se tiñe con el acento para conservar la firma del tema.
+    'modernUI.shellBackground': bg.sidebar,
+    'modernUI.inactiveShellBackground': bg.sidebar,
+    'modernPanel.border': p.border,
+    'modernSash.gripForeground': fg.disabled,
+    'modernEditorTab.activeBackground': activePill,
+    'modernEditorTab.activeForeground': fg.bright,
+    'modernEditorTab.activeHoverBackground': mix(bg.editor, accent.main, 0.2),
+    'modernEditorTab.inactiveBackground': NONE,
+    'modernEditorTab.hoverBackground': white(0.05),
+    'modernEditorTab.hoverForeground': fg.main,
+    'modernEditorTab.activeActionBackground': white(0.08),
+    'modernEditorTab.hoverActionBackground': white(0.08),
+    'modernEditorTab.activeHoverActionBackground': white(0.12),
+    'modernEditorTab.selectedActionBackground': activePill,
+    'modernTab.activeBackground': mix(bg.sidebar, accent.main, 0.18),
+    'modernTab.activeForeground': fg.bright,
+    'modernTab.hoverBackground': white(0.05),
+    'modernTab.hoverForeground': fg.main,
+    'modernActivityBarItem.activeBackground': mix(bg.sidebar, accent.main, 0.2),
+    'modernActivityBarItem.activeForeground': fg.bright,
+    'modernActivityBarItem.hoverBackground': white(0.05),
+    'modernActivityBarItem.hoverForeground': fg.bright,
 
     'breadcrumb.background': bg.editor,
     'breadcrumb.foreground': fg.muted,
