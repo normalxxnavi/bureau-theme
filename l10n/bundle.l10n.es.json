@@ -1,0 +1,23 @@
+{
+  "VS Code starts": "Arranque de VS Code",
+  "CONTROL theme activated": "Tema CONTROL activado",
+  "File saved": "Archivo guardado",
+  "New errors": "Errores nuevos",
+  "All errors fixed": "Todos los errores corregidos",
+  "Task succeeded": "Tarea terminada con éxito",
+  "Task failed": "Tarea fallida",
+  "Terminal command failed": "Comando de terminal fallido",
+  "Debugging started": "Depuración iniciada",
+  "Breakpoint hit": "Breakpoint alcanzado",
+  "Git commit": "Commit de Git",
+  "CONTROL Theme: no audio player was found on this system (paplay, pw-play or aplay). Sounds are disabled for this session.": "CONTROL Theme: no se ha encontrado ningún reproductor de audio en este sistema (paplay, pw-play o aplay). Los sonidos quedan desactivados en esta sesión.",
+  "The workspace settings override \"bureauTheme.sounds.enabled\", so this change only applies outside this workspace.": "Los ajustes de este workspace sobrescriben \"bureauTheme.sounds.enabled\", así que el cambio solo se aplica fuera de este workspace.",
+  "CONTROL sounds disabled.": "Sonidos de CONTROL desactivados.",
+  "Preview Sounds": "Probar sonidos",
+  "Settings": "Ajustes",
+  "CONTROL sounds enabled. They will play while a CONTROL theme is active.": "Sonidos de CONTROL activados. Sonarán mientras uno de los temas CONTROL esté activo.",
+  "CONTROL sounds enabled.": "Sonidos de CONTROL activados.",
+  "CONTROL: Preview Sounds": "CONTROL: Probar sonidos",
+  "Press Enter on a sound to play it. Esc closes the list.": "Pulsa Intro sobre un sonido para escucharlo. Esc cierra la lista.",
+  "VS Code has its own accessibility signals. CONTROL sounds may overlap with them; you can turn each event off in the settings.": "VS Code tiene sus propias señales de accesibilidad. Los sonidos de CONTROL pueden solaparse con ellas; puedes desactivar cada evento en los ajustes."
+}
