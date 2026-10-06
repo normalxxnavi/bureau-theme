@@ -12,5 +12,6 @@ propiedades, atributos), más:
 | `diff.diff`, `git-conflict.txt` | Colores de diff y de conflictos de merge |
 | `.vscode/tasks.json` | Sonidos de build correcta y fallida |
 | `.vscode/launch.json` | Sonidos de depuración y breakpoint |
+| `terminal-colors.js` | Los 16 colores ANSI de la terminal (`node terminal-colors.js`) |
 
 Usa **Developer: Inspect Editor Tokens and Scopes** para ver qué regla colorea cada palabra.

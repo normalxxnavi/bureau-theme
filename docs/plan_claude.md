@@ -6,6 +6,42 @@
 
 ---
 
+## Estado de la implementación (2026-10-06, versión 0.5.0)
+
+| Fase | Estado | Cómo se ha verificado |
+|---|---|---|
+| 0. Esqueleto | ✅ | F5 abre `test-workspace` con el tema; git con historial por fases |
+| 1. Paletas | ✅ | `npm run contrast`: todas las comprobaciones WCAG pasan en los 3 temas |
+| 2–4. Dark (UI, sintaxis, pulido) | ✅ | 655 claves validadas contra VS Code 1.140 (`npm run validate`); vista previa con las gramáticas reales (`npm run preview`); capturas reales |
+| 5. Black | ✅ | Hereda de Dark; colores de la interfaz comprobados píxel a píxel en una captura |
+| 6. Resonant | ✅ | Regla «el rojo es del Hiss» comprobada automáticamente |
+| 7. Motor de sonido | ✅ | 39 tests unitarios + test de integración en VS Code real: los **11 eventos** suenan (con WAV silenciosos) |
+| 8. Diseño de sonido | ✅ | 22 sonidos originales; forma de onda y espectrograma revisados; sin clics ni cortes (final ≤ −64 dB) |
+| 9. Testing conjunto | 🟡 | Automático: hecho. **Pendiente (tú):** varios días de uso real, monitor OLED, extensiones populares, macOS/Linux |
+| 10. Identidad | 🟡 | Icono, README, CHANGELOG, disclaimer y capturas hechos. **Pendiente (tú):** confirmar nombre y publisher |
+| 11. Empaquetado | 🟡 | `bureau-theme-0.5.0.vsix` instalado en un perfil limpio. **Pendiente (tú):** repositorio de GitHub y publicación |
+
+**Cambios respecto al plan, descubiertos durante la implementación:**
+
+- **VS Code 1.140 trae el diseño «modern UI» activado por defecto**, que ignora `tab.activeBorderTop` (la línea roja de la pestaña activa). Se añadieron las claves `modernEditorTab.*`, `modernTab.*` y `modernActivityBarItem.*`: la pestaña activa del panel es una «píldora» teñida con el acento.
+- **Errores:** la referencia ya no se toma a los 4 s de arrancar. Mientras no editas, sigue a los diagnósticos en silencio (abrir un archivo con errores, cerrar uno o la carga del servidor de C# no suenan); al editar se congela hasta la siguiente comprobación. Lo detectó el test de integración.
+- **SQL:** la gramática usa el mismo scope para `SELECT` y para `AND`/`LIKE`, así que solo ese grupo va en rojo; el resto de palabras SQL van apagadas.
+- **Keywords:** se separaron en *control de flujo* (rojo) y *declaraciones/modificadores* (tono apagado) para cumplir «uso moderado del rojo» en C#, que tiene muchísimas palabras reservadas.
+- **Black:** se mantuvo `#0A0A0B` (no negro puro).
+
+**Comandos útiles:**
+
+| Comando | Para qué |
+|---|---|
+| `npm run build` / `npm run watch` | Generar los temas (una vez / al guardar) |
+| `npm run check` | Build + contraste + validación de claves + tests |
+| `npm run preview` | Vistas previas HTML en `.preview/` e informe de scopes sin color |
+| `npm run sounds` | Regenerar los 22 sonidos y su documentación |
+| `npm run test:integration` | Test en VS Code real (abre una ventana unos segundos) |
+| `npm run package` | Generar el `.vsix` |
+
+---
+
 ## 0. Resumen en 30 segundos
 
 - Una sola extensión con **tres temas**, cada uno anclado a un juego:
@@ -80,72 +116,70 @@ Fuentes: [Wikipedia — Control Resonant](https://en.wikipedia.org/wiki/Control_
 
 ## 3. Arquitectura del proyecto
 
-### 3.1. Estructura
+### 3.1. Estructura (tal como quedó implementada)
 
 ```text
 Theme-Control/
 ├── package.json                 # manifiesto: temas, ajustes, comandos, scripts npm
+├── package.nls.json · package.nls.es.json   # textos de ajustes y comandos (inglés / español)
 ├── README.md · CHANGELOG.md · LICENSE (MIT)
-├── .vscodeignore · .gitignore
+├── .vscodeignore · .gitignore · .gitattributes · .editorconfig · jsconfig.json
 │
 ├── .vscode/
 │   ├── launch.json              # F5 → Extension Development Host con test-workspace
-│   └── tasks.json               # tarea "watch" que regenera los temas al guardar
+│   └── tasks.json               # build, watch (regenera al guardar) y check
 │
 ├── src/
 │   ├── theme/                   # GENERADOR DE TEMAS (fuente de verdad de los colores)
-│   │   ├── palettes/
-│   │   │   ├── dark.js          # Control: Oldest House
-│   │   │   ├── black.js         # Control: Black Rock / OLED (hereda de dark)
-│   │   │   └── resonant.js      # Control Resonant: Manhattan
-│   │   ├── workbench.js         # colores de la interfaz a partir de roles
+│   │   ├── palettes/dark.js · black.js · resonant.js
+│   │   ├── color.js             # utilidades: alpha, mix, contraste WCAG, «¿es rojo?»
+│   │   ├── workbench.js         # 655 colores de la interfaz a partir de roles
 │   │   ├── tokens.js            # tokenColors (TextMate)
-│   │   ├── semantic.js          # semanticTokenColors
-│   │   └── build.js             # escribe themes/*.json
+│   │   ├── semantic.js          # semanticTokenColors (incl. Roslyn y Razor)
+│   │   └── build.js             # escribe themes/*.json y comprueba que las paletas tienen los mismos roles
 │   │
 │   └── extension/               # CÓDIGO QUE SE EJECUTA EN VS CODE (módulo de sonido)
-│       ├── extension.js         # activate()/deactivate()
-│       ├── config.js            # lectura de los ajustes bureauTheme.*
-│       ├── events.js            # escucha eventos de VS Code → decide qué sonido
-│       ├── soundbank.js         # resuelve el pack (control/resonant/auto/carpeta propia)
-│       ├── volume.js            # aplica el volumen escalando el WAV
+│       ├── extension.js         # activate(): comandos + controlador
+│       ├── controller.js        # conecta los eventos de VS Code con el motor
+│       ├── rules.js             # lógica PURA: cooldown, errores, tareas, terminal, packs (testeable sin VS Code)
+│       ├── catalog.js           # evento → archivo .wav y prioridad
+│       ├── config.js            # lectura y normalización de bureauTheme.sounds.*
+│       ├── soundbank.js         # carpeta personalizada o pack incluido
+│       ├── volume.js            # volumen escalando las muestras del WAV + caché
 │       └── player/
 │           ├── index.js         # elige el reproductor según el SO
 │           ├── windows.js       # proceso PowerShell persistente
-│           ├── macos.js         # afplay
-│           └── linux.js         # paplay / aplay
+│           └── process-player.js# afplay (macOS) y paplay / pw-play / aplay (Linux)
 │
+├── l10n/bundle.l10n.es.json     # mensajes de la extensión en español
 ├── themes/                      # GENERADO (no se edita a mano, sí se versiona)
-│   ├── control-dark-color-theme.json
-│   ├── control-black-color-theme.json
-│   └── control-resonant-color-theme.json
-│
-├── sounds/                      # SE INCLUYE en el .vsix
-│   ├── control/   startup.wav, theme.wav, save.wav, error.wav, clear.wav, …
-│   ├── resonant/  (mismos nombres de archivo)
-│   └── LICENSES.md              # origen y licencia de CADA archivo
+├── sounds/control · sounds/resonant · sounds/LICENSES.md   # GENERADO por npm run sounds
 │
 ├── scripts/
-│   ├── contrast.js              # comprueba ratios WCAG de las 3 paletas
-│   └── sounds/generate.js       # sintetiza los WAV originales (reproducible)
+│   ├── contrast.js              # contrastes WCAG + regla «el rojo es del Hiss» (+ docs/palette.md)
+│   ├── validate-keys.js         # cada clave de color existe en tu VS Code
+│   ├── preview.js               # vista previa HTML con las gramáticas reales de VS Code
+│   ├── icon.js                  # genera images/icon.png
+│   ├── integration.js           # lanza el test de integración en VS Code (perfil aislado)
+│   ├── lib/png.js · lib/vscode-install.js
+│   └── sounds/dsp.js · sounds/generate.js   # sintetizador y recetas de los 22 sonidos
 │
-├── test/                        # tests con node:test (sin dependencias)
-│   ├── events.test.js           # lógica de "qué suena y cuándo", cooldown
-│   └── volume.test.js
+├── test/                        # node:test, sin dependencias
+│   ├── rules.test.js · volume.test.js · soundbank.test.js
+│   ├── manifest.test.js         # package.json ↔ catálogo ↔ traducciones ↔ archivos
+│   ├── themes.test.js           # JSON actualizados, roles, contraste
+│   └── integration/index.js     # se ejecuta DENTRO de VS Code (npm run test:integration)
 │
-├── test-workspace/              # archivos de muestra para validar los temas
-│   ├── ThemeTests.csproj, csharp.cs, razor.cshtml, javascript.js, typescript.ts,
-│   ├── html.html, css.css, scss.scss, json.json, sql.sql,
-│   └── markdown.md, xml.xml, diff.diff, git-conflict.txt
+├── test-workspace/              # un archivo por lenguaje + errors.ts, terminal-colors.js, tareas y depuración
 │
 ├── docs/
 │   ├── plan_tema_vscode_control.md · plan_claude.md
-│   ├── palette.md               # tablas de las 3 paletas
-│   └── sound-design.md          # descripción de cada sonido y cómo se generó
+│   ├── palette.md               # GENERADO: contrastes de las 3 paletas
+│   └── sound-design.md          # GENERADO: descripción de cada sonido
 │
 └── images/
-    ├── icon.png                 # 128×128, diseño propio
-    └── screenshots/
+    ├── icon.png                 # 256×256, diseño propio
+    └── screenshots/             # capturas reales de los 3 temas (instalación limpia del .vsix)
 ```
 
 ### 3.2. Por qué un generador y no JSON a mano

@@ -40,6 +40,8 @@ function checksFor(p) {
     { group: 'Selección', label: 'comentario / selección', fg: s.comment, bg: selection, min: 3.5 },
     { group: 'Selección', label: 'subrayado de error / selección', fg: status.error, bg: selection, min: MIN.graphic },
     { group: 'Selección', label: 'texto / fila activa en listas', fg: fg.bright, bg: listActive, min: MIN.text },
+    { group: 'Selección', label: 'texto / pestaña activa (modern UI)', fg: fg.bright, bg: mix(bg.editor, accent.main, 0.14), min: MIN.text },
+    { group: 'Selección', label: 'texto / pestaña activa del panel (modern UI)', fg: fg.bright, bg: mix(bg.sidebar, accent.main, 0.18), min: MIN.text },
     { group: 'Selección', label: 'coincidencia / fila activa', fg: accent.text, bg: listActive, min: MIN.graphic },
 
     { group: 'Acento', label: 'acento (cursor, bordes) / editor', fg: accent.main, bg: bg.editor, min: MIN.graphic },

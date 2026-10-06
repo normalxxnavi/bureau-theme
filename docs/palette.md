@@ -28,6 +28,8 @@ Mínimos: texto ≥ 7, código y UI ≥ 4.5, comentarios ≥ 4.3, elementos grá
 | comentario / selección | `#827F78` | `#3F1E1D` | 3.72 | 3.5 |
 | subrayado de error / selección | `#FF6B6B` | `#3F1E1D` | 5.35 | 3 |
 | texto / fila activa en listas | `#F2EFE8` | `#3B1A19` | 13.57 | 7 |
+| texto / pestaña activa (modern UI) | `#F2EFE8` | `#331C1C` | 13.82 | 7 |
+| texto / pestaña activa del panel (modern UI) | `#F2EFE8` | `#371919` | 13.90 | 7 |
 | coincidencia / fila activa | `#E5675D` | `#3B1A19` | 4.77 | 3 |
 
 ### Acento
@@ -133,6 +135,8 @@ Mínimos: texto ≥ 7, código y UI ≥ 4.5, comentarios ≥ 4.3, elementos grá
 | comentario / selección | `#827F78` | `#2A1010` | 4.45 | 3.5 |
 | subrayado de error / selección | `#FF6B6B` | `#2A1010` | 6.41 | 3 |
 | texto / fila activa en listas | `#F2EFE8` | `#32100F` | 15.03 | 7 |
+| texto / pestaña activa (modern UI) | `#F2EFE8` | `#28100F` | 15.61 | 7 |
+| texto / pestaña activa del panel (modern UI) | `#F2EFE8` | `#2E0F0E` | 15.36 | 7 |
 | coincidencia / fila activa | `#E5675D` | `#32100F` | 5.28 | 3 |
 
 ### Acento
@@ -238,6 +242,8 @@ Mínimos: texto ≥ 7, código y UI ≥ 4.5, comentarios ≥ 4.3, elementos grá
 | comentario / selección | `#80868F` | `#223238` | 3.62 | 3.5 |
 | subrayado de error / selección | `#FF5A4E` | `#223238` | 4.32 | 3 |
 | texto / fila activa en listas | `#F1F2F0` | `#23383D` | 10.97 | 7 |
+| texto / pestaña activa (modern UI) | `#F1F2F0` | `#223136` | 11.98 | 7 |
+| texto / pestaña activa del panel (modern UI) | `#F1F2F0` | `#213439` | 11.58 | 7 |
 | coincidencia / fila activa | `#6FCFDC` | `#23383D` | 6.83 | 3 |
 
 ### Acento
