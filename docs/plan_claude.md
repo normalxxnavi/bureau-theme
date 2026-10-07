@@ -647,6 +647,7 @@ Peticiones: título **Theme CONTROL**; descripción más corta y profesional; ca
 | Qué | Dónde | Verificado |
 |---|---|---|
 | Título **Theme CONTROL** y descripción corta (inglés y español) | `package.nls.json`, `package.nls.es.json` | Instalación limpia del `.vsix` |
+| **Icono nuevo**: el Consejo como aparece en el Plano Astral, una pirámide invertida de piedra negra mate en el vacío blanco, vista desde abajo (dibujo propio, sin arte del juego) | `scripts/icon.js` | Revisado a 256, 128, 64 y 42 px sobre fondo claro y oscuro |
 | **Capturas profesionales**: VS Code real con un proyecto de demostración (Git con cambios, tarea de tests en la terminal, tipografía del juego), compuestas sobre fondos por tema: portada con los cuatro temas en franjas diagonales, una lámina por tema con su paleta, vitrina de Bureau Icons, comparación VS Code → Bureau de los iconos de producto y tipografía | `images/screenshots/` | Revisadas una a una |
 | **README bilingüe**: sección completa en inglés y otra en español, con las nuevas imágenes | `README.md` | Todas las imágenes enlazadas existen |
 | Rama de Git con cambios, preparada o con conflictos: la pirámide con una marca (4 glifos nuevos, 166 iconos) | `scripts/product-icons.js` | Barra de estado con `main*` en las capturas |
