@@ -8,5 +8,5 @@
     "types": ["node", "vscode"],
     "maxNodeModuleJsDepth": 0
   },
-  "include": ["src/**/*.js", "scripts/**/*.js", "test/**/*.js"]
+  "include": ["src/**/*.js", "scripts/**/*.js", "scripts/**/*.d.ts", "test/**/*.js"]
 }

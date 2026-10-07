@@ -118,12 +118,27 @@ test('el tema de iconos apunta a SVG que existen y son válidos', () => {
   assert.ok(theme.light && theme.light.file, 'debe tener variante para temas claros');
 });
 
-test('el indicador de la barra de estado conoce el lugar de cada tema', () => {
-  const { palettes } = require('../src/theme/build');
-  const src = fs.readFileSync(path.join(ROOT, 'src', 'extension', 'location.js'), 'utf8');
-  for (const p of palettes) {
-    assert.ok(src.includes(`'${p.label}': {\n    location: '${p.location}'`), `${p.label} → ${p.location}`);
+test('el tema de iconos internos (product icons) apunta a una fuente válida y a glifos existentes', () => {
+  const entry = pkg.contributes.productIconThemes[0];
+  const file = path.join(ROOT, entry.path);
+  const theme = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const woff = path.join(path.dirname(file), theme.fonts[0].src[0].path);
+  assert.equal(fs.readFileSync(woff).toString('latin1', 0, 4), 'wOFF');
+  const { GLYPHS, MAPPING } = require('../scripts/product-icons');
+  const codes = new Set(Object.keys(GLYPHS).map((_, i) => (0xe001 + i).toString(16).toUpperCase()));
+  for (const [id, def] of Object.entries(theme.iconDefinitions)) {
+    assert.ok(codes.has(/** @type {any} */ (def).fontCharacter.slice(1)), `${id}: glifo inexistente`);
+    assert.ok(id in MAPPING, id);
   }
-  assert.equal(properties['bureauTheme.statusBar.showLocation'].default, true);
-  assert.ok(pkg.contributes.colors.some((/** @type {any} */ c) => c.id === 'bureauTheme.statusBar.location'));
+  // La barra de actividad y la rama de Git están cubiertas.
+  for (const id of ['explorer-view-icon', 'search-view-icon', 'source-control-view-icon', 'run-view-icon', 'extensions-view-icon', 'git-branch', 'copilot']) {
+    assert.ok(id in theme.iconDefinitions, id);
+  }
+});
+
+test('la tipografía es opcional y solo se configura en los ajustes de usuario', () => {
+  const font = properties['bureauTheme.font'];
+  assert.equal(font.default, 'none');
+  assert.equal(font.scope, 'application');
+  assert.deepEqual(font.enum, ['none', 'bureau', 'resonant', 'auto']);
 });

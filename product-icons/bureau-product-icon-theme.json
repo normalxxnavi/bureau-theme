@@ -1,0 +1,98 @@
+{
+  "fonts": [
+    {
+      "id": "bureau-product-icons",
+      "src": [
+        {
+          "path": "./bureau-product-icons.woff",
+          "format": "woff"
+        }
+      ],
+      "weight": "normal",
+      "style": "normal"
+    }
+  ],
+  "iconDefinitions": {
+    "explorer-view-icon": {
+      "fontCharacter": "\\E001"
+    },
+    "files": {
+      "fontCharacter": "\\E001"
+    },
+    "search-view-icon": {
+      "fontCharacter": "\\E002"
+    },
+    "search": {
+      "fontCharacter": "\\E002"
+    },
+    "search-large": {
+      "fontCharacter": "\\E002"
+    },
+    "source-control-view-icon": {
+      "fontCharacter": "\\E003"
+    },
+    "source-control": {
+      "fontCharacter": "\\E003"
+    },
+    "git-branch": {
+      "fontCharacter": "\\E003"
+    },
+    "run-view-icon": {
+      "fontCharacter": "\\E005"
+    },
+    "debug-alt": {
+      "fontCharacter": "\\E005"
+    },
+    "extensions-view-icon": {
+      "fontCharacter": "\\E007"
+    },
+    "extensions": {
+      "fontCharacter": "\\E007"
+    },
+    "test-view-icon": {
+      "fontCharacter": "\\E006"
+    },
+    "beaker": {
+      "fontCharacter": "\\E006"
+    },
+    "accounts-view-bar-icon": {
+      "fontCharacter": "\\E008"
+    },
+    "account": {
+      "fontCharacter": "\\E008"
+    },
+    "settings-view-bar-icon": {
+      "fontCharacter": "\\E009"
+    },
+    "settings-gear": {
+      "fontCharacter": "\\E009"
+    },
+    "manage": {
+      "fontCharacter": "\\E009"
+    },
+    "chat-view-icon": {
+      "fontCharacter": "\\E004"
+    },
+    "chat-sparkle": {
+      "fontCharacter": "\\E004"
+    },
+    "copilot": {
+      "fontCharacter": "\\E004"
+    },
+    "copilot-logo": {
+      "fontCharacter": "\\E004"
+    },
+    "bell": {
+      "fontCharacter": "\\E00A"
+    },
+    "bell-dot": {
+      "fontCharacter": "\\E00B"
+    },
+    "terminal-view-icon": {
+      "fontCharacter": "\\E00C"
+    },
+    "terminal": {
+      "fontCharacter": "\\E00C"
+    }
+  }
+}

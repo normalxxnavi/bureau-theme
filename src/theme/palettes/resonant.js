@@ -18,7 +18,6 @@ module.exports = {
   label: 'CONTROL Resonant',
   game: 'Control Resonant (2026) — Patterned Manhattan',
   type: 'dark',
-  location: 'PATTERNED MANHATTAN',
 
   bg: {
     editor: '#15171B',
@@ -46,7 +45,6 @@ module.exports = {
     line: '#6FCFDC',
     solid: '#24707B',
     text: '#6FCFDC',
-    onChrome: '#6FCFDC',
   },
 
   selectionAlpha: 0.15,

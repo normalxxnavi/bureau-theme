@@ -1,6 +1,6 @@
 # Bureau Theme — inspired by CONTROL
 
-Four color themes for Visual Studio Code inspired by the brutalist look of **CONTROL** and **CONTROL Resonant** — three dark ones and a light one from the **Astral Plane** — plus the **Bureau Icons** file icon theme, a lore indicator in the status bar and **optional** sound effects for everyday VS Code events.
+Four color themes for Visual Studio Code inspired by the brutalist look of **CONTROL** and **CONTROL Resonant** — three dark ones and a light one from the **Astral Plane** — plus **Bureau Icons** (file icons), **Bureau Product Icons** (VS Code's own icons: activity bar, Git branch, Copilot, notifications…), an optional **typography** inspired by the games and **optional** sound effects for everyday VS Code events.
 
 > Fan-made project. Not affiliated with or endorsed by Remedy Entertainment. See the [disclaimer](#disclaimer).
 
@@ -31,13 +31,15 @@ The frame of the editor is designed like the signage of the Federal Bureau of Co
 
 - **The monolith.** The activity bar, status bar and title bar form a dark block (black in every theme, also in Astral) that holds the editor, the sidebar and the panel. Three depths: monolith < sidebar < editor.
 - **Signage headers.** Sidebar titles (*EXPLORER*, *SEARCH*…) are a monolith band with an accent line underneath; section headers are separated by thin accent rules.
-- **Astral light.** Active elements of the frame (the selected activity bar icon, hovered status bar items) glow in pure white, like the light of the Astral Plane.
-- **Status bar.** A thin accent line on top, a solid accent block for remote connections, and the **location** of the active theme: `▼ THE OLDEST HOUSE`, `▼ BLACK ROCK`, `▼ PATTERNED MANHATTAN` or `▼ ASTRAL PLANE` (the ▼ is the Board's inverted pyramid). Click it to switch themes; hide it with `bureauTheme.statusBar.showLocation`.
+- **Astral light.** Active elements of the frame (the selected activity bar icon, hovered status bar items) glow in pure white, like the light of the Astral Plane. **CONTROL Black** goes further: it is the *Astral Plane in negative*, with all signage lines, the cursor and the glows in astral white, and FBC red kept for selection and details.
+- **Status bar.** A thin accent line on top and a solid accent block for remote connections.
 - **Side panels and chat.** Chat panels (including the secondary sidebar) use elevated "dossier" bubbles, accent-framed code blocks and monolith avatars.
+- **Accent glow.** Floating widgets (Command Palette, suggestions, hovers) and the edge of scrolled content glow with the theme colour: FBC red, the Hedron's cyan or astral white.
+- **Editor details.** The current line number, the active indent guide, matching brackets and rulers use the accent; a thin accent line runs under the tabs; the line-number gutter is a slightly darker concrete band.
 
 Design rules behind the colours:
 
-- **Readability first.** Every text colour is checked against WCAG contrast ratios (body text ≥ 7:1, code tokens ≥ 4.5:1).
+- **Readability first.** Every text colour is checked against WCAG contrast ratios (body text ≥ 7:1, code tokens ≥ 4.5:1). The light theme, CONTROL Astral, meets stricter AAA targets (body text ≥ 15:1, code ≥ 7:1, comments ≥ 6.5:1).
 - **Red is used sparingly.** In Dark and Black the red accent marks the cursor, the active tab, focus and badges. In code, only control-flow keywords (`if`, `return`, `throw`…) are red; declarations (`public`, `const`, `class`…) use a muted tone.
 - **Active ≠ broken.** The error colour is lighter and pinker than the accent so a red squiggle is never confused with an active element. In Astral the structural accent is black, so red only means *detail* or *error*.
 - Full coverage of the UI (688 colour keys, including the *modern UI* tabs of VS Code 1.140), the integrated terminal (16 ANSI colours), Git decorations, diff/merge editors, bracket pair colours and **semantic highlighting** (including C# / Roslyn and Razor tokens).
@@ -46,13 +48,51 @@ Design rules behind the colours:
 
 1. Install the extension (from the Marketplace or with `code --install-extension bureau-theme-<version>.vsix`).
 2. Open the theme picker with <kbd>Ctrl</kbd>+<kbd>K</kbd> <kbd>Ctrl</kbd>+<kbd>T</kbd> (<kbd>Cmd</kbd>+<kbd>K</kbd> <kbd>Cmd</kbd>+<kbd>T</kbd> on macOS) and choose **CONTROL Dark**, **CONTROL Black**, **CONTROL Resonant** or **CONTROL Astral**.
-3. Optional: run **Preferences: File Icon Theme** and choose **Bureau Icons**.
+3. Optional: run **Preferences: File Icon Theme** → **Bureau Icons**, and **Preferences: Product Icon Theme** → **Bureau Product Icons**.
+4. Optional: the first time the extension starts it offers the game typography; you can also run **CONTROL: Choose Typography…** at any time.
 
 ## Bureau Icons
 
 A file icon theme in the same style. Each file is labelled like a Bureau dossier: a code (`TS`, `C#`, `{}`…) or a pictogram, with a classification band underneath. Folders are concrete blocks with a coloured tab (`src` red, `test` cyan, `docs` bone, `images` green…).
 
 Lore details: `.env` files appear as a **classified, redacted document**, test files carry the **Hedron hexagon**, and in multi-root workspaces the root folder is the **Board's inverted pyramid**. Icons have variants for dark and light themes.
+
+## Bureau Product Icons
+
+Replaces icons that VS Code draws itself (a *product icon theme*). Geometric, brutalist glyphs that work with the activity bar on the side, on top or at the bottom:
+
+| VS Code icon | Bureau glyph |
+|---|---|
+| Explorer | A Bureau dossier |
+| Search | A square, brutalist lens |
+| Source Control and the **Git branch** in the status bar | The **inverted pyramid** |
+| Copilot and Chat | **The Board**: the pyramid that speaks |
+| Run and Debug | The Hedron hexagon with *play* |
+| Testing | The Hedron hexagon with a check |
+| Extensions | Concrete blocks, one of them *altered* |
+| Accounts | A Bureau ID badge |
+| Settings | A hexagonal nut |
+| Notifications | The **Hotline** telephone |
+| Terminal | `>_` |
+
+![Bureau Product Icons with the activity bar on top](images/screenshots/control-dark-top.png)
+
+Only icons that VS Code identifies by name can be replaced. Extensions that draw their own image (for example Claude Code's logo) keep their icon.
+
+## Typography
+
+*Control* is set in commercial typefaces (Interstate for signage and UI, ITC Avant Garde Gothic for titles, Akzidenz-Grotesk for documents), so they cannot be bundled. The extension includes free alternatives (SIL Open Font License) and offers them the first time it starts:
+
+| Option | Code (editor, terminal, debug console, code in chat) | Text (chat, Markdown preview) |
+|---|---|---|
+| **Bureau** (*Control*) | **Overpass Mono** — derived from *Highway Gothic*, the road-sign lettering Interstate is based on | **Overpass** |
+| **Resonant** (*Control Resonant*) | **Space Mono** — geometric, retro-futuristic | **Space Grotesk** |
+| **Follow the theme** | Resonant with CONTROL Resonant, Bureau with the other CONTROL themes, your own font with any other theme | |
+
+- If you own **Interstate Mono** / **Interstate**, the Bureau option uses them first.
+- The fonts are installed **only for your user** (no administrator rights). New fonts are loaded when VS Code starts, so restart it once after choosing.
+- Choosing **Keep my font** restores your previous settings (except the ones you changed yourself afterwards). **CONTROL: Remove Installed Fonts** also deletes the font files.
+- VS Code does not allow changing the font of its own interface (menus, tabs), only the editor, terminal, chat and previews.
 
 ## Optional sounds
 
@@ -88,7 +128,6 @@ Turn them on with the command **CONTROL: Toggle Sounds**, or in Settings (<kbd>C
 | `bureauTheme.sounds.cooldownMs` | `1500` | Minimum time between sounds. More important sounds (errors, failed builds) can still interrupt less important ones. |
 | `bureauTheme.sounds.customFolder` | `""` | Folder with your own `.wav` files (user settings only). Missing files fall back to the selected pack. |
 | `bureauTheme.sounds.events.*` | see above | One switch per event. |
-| `bureauTheme.statusBar.showLocation` | `true` | Show the location of the active CONTROL theme in the status bar. |
 
 **Custom sounds:** put `.wav` files named `startup.wav`, `theme.wav`, `save.wav`, `error.wav`, `clear.wav`, `build-ok.wav`, `build-fail.wav`, `terminal-fail.wav`, `debug.wav`, `breakpoint.wav` and `commit.wav` in a folder and point `bureauTheme.sounds.customFolder` to it. You don't need all of them. Only use audio you have the right to use.
 

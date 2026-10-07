@@ -116,16 +116,32 @@ async function run() {
     assert.equal(vscode.window.activeColorTheme.kind, vscode.ColorThemeKind.Dark);
   });
 
-  await step('indicador de la barra de estado: lugar de cada tema', async () => {
-    for (const [theme, place] of [['CONTROL Dark', 'THE OLDEST HOUSE'], ['CONTROL Black', 'BLACK ROCK'], ['CONTROL Resonant', 'PATTERNED MANHATTAN'], ['CONTROL Astral', 'ASTRAL PLANE']]) {
-      await setTheme(theme);
-      await waitFor(() => api.locationText === `$(triangle-down) ${place}`, `${theme} → ${place}`);
+  await step('tipografías: Bureau, «según el tema» y restaurar la tipografía anterior', async () => {
+    const cfg = () => vscode.workspace.getConfiguration();
+    const family = () => String(cfg().get('editor.fontFamily'));
+    const before = cfg().inspect('editor.fontFamily')?.globalValue;
+
+    await cfg().update('bureauTheme.font', 'bureau', G);
+    await waitFor(() => family().includes('Overpass Mono'), 'editor con Overpass Mono', 20000);
+    await api.fontsIdle();
+    assert.match(String(cfg().get('chat.fontFamily')), /Overpass/);
+    assert.match(String(cfg().get('terminal.integrated.fontFamily')), /Overpass Mono/);
+    if (process.platform === 'win32') {
+      const dir = path.join(process.env.LOCALAPPDATA || '', 'Microsoft', 'Windows', 'Fonts');
+      assert.ok(fs.existsSync(path.join(dir, 'BureauTheme-OverpassMono-Variable.ttf')), 'fuente instalada para el usuario');
     }
-    await setTheme('Default Dark Modern');
-    await waitFor(() => api.locationText === null, 'oculto con un tema que no es CONTROL');
+
+    await cfg().update('bureauTheme.font', 'auto', G);
+    await setTheme('CONTROL Resonant');
+    await waitFor(() => family().includes('Space Mono'), 'según el tema: Resonant → Space Mono', 20000);
     await setTheme('CONTROL Dark');
-    await waitFor(() => api.locationText !== null, 'visible otra vez');
-  });
+    await waitFor(() => family().includes('Overpass Mono'), 'según el tema: Dark → Overpass Mono', 20000);
+
+    await cfg().update('bureauTheme.font', 'none', G);
+    await waitFor(() => cfg().inspect('editor.fontFamily')?.globalValue === before, 'tipografía original restaurada', 20000);
+    await vscode.commands.executeCommand('bureauTheme.removeFonts');
+    await api.fontsIdle();
+  }, 90000);
 
   await step('activar los sonidos registra los listeners', async () => {
     await sounds.update('customFolder', silentDir, G);

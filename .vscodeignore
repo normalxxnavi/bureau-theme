@@ -20,3 +20,4 @@ package-lock.json
 .gitattributes
 .editorconfig
 *.vsix
+product-icons/svg/**

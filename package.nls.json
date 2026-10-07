@@ -29,7 +29,12 @@
   "config.events.debugStart": "When a debug session starts.",
   "config.events.breakpoint": "When the debugger stops at a breakpoint.",
   "config.events.gitCommit": "When you make a Git commit.",
-  "colors.location": "Color of the CONTROL location shown in the status bar (\"▼ THE OLDEST HOUSE\").",
-  "config.ui.title": "CONTROL Theme — Status Bar",
-  "config.ui.showLocation": "Show the location of the active CONTROL theme in the status bar (▼ THE OLDEST HOUSE, BLACK ROCK, PATTERNED MANHATTAN, ASTRAL PLANE). Click it to change the theme."
+  "command.chooseFont": "Choose Typography…",
+  "command.removeFonts": "Remove Installed Fonts",
+  "config.font.title": "CONTROL Theme — Typography",
+  "config.font": "Typography inspired by the games for the editor, terminal, debug console, chat and Markdown preview. The fonts are installed only for your user and your previous font is restored when you choose `none`. The original game fonts are commercial, so free alternatives (SIL OFL) are used: **Overpass** (derived from Highway Gothic, like Interstate) and **Space Mono / Space Grotesk**.",
+  "config.font.none": "Keep your own font (nothing is changed).",
+  "config.font.bureau": "Bureau (Control): Overpass Mono and Overpass, inspired by the Bureau signage. Uses Interstate if you have it installed.",
+  "config.font.resonant": "Resonant (Control Resonant): Space Mono and Space Grotesk.",
+  "config.font.auto": "Follow the theme: Resonant with CONTROL Resonant, Bureau with the other CONTROL themes, your own font with any other theme."
 }

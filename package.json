@@ -2,7 +2,7 @@
   "name": "bureau-theme",
   "displayName": "%displayName%",
   "description": "%description%",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "publisher": "JaviHexer",
   "license": "MIT",
   "icon": "images/icon.png",
@@ -35,7 +35,10 @@
     "light",
     "icon theme",
     "file icons",
-    "astral plane"
+    "astral plane",
+    "product icons",
+    "font",
+    "typography"
   ],
   "main": "./src/extension/extension.js",
   "activationEvents": [
@@ -82,16 +85,11 @@
         "path": "./icons/bureau-icon-theme.json"
       }
     ],
-    "colors": [
+    "productIconThemes": [
       {
-        "id": "bureauTheme.statusBar.location",
-        "description": "%colors.location%",
-        "defaults": {
-          "dark": "#E5675D",
-          "light": "#B3261E",
-          "highContrast": "#FFFFFF",
-          "highContrastLight": "#000000"
-        }
+        "id": "bureau-product-icons",
+        "label": "Bureau Product Icons",
+        "path": "./product-icons/bureau-product-icon-theme.json"
       }
     ],
     "commands": [
@@ -109,9 +107,43 @@
         "command": "bureauTheme.openSoundSettings",
         "title": "%command.openSoundSettings%",
         "category": "CONTROL"
+      },
+      {
+        "command": "bureauTheme.chooseFont",
+        "title": "%command.chooseFont%",
+        "category": "CONTROL"
+      },
+      {
+        "command": "bureauTheme.removeFonts",
+        "title": "%command.removeFonts%",
+        "category": "CONTROL"
       }
     ],
     "configuration": [
+      {
+        "title": "%config.font.title%",
+        "order": 0,
+        "properties": {
+          "bureauTheme.font": {
+            "type": "string",
+            "enum": [
+              "none",
+              "bureau",
+              "resonant",
+              "auto"
+            ],
+            "enumDescriptions": [
+              "%config.font.none%",
+              "%config.font.bureau%",
+              "%config.font.resonant%",
+              "%config.font.auto%"
+            ],
+            "default": "none",
+            "scope": "application",
+            "markdownDescription": "%config.font%"
+          }
+        }
+      },
       {
         "title": "%config.sounds.title%",
         "order": 1,
@@ -254,17 +286,6 @@
             "description": "%config.events.gitCommit%"
           }
         }
-      },
-      {
-        "title": "%config.ui.title%",
-        "order": 3,
-        "properties": {
-          "bureauTheme.statusBar.showLocation": {
-            "type": "boolean",
-            "default": true,
-            "description": "%config.ui.showLocation%"
-          }
-        }
       }
     ]
   },
@@ -276,6 +297,7 @@
     "preview": "node scripts/preview.js",
     "sounds": "node scripts/sounds/generate.js",
     "icons": "node scripts/icons.js",
+    "product-icons": "node scripts/product-icons.js",
     "icon": "node scripts/icon.js",
     "test": "node --test \"test/*.test.js\"",
     "test:integration": "node scripts/integration.js",
@@ -288,6 +310,9 @@
     "@types/node": "^20.0.0",
     "@types/vscode": "~1.93.0",
     "@vscode/vsce": "^3.6.0",
+    "svg2ttf": "^6.1.0",
+    "svgicons2svgfont": "^16.0.0",
+    "ttf2woff": "^3.0.0",
     "vscode-oniguruma": "^2.0.1",
     "vscode-textmate": "^9.2.0"
   }

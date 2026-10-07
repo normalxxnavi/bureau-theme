@@ -9,12 +9,13 @@
  * Traducción:
  *   - fondo blanco roto (vacío astral, sin deslumbrar),
  *   - el «monolito» negro: Activity Bar, barra de estado y barra de título,
- *   - acento NEGRO para la estructura (cursor de selección, foco, píldoras),
+ *   - acento NEGRO para la estructura (selección, foco, píldoras),
  *   - el rojo FBC solo en DETALLES: líneas de señalética, badges, botones y
  *     keywords de control de flujo.
  *
- * Como el acento estructural es negro, el error (rojo) nunca se confunde con
- * un elemento activo.
+ * Legibilidad: en un tema claro el texto fino se «lava» con facilidad, así que
+ * Astral cumple mínimos más altos que los oscuros (código ≥ 7:1, nivel AAA;
+ * texto ≥ 15:1). `npm run contrast` lo comprueba.
  *
  * @type {import('../build').Palette}
  */
@@ -23,26 +24,25 @@ module.exports = {
   label: 'CONTROL Astral',
   game: 'Control (2019) — The Astral Plane',
   type: 'light',
-  location: 'ASTRAL PLANE',
 
   bg: {
-    editor: '#F7F6F3',
-    sidebar: '#EEEDE8',
+    editor: '#FAF9F6',
+    sidebar: '#F1F0EB',
     elevated: '#FFFFFF',
     input: '#FFFFFF',
     chrome: '#151517', // la geometría negra flotando en el vacío
   },
-  border: '#D6D4CD',
+  border: '#D3D1C9',
 
   fg: {
     bright: '#000000',
-    main: '#1E1E21',
-    muted: '#5F5D57',
-    placeholder: '#77756E',
-    disabled: '#97948B',
+    main: '#111113',
+    muted: '#4D4B45',
+    placeholder: '#65625B',
+    disabled: '#8A877E',
     onAccent: '#FFFFFF',
-    chrome: '#E9E8E3',
-    chromeMuted: '#A3A19A',
+    chrome: '#ECEBE6',
+    chromeMuted: '#ABA9A2',
     chromeActive: '#FFFFFF',
   },
 
@@ -50,70 +50,69 @@ module.exports = {
     main: '#1A1A1C', // negro: estructura
     line: '#C8261C', // rojo FBC: detalles y señalética
     solid: '#B3241B',
-    text: '#B3261E',
-    onChrome: '#F0675C', // el rojo como texto sobre el monolito negro
+    text: '#A31A12',
   },
 
   selectionAlpha: 0.11,
 
   status: {
-    error: '#C8102E',
-    warning: '#9A6200',
-    info: '#1F5F99',
-    success: '#2E7D3A',
+    error: '#B5091F',
+    warning: '#835200',
+    info: '#174F86',
+    success: '#21672D',
   },
 
-  link: '#1F5F99',
+  link: '#174F86',
 
   git: {
-    added: '#2A7334',
-    modified: '#1F5F99',
-    deleted: '#A8322A',
-    untracked: '#2D7638',
-    renamed: '#2A6B66',
-    conflict: '#A84C0E',
-    ignored: '#97948B',
-    submodule: '#5F5D57',
+    added: '#21672D',
+    modified: '#174F86',
+    deleted: '#962A22',
+    untracked: '#246B30',
+    renamed: '#175A55',
+    conflict: '#924006',
+    ignored: '#8A877E',
+    submodule: '#4D4B45',
   },
 
   syntax: {
-    text: '#2E2E31',
+    text: '#18181B',
     function: '#000000', // lo más «oscuro» del código: la geometría del Consejo
-    property: '#4A4844',
-    type: '#2B5B7E',
-    namespace: '#4D5F70',
-    keyword: '#B3261E', // detalles rojos
-    storage: '#7A5048',
-    string: '#7A5A16',
-    number: '#A34A0C',
-    attribute: '#2A6B66',
-    regexp: '#2A6B66',
-    tag: '#2B5B7E',
-    operator: '#64625C',
-    punctuation: '#64625C',
-    comment: '#6E6B64',
-    commentTag: '#5F5D57',
-    heading: '#B3261E',
+    property: '#3A372F',
+    type: '#174A72',
+    namespace: '#33475A',
+    keyword: '#A31A12', // detalles rojos
+    storage: '#6A3127',
+    string: '#674A0C',
+    number: '#8C3A06',
+    attribute: '#175A55',
+    regexp: '#175A55',
+    tag: '#174A72',
+    operator: '#4A4842',
+    punctuation: '#4A4842',
+    comment: '#5B5850',
+    commentTag: '#4A4842',
+    heading: '#A31A12',
   },
 
-  brackets: ['#B3261E', '#7A5A16', '#2B5B7E'],
+  brackets: ['#A31A12', '#674A0C', '#174A72'],
 
   ansi: {
-    black: '#1E1E21',
-    red: '#B3261E',
-    green: '#2A7334',
-    yellow: '#8A6100',
-    blue: '#1F5F99',
-    magenta: '#8E3A7A',
-    cyan: '#1D6F73',
+    black: '#18181B',
+    red: '#A31A12',
+    green: '#21672D',
+    yellow: '#7A5200',
+    blue: '#174F86',
+    magenta: '#7E2E6B',
+    cyan: '#155F63',
     white: '#A3A098',
-    brightBlack: '#5F5D57',
-    brightRed: '#C8102E',
-    brightGreen: '#2D7638',
-    brightYellow: '#87600A',
-    brightBlue: '#2867A4',
-    brightMagenta: '#A2468C',
-    brightCyan: '#1C737C',
+    brightBlack: '#4D4B45',
+    brightRed: '#B5091F',
+    brightGreen: '#246B30',
+    brightYellow: '#7A5800',
+    brightBlue: '#1D5C99',
+    brightMagenta: '#8E3A7A',
+    brightCyan: '#1A6870',
     brightWhite: '#C9C7BF',
   },
 };

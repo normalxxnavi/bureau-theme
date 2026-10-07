@@ -24,6 +24,10 @@ const MIN = { text: 7, code: 4.5, comment: 4.3, ui: 4.5, graphic: 3, placeholder
 function checksFor(p) {
   const { bg, fg, accent, status, git, syntax: s } = p;
   const isLight = p.type === 'light';
+  // En un tema claro el texto fino se «lava»: se exige nivel AAA.
+  const MIN_TEXT = isLight ? 15 : MIN.text;
+  const MIN_CODE = isLight ? 7 : MIN.code;
+  const MIN_COMMENT = isLight ? 6.5 : MIN.comment;
   const selection = over(`${accent.main}${Math.round(p.selectionAlpha * 255).toString(16).padStart(2, '0')}`, bg.editor);
   const listActive = mix(bg.sidebar, accent.main, isLight ? 0.12 : 0.2);
   const sectionHeader = over(isLight ? '#00000009' : '#FFFFFF09', bg.sidebar);
@@ -31,8 +35,8 @@ function checksFor(p) {
   const block = (/** @type {string} */ c, t = 0.55) => mix(bg.chrome, c, t);
 
   const checks = [
-    { group: 'Texto', label: 'texto / editor', fg: fg.main, bg: bg.editor, min: MIN.text },
-    { group: 'Texto', label: 'texto / sidebar', fg: fg.main, bg: bg.sidebar, min: MIN.text },
+    { group: 'Texto', label: 'texto / editor', fg: fg.main, bg: bg.editor, min: MIN_TEXT },
+    { group: 'Texto', label: 'texto / sidebar', fg: fg.main, bg: bg.sidebar, min: MIN_TEXT },
     { group: 'Texto', label: 'texto / widgets', fg: fg.main, bg: bg.elevated, min: MIN.text },
     { group: 'Texto', label: 'secundario / sidebar (pestañas inactivas, status bar)', fg: fg.muted, bg: bg.sidebar, min: MIN.ui },
     { group: 'Texto', label: 'secundario / widgets', fg: fg.muted, bg: bg.elevated, min: MIN.ui },
@@ -55,7 +59,6 @@ function checksFor(p) {
     { group: 'Laterales', label: 'línea del acento / sidebar', fg: accent.line, bg: bg.sidebar, min: MIN.graphic },
     { group: 'Laterales', label: 'cabecera de sección / sidebar', fg: fg.bright, bg: sectionHeader, min: MIN.text },
     { group: 'Laterales', label: 'acento como texto / sidebar', fg: accent.text, bg: bg.sidebar, min: MIN.ui },
-    { group: 'Laterales', label: 'lugar en la barra de estado', fg: accent.onChrome, bg: bg.chrome, min: MIN.ui },
 
     { group: 'Acento', label: 'acento (cursor, bordes) / editor', fg: accent.line, bg: bg.editor, min: MIN.graphic },
     { group: 'Acento', label: 'blanco / acento sólido (badges, botones)', fg: fg.onAccent, bg: accent.solid, min: MIN.ui },
@@ -75,10 +78,10 @@ function checksFor(p) {
   }
 
   for (const [k, v] of Object.entries(s)) {
-    const min = k === 'comment' ? MIN.comment : MIN.code;
+    const min = k === 'comment' ? MIN_COMMENT : MIN_CODE;
     checks.push({ group: 'Sintaxis', label: `${k} / editor`, fg: v, bg: bg.editor, min });
   }
-  p.brackets.forEach((b, i) => checks.push({ group: 'Sintaxis', label: `corchetes nivel ${i + 1}`, fg: b, bg: bg.editor, min: MIN.code }));
+  p.brackets.forEach((b, i) => checks.push({ group: 'Sintaxis', label: `corchetes nivel ${i + 1}`, fg: b, bg: bg.editor, min: MIN_CODE }));
 
   // El color ANSI que hace de «fondo» depende del tema: negro en los oscuros,
   // blanco en el claro. Ese no se comprueba como texto.
@@ -161,7 +164,7 @@ function main() {
       '',
       '> Archivo generado por `npm run contrast -- --md`. No lo edites a mano: cambia `src/theme/palettes/*.js` y vuelve a generarlo.',
       '',
-      `Mínimos: texto ≥ ${MIN.text}, código y UI ≥ ${MIN.code}, comentarios ≥ ${MIN.comment}, elementos gráficos ≥ ${MIN.graphic}, placeholder ≥ ${MIN.placeholder}, deshabilitado ≥ ${MIN.disabled}.`,
+      `Mínimos de los temas oscuros (CONTROL Astral exige texto ≥ 15, código ≥ 7 y comentarios ≥ 6,5): texto ≥ ${MIN.text}, código y UI ≥ ${MIN.code}, comentarios ≥ ${MIN.comment}, elementos gráficos ≥ ${MIN.graphic}, placeholder ≥ ${MIN.placeholder}, deshabilitado ≥ ${MIN.disabled}.`,
       '',
     ];
     fs.writeFileSync(path.join(ROOT, 'docs', 'palette.md'), [...header, ...md].join('\n'));
