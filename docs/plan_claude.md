@@ -639,3 +639,15 @@ Peticiones: (1) quedaban iconos internos sin cambiar (nube de publicar, errores 
 | **Product icons**: de 27 a **160 iconos** (97 glifos). Se sustituyen los codicons base (`close`, `chevron-*`, `add`, `refresh`, `gear`…), así que cambian también los iconos registrados que dependen de ellos (`panel-close`, `terminal-kill`, `folding-*`…). Lista sacada del propio VS Code 1.140 (390 iconos registrados) | `scripts/product-icons.js` | Hoja de los 97 glifos en oscuro y claro; capturas reales de la barra de estado, el panel y la barra de título |
 | **Bureau Icons** rediseñado: archivos como expedientes sólidos con código o pictograma; carpetas sólidas por categoría con **emblema** (41 categorías). 498 SVG: 340 extensiones, 284 nombres de archivo, 84 lenguajes, 278 carpetas | `scripts/icons.js` | Explorador simulado en oscuro y claro; test de validez de cada SVG |
 | **Identidad**: autor y publisher **Normalxxnavi**, licencia, repositorio, nuevo icono (pirámide del Consejo), título y descripción en inglés y español, README reescrito | `package.json`, `package.nls*.json`, `LICENSE`, `scripts/icon.js`, `README.md` | Instalación limpia del `.vsix` con el nuevo ID |
+
+### Versión 0.8.1: Theme CONTROL, capturas profesionales y detalles bilingües
+
+Peticiones: título **Theme CONTROL**; descripción más corta y profesional; capturas profesionales de los temas con los iconos de archivo y de producto; detalles con una sección en inglés y otra en español.
+
+| Qué | Dónde | Verificado |
+|---|---|---|
+| Título **Theme CONTROL** y descripción corta (inglés y español) | `package.nls.json`, `package.nls.es.json` | Instalación limpia del `.vsix` |
+| **Capturas profesionales**: VS Code real con un proyecto de demostración (Git con cambios, tarea de tests en la terminal, tipografía del juego), compuestas sobre fondos por tema: portada con los cuatro temas en franjas diagonales, una lámina por tema con su paleta, vitrina de Bureau Icons, comparación VS Code → Bureau de los iconos de producto y tipografía | `images/screenshots/` | Revisadas una a una |
+| **README bilingüe**: sección completa en inglés y otra en español, con las nuevas imágenes | `README.md` | Todas las imágenes enlazadas existen |
+| Rama de Git con cambios, preparada o con conflictos: la pirámide con una marca (4 glifos nuevos, 166 iconos) | `scripts/product-icons.js` | Barra de estado con `main*` en las capturas |
+| La página de detalles de VS Code solo carga imágenes `https:` (quita las rutas relativas y `data:`): en una instalación local las capturas se verán cuando el repositorio sea público, porque vsce reescribe los enlaces a GitHub | `README.md` | Página de detalles en un perfil aislado |
