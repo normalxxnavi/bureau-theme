@@ -2,8 +2,11 @@
   "name": "bureau-theme",
   "displayName": "%displayName%",
   "description": "%description%",
-  "version": "0.7.0",
-  "publisher": "JaviHexer",
+  "version": "0.8.0",
+  "publisher": "Normalxxnavi",
+  "author": {
+    "name": "Normalxxnavi"
+  },
   "license": "MIT",
   "icon": "images/icon.png",
   "galleryBanner": {
@@ -12,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/JaviHexer/bureau-theme"
+    "url": "https://github.com/Normalxxnavi/bureau-theme"
   },
   "engines": {
     "vscode": "^1.93.0"
@@ -38,7 +41,13 @@
     "astral plane",
     "product icons",
     "font",
-    "typography"
+    "typography",
+    "icons",
+    "folder icons",
+    "material",
+    "bureau",
+    "oldest house",
+    "hiss"
   ],
   "main": "./src/extension/extension.js",
   "activationEvents": [
@@ -315,5 +324,9 @@
     "ttf2woff": "^3.0.0",
     "vscode-oniguruma": "^2.0.1",
     "vscode-textmate": "^9.2.0"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/Normalxxnavi/bureau-theme/issues"
+  },
+  "homepage": "https://github.com/Normalxxnavi/bureau-theme#readme"
 }

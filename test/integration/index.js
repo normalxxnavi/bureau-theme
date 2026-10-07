@@ -17,7 +17,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
-const EXTENSION_ID = 'JaviHexer.bureau-theme';
+const EXTENSION_ID = 'Normalxxnavi.bureau-theme';
 const FILES = ['startup', 'theme', 'save', 'error', 'clear', 'build-ok', 'build-fail', 'terminal-fail', 'debug', 'breakpoint', 'commit'];
 
 const sleep = (/** @type {number} */ ms) => new Promise((r) => setTimeout(r, ms));
