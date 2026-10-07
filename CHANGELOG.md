@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 ### Changed
 
 - New name: **Theme CONTROL**, with a shorter description.
+- New extension icon: the Board as it appears in the Astral Plane — a matte black inverted pyramid floating in the white void (original artwork, no game assets).
 - The details page is now bilingual — a complete English section and a complete Spanish section — with new professional screenshots: the four themes, Bureau Icons, Bureau Product Icons and the typography.
 - The Git branch in the status bar keeps the inverted pyramid when the branch has uncommitted changes, staged changes or conflicts (with a small mark), and when creating or deleting branches.
 
