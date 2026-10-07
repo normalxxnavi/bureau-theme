@@ -592,7 +592,7 @@ Notas: **C# y Razor** dependen de Roslyn, hay que esperar a que cargue el proyec
 | 2 | ¿Resonant en la v1.0 o en la 1.1? | ✅ **Decidido: v1.0** | Fase 0 |
 | 3 | ¿Sonido en la v1.0 o en la 1.1? | ✅ **Decidido: v1.0.** Es un recurso opcional que cada persona activa o desactiva, así que no molesta a quien no lo quiera. Va **apagado por defecto** y cada evento tiene su propio interruptor | Fase 7 |
 | 4 | Nombre público y prefijo de ajustes | Aplicado de forma provisional: *"Bureau Theme — inspired by CONTROL"* con prefijo `bureauTheme.`. Los temas se siguen llamando *CONTROL Dark/Black/Resonant*. Cambiarlo antes de publicar es un buscar/reemplazar | Antes de publicar |
-| 5 | Publisher ID | Aplicado de forma provisional: `JaviHexer` (tu nick de git). Hay que crearlo en el Marketplace | Fase 11 |
+| 5 | Publisher ID y autor | ✅ **Normalxxnavi** (corregido el 2026-10-07; no es el nick de git). Hay que crear el publisher en el Marketplace | Fase 11 |
 | 6 | ¿Repositorio público en GitHub desde el principio? | Sí | Fase 0 |
 | 7 | ¿Cursivas en comentarios y parámetros? | Sí, documentando cómo quitarlas | Fase 3 |
 | 8 | ¿Algún extra de lore (sección 6) en la v1.0? | No; el **Modo Clasificado** es el mejor candidato para la 1.1 | Tras la v1.0 |
@@ -629,3 +629,13 @@ Cada una es una paleta nueva más, opcionalmente, un pack de sonido:
 ## 11. Siguiente paso
 
 Si estás de acuerdo con el plan, empezamos por la **Fase 0**: inicializo git y creo el esqueleto con el generador y las **tres** paletas v0. Así, en esa misma sesión, pulsas F5 y ves los tres temas funcionando.
+
+### Versión 0.8.0: más iconos internos, iconos de archivo rediseñados e identidad
+
+Peticiones: (1) quedaban iconos internos sin cambiar (nube de publicar, errores y avisos, `><` remoto, barra del panel, cubo, flechas de navegación); (2) los iconos de carpetas eran pobres y había que cubrir todas las extensiones conocidas; (3) actualizar imagen, título, descripción, detalles y autor (**Normalxxnavi**, no JaviHexer).
+
+| Qué | Dónde | Verificado |
+|---|---|---|
+| **Product icons**: de 27 a **160 iconos** (97 glifos). Se sustituyen los codicons base (`close`, `chevron-*`, `add`, `refresh`, `gear`…), así que cambian también los iconos registrados que dependen de ellos (`panel-close`, `terminal-kill`, `folding-*`…). Lista sacada del propio VS Code 1.140 (390 iconos registrados) | `scripts/product-icons.js` | Hoja de los 97 glifos en oscuro y claro; capturas reales de la barra de estado, el panel y la barra de título |
+| **Bureau Icons** rediseñado: archivos como expedientes sólidos con código o pictograma; carpetas sólidas por categoría con **emblema** (41 categorías). 498 SVG: 340 extensiones, 284 nombres de archivo, 84 lenguajes, 278 carpetas | `scripts/icons.js` | Explorador simulado en oscuro y claro; test de validez de cada SVG |
+| **Identidad**: autor y publisher **Normalxxnavi**, licencia, repositorio, nuevo icono (pirámide del Consejo), título y descripción en inglés y español, README reescrito | `package.json`, `package.nls*.json`, `LICENSE`, `scripts/icon.js`, `README.md` | Instalación limpia del `.vsix` con el nuevo ID |

@@ -1,6 +1,6 @@
 {
-  "displayName": "Bureau Theme — inspirado en CONTROL",
-  "description": "Tres temas oscuros inspirados en CONTROL y CONTROL Resonant (Dark, Black/OLED y Resonant), con efectos de sonido originales y opcionales para los eventos de VS Code. Proyecto fan-made, sin relación con Remedy Entertainment.",
+  "displayName": "Bureau Theme — Temas, iconos y fuentes inspirados en CONTROL",
+  "description": "Pack fan-made inspirado en CONTROL y CONTROL Resonant: 4 temas de color (Dark, Black/OLED, Resonant y el claro Plano Astral), iconos Bureau para archivos y carpetas, iconos internos Bureau, tipografías inspiradas en los juegos y sonidos opcionales. Sin relación con Remedy Entertainment.",
   "command.toggleSounds": "Activar/desactivar sonidos",
   "command.previewSounds": "Probar sonidos…",
   "command.openSoundSettings": "Abrir ajustes de sonido",
