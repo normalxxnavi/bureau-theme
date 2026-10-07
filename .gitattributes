@@ -2,3 +2,5 @@
 *.wav binary
 *.png binary
 *.vsix binary
+*.ttf binary
+*.woff binary
