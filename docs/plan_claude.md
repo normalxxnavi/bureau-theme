@@ -39,6 +39,7 @@
 | `npm run sounds` | Regenerar los 22 sonidos y su documentación |
 | `npm run test:integration` | Test en VS Code real (abre una ventana unos segundos) |
 | `npm run icons` | Regenerar el tema de iconos Bureau Icons |
+| `npm run product-icons` | Regenerar los iconos internos (Bureau Product Icons) |
 | `npm run package` | Generar el `.vsix` |
 | `npm run install:local` | Empaquetar e instalar en tu VS Code (sin publicar) |
 
@@ -56,6 +57,36 @@ Pedido: «meter cosas del lore del Plano Astral y darle más diseño a los later
 | **Indicador de lugar** en la barra de estado (`▼ THE OLDEST HOUSE`…) | `src/extension/location.js` | Test de integración en VS Code real |
 
 Nota: los paneles de otras extensiones (como el de Claude Code) son *webviews*: usan los colores del tema que ellas deciden, así que el tema no puede cambiar su maquetación, solo los colores que comparten.
+
+### Versión 0.7.0: iconos internos, tipografía y detalles
+
+Peticiones: (1) cambiar los iconos internos de VS Code (Copilot, rama de Git → pirámide invertida); (2) opción de usar la tipografía de los juegos al instalar; (3) Astral se lee mal; (4) quitar el indicador de lugar de la barra de estado y cambiar los iconos de la barra lateral, adaptados a sus posiciones; (5) más detalles visuales en cada tema.
+
+**Investigación (1) y (4): ¿se pueden cambiar los iconos internos?** Sí, con un *Product Icon Theme* (`contributes.productIconThemes`): un archivo de fuente (`.woff`) con un glifo por icono y un JSON que asigna cada identificador de VS Code a un glifo. Lo comprobado en VS Code 1.140:
+
+| Se puede sustituir | Cómo se identifica |
+|---|---|
+| Iconos de la barra de actividad | `explorer-view-icon`, `search-view-icon`, `source-control-view-icon`, `run-view-icon`, `extensions-view-icon`, `accounts-view-bar-icon`, `settings-view-bar-icon` |
+| Rama de Git (barra de estado) | codicon `git-branch` |
+| Copilot y chat | codicon `copilot`, icono `copilot-logo` (lo registra Copilot), `chat-sparkle`, `chat-view-icon` |
+| Campana de notificaciones | codicons `bell`, `bell-dot` |
+
+| No se puede | Por qué |
+|---|---|
+| Icono de Claude Code y de otras extensiones con imagen propia | Lo cargan como un archivo SVG, no como un icono con identificador |
+| La tipografía de la interfaz (menús, pestañas) | VS Code no tiene ningún ajuste para ella |
+
+Los iconos se ven igual con la barra de actividad a un lado, arriba o abajo (glifos legibles a 24 y a 16 px; comprobado con capturas en ambas posiciones).
+
+**Investigación (2): tipografías de los juegos.** *Control* usa Interstate (señalética e interfaz), ITC Avant Garde Gothic (títulos y logo) y Akzidenz-Grotesk / Basic Commercial (documentos) — fuentes: [Fonts In Use](https://fontsinuse.com/uses/48689/control-video-game), [Kotaku](https://kotaku.com/the-fonts-in-control-make-its-world-feel-way-creepier-1837714580). Son comerciales: no se pueden incluir. Las de *Control Resonant* no están documentadas. Solución: alternativas con licencia SIL OFL incluidas en la extensión (Overpass, derivada de Highway Gothic como Interstate; Space Mono / Space Grotesk para Resonant), instaladas solo para el usuario y con restauración.
+
+| Qué | Dónde | Verificado |
+|---|---|---|
+| **Bureau Product Icons** (12 glifos → 27 iconos de VS Code) | `scripts/product-icons.js` → `product-icons/` | Hoja de glifos de la fuente real; capturas con la barra a un lado y arriba; test de coherencia |
+| **Tipografías** (oferta al instalar, comando, modo «según el tema», restaurar, quitar) | `src/extension/fontsets.js`, `font-installer.js`, `fonts.js`, `fonts/` | Tests unitarios (registro de Windows simulado); test de integración que instala, aplica, cambia según el tema, restaura y desinstala sin dejar restos; capturas con Overpass Mono y Space Mono |
+| **Astral** más legible (código ≥ 7:1, texto ≥ 15:1) | `palettes/astral.js`, `scripts/contrast.js` | Contraste con mínimos AAA |
+| **Detalles visuales**: resplandor del acento, número de línea activa, guías, reglas, línea bajo las pestañas, canal de números; **Black** con identidad propia (Plano Astral en negativo) | `workbench.js`, `palettes/black.js` | Píxeles de las capturas |
+| Quitado el indicador de lugar de la barra de estado | — | Tests e integración actualizados |
 
 ---
 

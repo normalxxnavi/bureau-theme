@@ -22,11 +22,10 @@ const semantic = require('./semantic');
  * @property {string} label
  * @property {string} game
  * @property {'dark' | 'light'} type
- * @property {string} location lugar del juego (barra de estado)
  * @property {{editor: string, sidebar: string, elevated: string, input: string, chrome: string}} bg
  * @property {string} border
  * @property {{bright: string, main: string, muted: string, placeholder: string, disabled: string, onAccent: string, chrome: string, chromeMuted: string, chromeActive: string}} fg
- * @property {{main: string, line: string, solid: string, text: string, onChrome: string}} accent
+ * @property {{main: string, line: string, solid: string, text: string}} accent
  * @property {number} selectionAlpha
  * @property {{error: string, warning: string, info: string, success: string}} status
  * @property {string} link

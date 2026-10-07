@@ -34,6 +34,13 @@ module.exports = function workbench(p) {
   const tabBar = bg.sidebar;
   const activePill = mix(bg.editor, accent.main, isLight ? 0.1 : 0.14);
   const shadow = black(isLight ? 0.18 : 0.45);
+  /**
+   * Resplandor del acento: los widgets flotantes y el borde de lo que se
+   * desplaza «brillan» con el color del tema (rojo FBC, Hedron, luz astral).
+   * En el tema claro se usa una sombra negra suave: un brillo de color sobre
+   * blanco ensucia.
+   */
+  const glow = isLight ? black(0.2) : alpha(accent.line, 0.32);
   /** Línea fina de señalética (separadores, bordes de widgets). */
   const rule = alpha(accent.line, 0.35);
   /** Bloque oscuro teñido de un color, con texto blanco encima (badges de estado). */
@@ -48,12 +55,12 @@ module.exports = function workbench(p) {
     errorForeground: status.error,
     'icon.foreground': fg.muted,
     'widget.border': rule,
-    'widget.shadow': shadow,
+    'widget.shadow': glow,
     'selection.background': alpha(accent.main, 0.35),
     'sash.hoverBorder': accent.line,
     'toolbar.hoverBackground': tint(0.07),
     'toolbar.activeBackground': tint(0.1),
-    'scrollbar.shadow': black(0.5),
+    'scrollbar.shadow': isLight ? black(0.2) : alpha(accent.line, 0.4),
 
     // --- Texto en vistas Markdown / hovers -----------------------------------
     'textLink.foreground': p.link,
@@ -74,7 +81,7 @@ module.exports = function workbench(p) {
     'editorMultiCursor.primary.foreground': accent.line,
     'editorMultiCursor.secondary.foreground': fg.main,
     'editorLineNumber.foreground': fg.disabled,
-    'editorLineNumber.activeForeground': fg.main,
+    'editorLineNumber.activeForeground': accent.text, // la línea actual, marcada como en la señalética
     'editorLineNumber.dimmedForeground': mix(fg.disabled, bg.editor, 0.4),
 
     'editor.selectionBackground': selection,
@@ -109,8 +116,8 @@ module.exports = function workbench(p) {
     'editorLink.activeForeground': p.link,
     'editorWhitespace.foreground': tint(0.1),
     'editorIndentGuide.background1': tint(0.05),
-    'editorIndentGuide.activeBackground1': tint(0.16),
-    'editorRuler.foreground': p.border,
+    'editorIndentGuide.activeBackground1': alpha(accent.line, 0.5),
+    'editorRuler.foreground': alpha(accent.line, 0.25),
     'editorCodeLens.foreground': fg.placeholder,
     'editorLightBulb.foreground': status.warning,
     'editorLightBulbAutoFix.foreground': status.info,
@@ -118,7 +125,7 @@ module.exports = function workbench(p) {
     'editorUnicodeHighlight.background': alpha(status.warning, 0.1),
 
     'editorBracketMatch.background': tint(0.08),
-    'editorBracketMatch.border': alpha(fg.muted, 0.5),
+    'editorBracketMatch.border': alpha(accent.line, 0.7),
     'editorBracketHighlight.foreground1': p.brackets[0],
     'editorBracketHighlight.foreground2': p.brackets[1],
     'editorBracketHighlight.foreground3': p.brackets[2],
@@ -140,8 +147,8 @@ module.exports = function workbench(p) {
     'editorGhostText.foreground': fg.disabled,
 
     'editorStickyScroll.background': bg.editor,
-    'editorStickyScroll.border': p.border,
-    'editorStickyScroll.shadow': shadow,
+    'editorStickyScroll.border': rule,
+    'editorStickyScroll.shadow': glow,
     'editorStickyScrollHover.background': bg.elevated,
 
     // Diagnósticos
@@ -155,7 +162,7 @@ module.exports = function workbench(p) {
     'problemsInfoIcon.foreground': status.info,
 
     // Gutter
-    'editorGutter.background': bg.editor,
+    'editorGutter.background': mix(bg.editor, bg.chrome, isLight ? 0.035 : 0.3),
     'editorGutter.addedBackground': git.added,
     'editorGutter.modifiedBackground': git.modified,
     'editorGutter.deletedBackground': git.deleted,
@@ -184,10 +191,10 @@ module.exports = function workbench(p) {
     // --- Widgets del editor -------------------------------------------------
     'editorWidget.background': bg.elevated,
     'editorWidget.foreground': fg.main,
-    'editorWidget.border': p.border,
+    'editorWidget.border': rule,
     'editorWidget.resizeBorder': accent.line,
     'editorSuggestWidget.background': bg.elevated,
-    'editorSuggestWidget.border': p.border,
+    'editorSuggestWidget.border': rule,
     'editorSuggestWidget.foreground': fg.main,
     'editorSuggestWidget.selectedBackground': listActive,
     'editorSuggestWidget.selectedForeground': fg.bright,
@@ -197,7 +204,7 @@ module.exports = function workbench(p) {
     'editorSuggestWidgetStatus.foreground': fg.muted,
     'editorHoverWidget.background': bg.elevated,
     'editorHoverWidget.foreground': fg.main,
-    'editorHoverWidget.border': p.border,
+    'editorHoverWidget.border': rule,
     'editorHoverWidget.highlightForeground': accent.text,
     'editorHoverWidget.statusBarBackground': bg.sidebar,
     'editorMarkerNavigation.background': bg.elevated,
@@ -263,7 +270,7 @@ module.exports = function workbench(p) {
     'editorGroup.emptyBackground': bg.editor,
     'editorGroup.focusedEmptyBorder': focus,
     'editorGroupHeader.tabsBackground': tabBar,
-    'editorGroupHeader.tabsBorder': p.border,
+    'editorGroupHeader.tabsBorder': rule, // línea de señalética bajo las pestañas
     'editorGroupHeader.noTabsBackground': bg.editor,
     'editorGroupHeader.border': p.border,
 
@@ -344,7 +351,7 @@ module.exports = function workbench(p) {
     'sideBarActivityBarTop.border': accent.line,
     'sideBarStickyScroll.background': bg.sidebar,
     'sideBarStickyScroll.border': rule,
-    'sideBarStickyScroll.shadow': shadow,
+    'sideBarStickyScroll.shadow': glow,
 
     // --- Activity bar: el monolito ------------------------------------------
     'activityBar.background': bg.chrome,
@@ -366,7 +373,7 @@ module.exports = function workbench(p) {
 
     // --- Panel inferior -----------------------------------------------------
     'panel.background': bg.sidebar,
-    'panel.border': p.border,
+    'panel.border': rule,
     'panel.dropBorder': accent.line,
     'panelTitle.activeBorder': accent.line,
     'panelTitle.activeForeground': fg.bright,
@@ -379,7 +386,7 @@ module.exports = function workbench(p) {
     'panelSectionHeader.foreground': fg.bright,
     'panelSectionHeader.border': rule,
     'panelStickyScroll.background': bg.sidebar,
-    'panelStickyScroll.shadow': shadow,
+    'panelStickyScroll.shadow': glow,
     'outputView.background': bg.sidebar,
 
     // --- Barra de estado: franja de señalética ------------------------------
@@ -419,8 +426,6 @@ module.exports = function workbench(p) {
     'statusBarItem.warningHoverForeground': fg.onAccent,
     'statusBarItem.offlineBackground': block(status.warning, 0.45),
     'statusBarItem.offlineForeground': fg.onAccent,
-    // Color propio de la extensión: el lugar del juego (▼ THE OLDEST HOUSE).
-    'bureauTheme.statusBar.location': accent.onChrome,
 
     // --- Barra de título, menús y Command Center ----------------------------
     'titleBar.activeBackground': bg.chrome,
@@ -518,8 +523,8 @@ module.exports = function workbench(p) {
     'inputValidation.infoBackground': mix(bg.input, status.info, 0.15),
     'inputValidation.infoForeground': fg.main,
     'inputValidation.infoBorder': status.info,
-    'scrollbarSlider.background': tint(0.08),
-    'scrollbarSlider.hoverBackground': tint(0.14),
+    'scrollbarSlider.background': alpha(accent.line, isLight ? 0.14 : 0.12),
+    'scrollbarSlider.hoverBackground': alpha(accent.line, isLight ? 0.24 : 0.22),
     'scrollbarSlider.activeBackground': alpha(accent.main, 0.45),
     'badge.background': accent.solid,
     'badge.foreground': fg.onAccent,
@@ -539,9 +544,9 @@ module.exports = function workbench(p) {
     'minimap.errorHighlight': alpha(status.error, 0.8),
     'minimap.warningHighlight': alpha(status.warning, 0.7),
     'minimap.infoHighlight': alpha(status.info, 0.6),
-    'minimapSlider.background': tint(0.05),
-    'minimapSlider.hoverBackground': tint(0.08),
-    'minimapSlider.activeBackground': tint(0.12),
+    'minimapSlider.background': alpha(accent.line, 0.07),
+    'minimapSlider.hoverBackground': alpha(accent.line, 0.12),
+    'minimapSlider.activeBackground': alpha(accent.line, 0.18),
     'minimapGutter.addedBackground': git.added,
     'minimapGutter.modifiedBackground': git.modified,
     'minimapGutter.deletedBackground': git.deleted,
@@ -626,7 +631,7 @@ module.exports = function workbench(p) {
     // --- Depuración ---------------------------------------------------------
     'debugToolBar.background': bg.elevated,
     'debugToolBar.border': p.border,
-    'debugIcon.breakpointForeground': accent.line,
+    'debugIcon.breakpointForeground': isLight ? accent.line : accent.main,
     'debugIcon.breakpointDisabledForeground': fg.disabled,
     'debugIcon.breakpointUnverifiedForeground': fg.muted,
     'debugIcon.breakpointCurrentStackframeForeground': status.warning,

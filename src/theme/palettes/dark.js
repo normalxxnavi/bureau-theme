@@ -17,8 +17,6 @@ module.exports = {
   label: 'CONTROL Dark',
   game: 'Control (2019) — The Oldest House',
   type: 'dark',
-  /** Lugar del juego que muestra la barra de estado. */
-  location: 'THE OLDEST HOUSE',
 
   bg: {
     editor: '#17181A',
@@ -48,7 +46,6 @@ module.exports = {
     line: '#E0352B', // líneas de señalética: cursor, bordes activos, separadores
     solid: '#C42B22', // fondo de badges y botones (texto blanco encima)
     text: '#E5675D', // acento usado como texto (coincidencias de búsqueda…)
-    onChrome: '#E5675D', // acento como texto sobre el monolito (lugar en la barra de estado)
   },
 
   /** Opacidad del acento en la selección del editor. */
