@@ -135,6 +135,14 @@ const folderWithBadge = () =>
     [[3.6, 5.6], [7.1, 5.6], [9.1, 7.6], [16.9, 7.6], [16.9, 9.4], [9.4, 9.4], [9.4, 17.4], [3.6, 17.4]]
   );
 const badgePlus = () => [rect(16.8, 13.2, 2.4, 9.6), rect(13.2, 16.8, 9.6, 2.4)];
+/** Pirámide de la rama de Git, más pequeña y desplazada para dejar sitio a una marca. */
+function smallPyramid() {
+  /** @type {Poly} */
+  const tri = [[0.8, 6.6], [17.4, 6.6], [9.1, 21.8]];
+  const { cx, cy } = incircle(tri);
+  return [...frameTriangle(tri, 2.1), solid(scale(tri, 0.3, cx, cy))];
+}
+
 /** Estrella de cinco puntas. */
 function star(/** @type {number} */ k) {
   /** @type {Poly} */
@@ -163,6 +171,11 @@ const GLYPHS = {
     const { cx, cy } = incircle(tri);
     return [...frameTriangle(tri, 2.3), solid(scale(tri, 0.3, cx, cy))];
   },
+  // Variantes de la rama de Git: pirámide algo menor con una marca en la esquina.
+  pyramidDot: () => [...smallPyramid(), rect(17.6, 0.8, 5, 5)],
+  pyramidPlus: () => [...smallPyramid(), rect(19.1, 0.6, 2, 7), rect(16.6, 3.1, 7, 2)],
+  pyramidMinus: () => [...smallPyramid(), rect(16.6, 3.1, 7, 2)],
+  pyramidAlert: () => [...smallPyramid(), solid([[20.1, 0.4], [23.6, 3.9], [20.1, 7.4], [16.6, 3.9]])],
   // El Consejo: pirámide maciza con una ranura, y la línea con la que «habla».
   board: () => [rect(5, 2, 14, W), solid([[2.5, 7.5], [21.5, 7.5], [12, 22.5]]), hole(rect(8.4, 10.6, 7.2, 1.8))],
   // Hexágono de la Hedron con «play» (ejecutar y depurar) o con un check (tests).
@@ -304,6 +317,8 @@ const MAPPING = {
   'explorer-view-icon': 'dossier', files: 'dossier', book: 'dossier',
   'search-view-icon': 'lens', search: 'lens', 'search-large': 'lens',
   'source-control-view-icon': 'pyramid', 'source-control': 'pyramid', 'git-branch': 'pyramid', repo: 'pyramid',
+  'git-branch-compact': 'pyramid', 'git-branch-changes': 'pyramidDot', 'git-branch-staged-changes': 'pyramidPlus',
+  'git-branch-conflicts': 'pyramidAlert', 'git-branch-create': 'pyramidPlus', 'git-branch-delete': 'pyramidMinus',
   'run-view-icon': 'hedronPlay', 'debug-alt': 'hedronPlay', 'debug-alt-small': 'hedronPlay', debug: 'hedronPlay',
   'extensions-view-icon': 'blocks', extensions: 'blocks',
   'test-view-icon': 'hedronCheck', beaker: 'hedronCheck', pass: 'hedronCheck', 'pass-filled': 'hedronCheck',

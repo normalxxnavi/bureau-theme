@@ -1,6 +1,6 @@
 {
-  "displayName": "Bureau Theme — Temas, iconos y fuentes inspirados en CONTROL",
-  "description": "Pack fan-made inspirado en CONTROL y CONTROL Resonant: 4 temas de color (Dark, Black/OLED, Resonant y el claro Plano Astral), iconos Bureau para archivos y carpetas, iconos internos Bureau, tipografías inspiradas en los juegos y sonidos opcionales. Sin relación con Remedy Entertainment.",
+  "displayName": "Theme CONTROL",
+  "description": "Cuatro temas de color, iconos de archivo y de interfaz, y tipografía inspirados en CONTROL y CONTROL Resonant. Proyecto fan no oficial.",
   "command.toggleSounds": "Activar/desactivar sonidos",
   "command.previewSounds": "Probar sonidos…",
   "command.openSoundSettings": "Abrir ajustes de sonido",
