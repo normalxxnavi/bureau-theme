@@ -260,27 +260,53 @@ const peakOf = (/** @type {Float32Array} */ b) => b.reduce((m, v) => Math.max(m,
 const rmsOf = (/** @type {Float32Array} */ b) => Math.sqrt(b.reduce((s, v) => s + v * v, 0) / b.length);
 
 /**
- * Deja el sonido listo para guardar: quita la componente continua, normaliza
- * al pico indicado sin pasar del RMS máximo, recorta el silencio del final y
- * aplica fundidos (1 ms al entrar, para no comerse el ataque de los golpes, y
- * uno más largo al salir) para que no haya clics ni cortes bruscos.
- * @param {Float32Array} b @param {{peakDb: number, maxRmsDb?: number}} o
+ * Limitador con anticipación: baja la ganancia justo antes de cada pico que
+ * pasaría del techo (ataque instantáneo dentro de la ventana de anticipación,
+ * recuperación suave), así los picos no se recortan ni distorsionan.
+ * @param {Float32Array} b @param {number} ceiling ganancia lineal del techo
  */
-function finish(b, { peakDb, maxRmsDb = -14 }) {
+function limit(b, ceiling, { lookahead = 0.002, release = 0.06 } = {}) {
+  const la = Math.max(1, Math.round(lookahead * SAMPLE_RATE));
+  const rel = Math.exp(-1 / (release * SAMPLE_RATE));
+  const need = new Float32Array(b.length);
+  for (let i = 0; i < b.length; i++) need[i] = Math.min(1, ceiling / (Math.abs(b[i]) || 1e-9));
+  const out = new Float32Array(b.length);
+  let g = 1;
+  for (let i = 0; i < b.length; i++) {
+    let m = 1;
+    for (let j = i, end = Math.min(b.length - 1, i + la); j <= end; j++) if (need[j] < m) m = need[j];
+    g = m < g ? m : m + (g - m) * rel;
+    out[i] = Math.max(-ceiling, Math.min(ceiling, b[i] * g));
+  }
+  return out;
+}
+
+/**
+ * Masteriza el sonido para guardarlo: quita la componente continua, lo sube
+ * hasta el nivel medio (RMS) pedido, deja los picos en el techo con el
+ * limitador (como mucho `maxReductionDb` de reducción, para no aplastar los
+ * ataques), recorta el silencio del final y aplica fundidos (1 ms al entrar,
+ * para no comerse los golpes, y uno más largo al salir).
+ *
+ * Antes se normalizaba al pico y los sonidos quedaban 10-15 dB por debajo de
+ * cualquier música: con Spotify sonando no se oían.
+ * @param {Float32Array} b @param {{rmsDb: number, ceilingDb?: number, maxReductionDb?: number}} o
+ */
+function finish(b, { rmsDb, ceilingDb = -1, maxReductionDb = 6 }) {
   let out = filter(b, biquad('highpass', 25));
-  const peak = peakOf(out) || 1;
-  let gain = dbToGain(peakDb) / peak;
-  const rms = rmsOf(out) * gain;
-  if (rms > dbToGain(maxRmsDb)) gain *= dbToGain(maxRmsDb) / rms;
-  // Recorta el final por debajo de -50 dBFS (tras aplicar la ganancia).
-  const floor = dbToGain(-50) / gain;
+  const ceiling = dbToGain(ceilingDb);
+  const gain = Math.min(dbToGain(rmsDb) / (rmsOf(out) || 1e-9), (ceiling * dbToGain(maxReductionDb)) / (peakOf(out) || 1e-9));
+  for (let i = 0; i < out.length; i++) out[i] *= gain;
+  out = limit(out, ceiling);
+  // Recorta el final por debajo de -50 dBFS.
+  const floor = dbToGain(-50);
   let end = out.length;
   while (end > 1 && Math.abs(out[end - 1]) < floor) end--;
   out = out.slice(0, Math.min(out.length, end + Math.round(0.01 * SAMPLE_RATE)));
   const fadeIn = Math.round(0.001 * SAMPLE_RATE);
   const fadeOut = Math.round(Math.min(0.15, (out.length / SAMPLE_RATE) * 0.25) * SAMPLE_RATE);
   for (let i = 0; i < out.length; i++) {
-    let g = gain;
+    let g = 1;
     if (i < fadeIn) g *= i / fadeIn;
     const left = out.length - i;
     if (left < fadeOut) g *= 0.5 - 0.5 * Math.cos((Math.PI * left) / fadeOut);
@@ -335,5 +361,6 @@ module.exports = {
   peakOf,
   rmsOf,
   finish,
+  limit,
   toWav,
 };

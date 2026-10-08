@@ -25,6 +25,10 @@ const ERROR_MAX_WAIT_MS = 5000;
 /** Pausa en modo `live` antes de contar errores. */
 const LIVE_DEBOUNCE_MS = 1000;
 const STARTUP_DELAY_MS = 1500;
+/** Separación mínima entre dos teclas que suenan (una ráfaga rápida no satura). */
+const TYPING_MIN_GAP_MS = 45;
+/** Las teclas suenan algo más bajas que el resto de sonidos. */
+const TYPING_VOLUME = 0.7;
 
 /** Documentos cuyas ediciones cuentan como «el usuario está escribiendo código». */
 const EDITABLE_SCHEMES = new Set(['file', 'untitled', 'vscode-remote', 'vscode-vfs']);
@@ -63,6 +67,12 @@ class SoundController {
     this.errorDeadline = null;
     /** @type {Set<string>} */
     this.manualSaves = new Set();
+    /** Hasta cuándo suena otro sonido: las teclas no lo interrumpen. */
+    this.busyUntil = 0;
+    this.lastTypingAt = 0;
+    this.lastTypingVariant = 0;
+    /** @type {Map<string, number>} duración en ms de cada archivo ya reproducido */
+    this.durations = new Map();
     this.lastThemeLabel = this.activeThemeLabel();
     this.playerWarned = false;
     /**
@@ -105,7 +115,9 @@ class SoundController {
         if (this.config.errorTrigger === 'onSave') this.scheduleErrorCheck();
       }),
       vscode.workspace.onDidChangeTextDocument((e) => {
-        if (e.contentChanges.length > 0 && EDITABLE_SCHEMES.has(e.document.uri.scheme)) this.errors?.edited();
+        if (e.contentChanges.length === 0 || !EDITABLE_SCHEMES.has(e.document.uri.scheme)) return;
+        this.errors?.edited();
+        if (this.config.events.typing && e.document === vscode.window.activeTextEditor?.document) this.onTyping();
       }),
       vscode.languages.onDidChangeDiagnostics(() => this.onDiagnosticsChanged()),
       vscode.tasks.onDidEndTaskProcess((e) => {
@@ -261,6 +273,56 @@ class SoundController {
 
   // --- Reproducción ---------------------------------------------------------
 
+  /** Una tecla en el editor activo. Nunca corta otro sonido ni pasa por el cooldown general. */
+  onTyping() {
+    const now = Date.now();
+    if (now < this.busyUntil || now - this.lastTypingAt < TYPING_MIN_GAP_MS) return;
+    const cfg = this.config;
+    if (!rules.shouldPlay(cfg, 'typing', this.activeThemePack() !== null)) return;
+    this.lastTypingAt = now;
+    // Una variante distinta de la anterior, para que no suene mecánico.
+    const variants = SOUNDS.typing.variants ?? 1;
+    let n = 1 + Math.floor(Math.random() * variants);
+    if (n === this.lastTypingVariant) n = (n % variants) + 1;
+    this.lastTypingVariant = n;
+    const name = n === 1 ? SOUNDS.typing.file : SOUNDS.typing.file.replace('.wav', `-${n}.wav`);
+    const pack = rules.resolvePack(cfg.pack, this.activeThemePack());
+    try {
+      const resolved = require('./soundbank').resolveSoundFile({ extensionPath: this.context.extensionPath, pack, customFolder: cfg.customFolder, file: name });
+      const file = require('./volume').getScaledFile(resolved.path, Math.round(cfg.volume * TYPING_VOLUME), this.cacheDir);
+      const player = this.ensurePlayer();
+      if (!player.available) return;
+      player.play(file);
+      this.history.push({ event: 'typing', pack, source: resolved.source, at: now });
+      if (this.history.length > 100) this.history.shift();
+    } catch (err) {
+      this.log.debug(`typing: ${/** @type {Error} */ (err).message}`);
+    }
+  }
+
+  /**
+   * Duración aproximada de un WAV (lee solo la cabecera y la cachea).
+   * @param {string} file
+   */
+  durationOf(file) {
+    const known = this.durations.get(file);
+    if (known !== undefined) return known;
+    let ms = 1500;
+    try {
+      const fs = require('node:fs');
+      const fd = fs.openSync(file, 'r');
+      const head = Buffer.alloc(44);
+      fs.readSync(fd, head, 0, 44, 0);
+      fs.closeSync(fd);
+      const byteRate = head.readUInt32LE(28);
+      if (byteRate > 0) ms = Math.round(((fs.statSync(file).size - 44) / byteRate) * 1000);
+    } catch {
+      // se queda la estimación
+    }
+    this.durations.set(file, ms);
+    return ms;
+  }
+
   ensurePlayer() {
     if (!this.player) this.player = require('./player').createPlayer(this.log);
     if (!this.player.available && !this.playerWarned) {
@@ -294,6 +356,7 @@ class SoundController {
       const player = this.ensurePlayer();
       if (!player.available) return;
       player.play(file);
+      this.busyUntil = Date.now() + this.durationOf(file);
       this.history.push({ event, pack, source: resolved.source, at: Date.now() });
       if (this.history.length > 100) this.history.shift();
       this.log.info(`♪ ${event} · ${resolved.source === 'custom' ? 'custom folder' : pack} · ${path.basename(resolved.path)} · volume ${volume}`);

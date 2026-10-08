@@ -35,7 +35,7 @@ function normalizeConfig(get) {
   return {
     enabled: get('enabled') === true,
     pack: pack === 'control' || pack === 'resonant' ? pack : 'auto',
-    volume: Math.round(clamp(/** @type {number} */ (get('volume')), 0, 100, 50)),
+    volume: Math.round(clamp(/** @type {number} */ (get('volume')), 0, 100, 70)),
     onlyWithControlTheme: get('onlyWithControlTheme') !== false,
     errorTrigger: trigger === 'live' ? 'live' : 'onSave',
     cooldownMs: clamp(/** @type {number} */ (get('cooldownMs')), 0, 10000, 1500),

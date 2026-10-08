@@ -65,11 +65,12 @@ function createWindowsPlayer(log) {
       }
     });
     child.stderr.setEncoding('utf8');
-    child.stderr.on('data', (/** @type {string} */ d) => log.debug(`PowerShell stderr: ${d.trim()}`));
+    // Antes iban a debug y un fallo de PowerShell dejaba la extensión muda sin explicación.
+    child.stderr.on('data', (/** @type {string} */ d) => log.warn('PowerShell: ' + d.trim().split(String.fromCharCode(10))[0].trim()));
     child.on('error', (err) => log.warn(`Could not start PowerShell: ${err.message}`));
     child.on('exit', (code) => {
       if (proc === child) proc = null;
-      if (!disposed) log.debug(`PowerShell audio player exited (code ${code})`);
+      if (!disposed) log.warn(`PowerShell audio player exited unexpectedly (code ${code}); it will restart on the next sound.`);
     });
     child.stdin.on('error', () => {}); // el proceso pudo cerrarse entre dos sonidos
     return child;
@@ -80,7 +81,10 @@ function createWindowsPlayer(log) {
     play(file) {
       if (disposed) return;
       if (!proc) {
-        if (restarts > MAX_RESTARTS) return;
+        if (restarts > MAX_RESTARTS) {
+          if (restarts++ === MAX_RESTARTS + 1) log.warn('The PowerShell audio player keeps failing: sounds are paused until VS Code restarts.');
+          return;
+        }
         restarts++;
         proc = start();
       }

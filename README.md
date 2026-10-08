@@ -25,7 +25,7 @@ Bureau dresses Visual Studio Code in the brutalist world of the Federal Bureau o
 |---|---|
 | ![4 colour themes][themes] | **CONTROL Dark** (The Oldest House), **CONTROL Black** (OLED), **CONTROL Resonant** (patterned Manhattan) and **CONTROL Astral** (the light Astral Plane). |
 | ![Bureau Icons][file-icons] | 498 file and folder icons: 340 file extensions, 284 well-known file names, 84 languages and 278 folder names, in dark and light variants. |
-| ![Bureau Product Icons][product-icons] | 184 of VS Code's own icons redrawn with 111 glyphs from the lore, in two versions: the theme colour or the game's **real colours**. |
+| ![Bureau Product Icons][product-icons] | 350 of VS Code's own icons redrawn with 118 glyphs from the lore, in two versions: the theme colour or the game's **real colours**. |
 | ![Typography][typography] | Free fonts inspired by the games for the editor, terminal and chat, installed only for your user. |
 | ![Sound console][sounds] | Optional sound effects with a console in the status bar — no `settings.json` needed. |
 
@@ -113,8 +113,8 @@ VS Code's own icons, reissued by the Bureau: geometric, brutalist glyphs (octago
 | ![The Board][lore-board] | The Git branch in the status bar — marked amber with changes, green when staged, red on conflicts |
 | ![Rubber duck][lore-duck] | Run and Debug — the teleporting Altered Item, for rubber duck debugging |
 | ![Hedron][lore-hedron] | Testing |
-| ![Polaris][lore-polaris] | Copilot, chat and AI |
-| ![The Hotline][lore-hotline] | Notifications |
+| ![Polaris][lore-polaris] | Copilot, chat and AI — with a mark for each state: working, warning, error, done, unavailable or snoozed |
+| ![The Hotline][lore-hotline] | Notifications — crossed out in *Do Not Disturb* mode |
 | ![FBC badge][lore-badge] | Accounts |
 | ![Floppy disk][lore-floppy] | Save — the Object of Power the Bureau took from the Russians |
 | ![Ahti's tape][lore-cassette] | Timeline and history |
@@ -156,7 +156,7 @@ Plus the whole interface: panels (new, split, kill, maximize, close, more action
 
 ![Sound console](images/screenshots/sound-console.png)
 
-Short sound effects inspired by both games, **off by default**. You never need to edit `settings.json`: click the ![Resonance][lore-resonance] **resonance** icon in the status bar (or run **CONTROL: Open Sound Console…**) and the Bureau's switchboard lets you:
+Short sound effects inspired by both games, **off by default** — including the sound of every key you type in the editor, which never interrupts the other sounds. You never need to edit `settings.json`: click the ![Resonance][lore-resonance] **resonance** icon in the status bar (or run **CONTROL: Open Sound Console…**) and the Bureau's switchboard lets you:
 
 - turn the sounds on or off;
 - pick the pack — *Control*, *Resonant* or *follow the theme*;
@@ -172,6 +172,7 @@ Experienced users can hide the icon from the console itself, with **CONTROL: Sho
 | VS Code starts | off | Low concrete hum of the Oldest House | Distant, warped city |
 | Switching to a CONTROL theme | on | Old red-phone ring | Hedron pulse |
 | Manual save (auto-save is ignored) | off | Rubber stamp | Metallic tick |
+| Typing in the editor | on | A Bureau typewriter key (3 variations) | A resonance tick (3 variations) |
 | New errors | on | Hiss-like whisper | Whisper with patterned echoes |
 | Last error fixed | on | Control Point cleansed | Resonant defeated |
 | Task or build succeeded | on | Elevator ding | Rising glass arpeggio |
@@ -181,7 +182,7 @@ Experienced users can hide the icon from the console itself, with **CONTROL: Sho
 | Breakpoint hit | on | Slide projector | Gravity shift |
 | Git commit | on | Typewriter and bell | Metal hit with echoes |
 
-**All sounds are original recreations** synthesized from scratch — no audio, music or voices from the games are included or downloaded. See [`sounds/LICENSES.md`](sounds/LICENSES.md). VS Code has no audio API for extensions, so the extension uses the system player (PowerShell on Windows, `afplay` on macOS, `paplay`, `pw-play` or `aplay` on Linux); with Remote-SSH, WSL or Codespaces the sounds play on your local machine.
+**All sounds are original recreations** synthesized from scratch and mastered to be heard over background music — no audio, music or voices from the games are included or downloaded. See [`sounds/LICENSES.md`](sounds/LICENSES.md). VS Code has no audio API for extensions, so the extension uses the system player (PowerShell on Windows, `afplay` on macOS, `paplay`, `pw-play` or `aplay` on Linux); with Remote-SSH, WSL or Codespaces the sounds play on your local machine.
 
 ## Settings
 
@@ -191,11 +192,11 @@ Experienced users can hide the icon from the console itself, with **CONTROL: Sho
 | `bureauTheme.sounds.enabled` | `false` | Master switch for sounds. |
 | `bureauTheme.sounds.statusBarItem` | `true` | Show the sound console icon in the status bar. |
 | `bureauTheme.sounds.pack` | `auto` | `auto` follows the theme, or force `control` or `resonant`. |
-| `bureauTheme.sounds.volume` | `50` | 0–100. |
+| `bureauTheme.sounds.volume` | `70` | 0–100. |
 | `bureauTheme.sounds.onlyWithControlTheme` | `true` | Stay silent while another theme is active. |
 | `bureauTheme.sounds.errorTrigger` | `onSave` | `onSave` or `live`. |
 | `bureauTheme.sounds.cooldownMs` | `1500` | Minimum time between sounds; more important ones can interrupt. |
-| `bureauTheme.sounds.customFolder` | `""` | Folder with your own `.wav` files (`startup.wav`, `theme.wav`, `save.wav`, `error.wav`, `clear.wav`, `build-ok.wav`, `build-fail.wav`, `terminal-fail.wav`, `debug.wav`, `breakpoint.wav`, `commit.wav`). |
+| `bureauTheme.sounds.customFolder` | `""` | Folder with your own `.wav` files (`startup.wav`, `theme.wav`, `save.wav`, `typing.wav`, `error.wav`, `clear.wav`, `build-ok.wav`, `build-fail.wav`, `terminal-fail.wav`, `debug.wav`, `breakpoint.wav`, `commit.wav`). |
 | `bureauTheme.sounds.events.*` | see above | One switch per event. |
 
 Comments, parameters and type parameters are *italic*. To turn italics off:
@@ -230,7 +231,7 @@ Everything in the pack is generated by code — no drawing programs and no asset
 |---|---|
 | Colour themes | Role-based palettes turned into 687 UI colours, TextMate rules and semantic tokens by a Node.js script; every colour pair is checked against WCAG before packaging. |
 | Bureau Icons | 498 SVG icons written by a script on a 16 px grid, with dark and light variants. |
-| Bureau Product Icons | 111 glyphs drawn as polygons on a 24 px grid and turned into an icon font (svgicons2svgfont → svg2ttf → ttf2woff). The colour version adds COLR/CPAL colour tables written by the project. |
+| Bureau Product Icons | 118 glyphs drawn as polygons on a 24 px grid and turned into an icon font (svgicons2svgfont → svg2ttf → ttf2woff). The colour version adds COLR/CPAL colour tables written by the project. |
 | Extension icon | Rendered pixel by pixel with 4×4 supersampling and saved with a tiny PNG encoder written for the project. |
 | Sounds | Synthesized from scratch in JavaScript (oscillators, noise and envelopes) — no samples. |
 | Extension code | JavaScript checked with TypeScript (`// @ts-check` + JSDoc), bundled with esbuild into one file with no runtime dependencies. The sound console, the audio engine and the font installer only load when used: the extension's own work at start-up takes a few milliseconds. |
@@ -274,7 +275,7 @@ Bureau viste Visual Studio Code con el mundo brutalista de la Agencia Federal de
 |---|---|
 | ![4 temas de color][themes-es] | **CONTROL Dark** (la Casa Inmemorial), **CONTROL Black** (OLED), **CONTROL Resonant** (el Manhattan alterado) y **CONTROL Astral** (el Plano Astral, tema claro). |
 | ![Bureau Icons][file-icons-es] | 498 iconos de archivos y carpetas: 340 extensiones, 284 nombres de archivo conocidos, 84 lenguajes y 278 nombres de carpeta, con variantes oscura y clara. |
-| ![Bureau Product Icons][product-icons-es] | 184 iconos del propio VS Code redibujados con 111 glifos del lore, en dos versiones: el color del tema o los **colores reales** del juego. |
+| ![Bureau Product Icons][product-icons-es] | 350 iconos del propio VS Code redibujados con 118 glifos del lore, en dos versiones: el color del tema o los **colores reales** del juego. |
 | ![Tipografía][typography-es] | Fuentes libres inspiradas en los juegos para el editor, la terminal y el chat, instaladas solo para tu usuario. |
 | ![Consola de sonido][sounds-es] | Efectos de sonido opcionales con una consola en la barra de estado: sin tocar `settings.json`. |
 
@@ -362,8 +363,8 @@ Los iconos del propio VS Code, reeditados por la Agencia: glifos geométricos y 
 | ![El Consejo][lore-board-es] | La rama de Git en la barra de estado: marca ámbar con cambios, verde con cambios preparados y roja con conflictos |
 | ![Patito de goma][lore-duck-es] | Ejecutar y depurar: el Objeto Alterado que se teletransporta, para el *rubber duck debugging* |
 | ![Hedrón][lore-hedron-es] | Pruebas |
-| ![Polaris][lore-polaris-es] | Copilot, el chat y la IA |
-| ![La Línea Directa][lore-hotline-es] | Notificaciones |
+| ![Polaris][lore-polaris-es] | Copilot, el chat y la IA, con una marca para cada estado: trabajando, aviso, error, listo, no disponible o en pausa |
+| ![La Línea Directa][lore-hotline-es] | Notificaciones; tachada en modo *No molestar* |
 | ![Placa de la FBC][lore-badge-es] | Cuentas |
 | ![Disquete][lore-floppy-es] | Guardar: el Objeto de Poder que la Agencia se llevó de los rusos |
 | ![La cinta de Ahti][lore-cassette-es] | Línea de tiempo e historial |
@@ -405,7 +406,7 @@ Y toda la interfaz: paneles (nuevo, dividir, cerrar proceso, maximizar, cerrar, 
 
 ![Consola de sonido](images/screenshots/sound-console.png)
 
-Efectos de sonido cortos inspirados en los dos juegos, **desactivados por defecto**. No hace falta tocar `settings.json`: pulsa el icono de la ![Resonancia][lore-resonance-es] **resonancia** en la barra de estado (o ejecuta **CONTROL: Abrir la consola de sonido…**) y la centralita de la Agencia te deja:
+Efectos de sonido cortos inspirados en los dos juegos, **desactivados por defecto**, incluido el sonido de cada tecla que escribes en el editor, que nunca interrumpe a los demás sonidos. No hace falta tocar `settings.json`: pulsa el icono de la ![Resonancia][lore-resonance-es] **resonancia** en la barra de estado (o ejecuta **CONTROL: Abrir la consola de sonido…**) y la centralita de la Agencia te deja:
 
 - activar o desactivar los sonidos;
 - elegir el pack: *Control*, *Resonant* o *según el tema*;
@@ -421,6 +422,7 @@ Si ya te manejas bien, puedes ocultar el icono desde la propia consola, con **CO
 | Se inicia VS Code | no | Zumbido grave del hormigón de la Casa Inmemorial | Ciudad lejana y distorsionada |
 | Cambiar a un tema CONTROL | sí | Timbre del viejo teléfono rojo | Pulso del Hedrón |
 | Guardado manual (se ignora el guardado automático) | no | Sello de goma | Tic metálico |
+| Escribir en el editor | sí | Una tecla de la máquina de escribir de la Agencia (3 variaciones) | Un tic de resonancia (3 variaciones) |
 | Nuevos errores | sí | Susurro del Hiss | Susurro con ecos alterados |
 | Último error corregido | sí | Punto de Control purificado | Resonante derrotado |
 | Tarea o compilación correcta | sí | Campanilla del ascensor | Arpegio de cristal ascendente |
@@ -430,7 +432,7 @@ Si ya te manejas bien, puedes ocultar el icono desde la propia consola, con **CO
 | Se alcanza un punto de interrupción | sí | Proyector de diapositivas | Cambio de gravedad |
 | Commit de Git | sí | Máquina de escribir y campanilla | Golpe metálico con ecos |
 
-**Todos los sonidos son recreaciones originales** sintetizadas desde cero: no se incluye ni se descarga audio, música ni voces de los juegos. Consulta [`sounds/LICENSES.md`](sounds/LICENSES.md). VS Code no tiene una API de audio para extensiones, así que la extensión usa el reproductor del sistema (PowerShell en Windows, `afplay` en macOS, `paplay`, `pw-play` o `aplay` en Linux); con Remote-SSH, WSL o Codespaces los sonidos suenan en tu equipo local.
+**Todos los sonidos son recreaciones originales** sintetizadas desde cero y masterizadas para oírse aunque tengas música de fondo: no se incluye ni se descarga audio, música ni voces de los juegos. Consulta [`sounds/LICENSES.md`](sounds/LICENSES.md). VS Code no tiene una API de audio para extensiones, así que la extensión usa el reproductor del sistema (PowerShell en Windows, `afplay` en macOS, `paplay`, `pw-play` o `aplay` en Linux); con Remote-SSH, WSL o Codespaces los sonidos suenan en tu equipo local.
 
 ## Configuración
 
@@ -440,11 +442,11 @@ Si ya te manejas bien, puedes ocultar el icono desde la propia consola, con **CO
 | `bureauTheme.sounds.enabled` | `false` | Interruptor general de los sonidos. |
 | `bureauTheme.sounds.statusBarItem` | `true` | Muestra el icono de la consola de sonido en la barra de estado. |
 | `bureauTheme.sounds.pack` | `auto` | `auto` sigue al tema; también puedes forzar `control` o `resonant`. |
-| `bureauTheme.sounds.volume` | `50` | De 0 a 100. |
+| `bureauTheme.sounds.volume` | `70` | De 0 a 100. |
 | `bureauTheme.sounds.onlyWithControlTheme` | `true` | Silencio mientras esté activo otro tema. |
 | `bureauTheme.sounds.errorTrigger` | `onSave` | `onSave` (al guardar) o `live` (en directo). |
 | `bureauTheme.sounds.cooldownMs` | `1500` | Tiempo mínimo entre sonidos; los más importantes pueden interrumpir. |
-| `bureauTheme.sounds.customFolder` | `""` | Carpeta con tus propios `.wav` (`startup.wav`, `theme.wav`, `save.wav`, `error.wav`, `clear.wav`, `build-ok.wav`, `build-fail.wav`, `terminal-fail.wav`, `debug.wav`, `breakpoint.wav`, `commit.wav`). |
+| `bureauTheme.sounds.customFolder` | `""` | Carpeta con tus propios `.wav` (`startup.wav`, `theme.wav`, `save.wav`, `typing.wav`, `error.wav`, `clear.wav`, `build-ok.wav`, `build-fail.wav`, `terminal-fail.wav`, `debug.wav`, `breakpoint.wav`, `commit.wav`). |
 | `bureauTheme.sounds.events.*` | ver arriba | Un interruptor por evento. |
 
 Los comentarios, los parámetros y los parámetros de tipo van en *cursiva*. Para quitarla:
@@ -479,7 +481,7 @@ Todo el pack se genera con código: sin programas de dibujo y sin recursos sacad
 |---|---|
 | Temas de color | Paletas por funciones que un script de Node.js convierte en 687 colores de interfaz, reglas TextMate y tokens semánticos; cada pareja de colores se comprueba con WCAG antes de empaquetar. |
 | Bureau Icons | 498 iconos SVG escritos por un script sobre una cuadrícula de 16 px, con variantes oscura y clara. |
-| Bureau Product Icons | 111 glifos dibujados como polígonos sobre una cuadrícula de 24 px y convertidos en una fuente de iconos (svgicons2svgfont → svg2ttf → ttf2woff). La versión a color añade las tablas de color COLR/CPAL, escritas para el proyecto. |
+| Bureau Product Icons | 118 glifos dibujados como polígonos sobre una cuadrícula de 24 px y convertidos en una fuente de iconos (svgicons2svgfont → svg2ttf → ttf2woff). La versión a color añade las tablas de color COLR/CPAL, escritas para el proyecto. |
 | Icono de la extensión | Renderizado píxel a píxel con supermuestreo 4×4 y guardado con un pequeño codificador PNG escrito para el proyecto. |
 | Sonidos | Sintetizados desde cero en JavaScript (osciladores, ruido y envolventes), sin muestras. |
 | Código de la extensión | JavaScript comprobado con TypeScript (`// @ts-check` + JSDoc) y empaquetado con esbuild en un único archivo sin dependencias. La consola de sonido, el motor de audio y el instalador de fuentes solo se cargan al usarse: el trabajo propio de la extensión al arrancar dura unos pocos milisegundos. |

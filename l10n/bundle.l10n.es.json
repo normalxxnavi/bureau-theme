@@ -77,5 +77,6 @@
   "Choose a folder…": "Elegir una carpeta…",
   "Use the built-in sounds again": "Volver a los sonidos incluidos",
   "A folder with .wav files named like the built-in ones (save.wav, error.wav…)": "Una carpeta con archivos .wav con los mismos nombres que los incluidos (save.wav, error.wav…)",
-  "Use this folder": "Usar esta carpeta"
+  "Use this folder": "Usar esta carpeta",
+  "Typing in the editor": "Escribir en el editor"
 }

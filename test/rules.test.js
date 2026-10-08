@@ -142,5 +142,5 @@ test('normalizeConfig corrige valores escritos a mano', () => {
   assert.equal(c.errorTrigger, 'onSave');
   assert.equal(c.onlyWithControlTheme, true, 'por defecto true');
   assert.equal(c.customFolder, 'C:/sonidos');
-  assert.equal(normalizeConfig(() => undefined).volume, 50);
+  assert.equal(normalizeConfig(() => undefined).volume, 70);
 });

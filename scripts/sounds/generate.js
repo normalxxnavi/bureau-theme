@@ -106,11 +106,11 @@ function glass(/** @type {Float32Array} */ out, /** @type {number} */ start, /**
 
 // --- Pack Control: The Oldest House ------------------------------------------
 
-/** @type {Record<string, {describe: string, peakDb: number, maxRmsDb?: number, render: () => Float32Array}>} */
+/** @type {Record<string, {describe: string, rmsDb: number, render: () => Float32Array}>} */
 const control = {
   'startup.wav': {
     describe: 'Zumbido grave de la Oldest House: un drone de hormigón que respira, con una resonancia lejana.',
-    peakDb: -5,
+    rmsDb: -14,
     render() {
       const b = D.buffer(3.2);
       const tones = [[55, 0.5], [55.35, 0.35], [110, 0.3], [165.2, 0.16], [220.7, 0.08]].map(([f, a]) => [D.osc('sine', f), a]);
@@ -129,7 +129,7 @@ const control = {
 
   'theme.wav': {
     describe: 'La Hotline: el timbre de un teléfono antiguo (dos campanillas golpeadas por un badajo) en una sala de hormigón.',
-    peakDb: -6,
+    rmsDb: -15,
     render() {
       const b = D.buffer(1.6);
       const partials = /** @type {Array<[number, number, number]>} */ ([[1, 1, 0.12], [1.48, 0.45, 0.08], [2.02, 0.35, 0.06], [2.66, 0.2, 0.04], [3.2, 0.1, 0.03]]);
@@ -143,7 +143,7 @@ const control = {
 
   'save.wav': {
     describe: 'Sello de archivo: un golpe seco de goma sobre papel. Muy discreto.',
-    peakDb: -12,
+    rmsDb: -18,
     render() {
       const b = D.buffer(0.2);
       click(b, 0, { freq: 3200, tau: 0.003, gain: 0.35, seed: 21 });
@@ -154,8 +154,7 @@ const control = {
 
   'error.wav': {
     describe: 'Susurro del Hiss: murmullos de ruido filtrado y un tono grave disonante (segunda menor) que crece.',
-    peakDb: -4,
-    maxRmsDb: -15,
+    rmsDb: -14,
     render() {
       const b = D.buffer(1.5);
       whisper(b, 0.03, [[0, 0.18], [0.2, 0.14], [0.36, 0.22], [0.62, 0.3]], { center: 2600, gain: 0.9, seed: 31 });
@@ -170,7 +169,7 @@ const control = {
 
   'clear.wav': {
     describe: 'Control Point purificado: un barrido de aire que sube y un acorde mayor que se abre, con una campanilla.',
-    peakDb: -4,
+    rmsDb: -13,
     render() {
       const b = D.buffer(1.8);
       whoosh(b, 0, 0.7, D.glide(300, 6000, 0.5), { type: 'lowpass', q: 0.9, gain: 0.5, seed: 41, shape: D.env([[0, 0], [0.6, 1], [1, 0]]) });
@@ -187,7 +186,7 @@ const control = {
 
   'build-ok.wav': {
     describe: 'Campana de ascensor: dos notas ascendentes (sol–do), limpias y breves.',
-    peakDb: -5,
+    rmsDb: -14,
     render() {
       const b = D.buffer(1.4);
       const tube = /** @type {Array<[number, number, number]>} */ ([[1, 1, 0.42], [2.0, 0.28, 0.25], [2.76, 0.14, 0.15], [5.4, 0.04, 0.06]]);
@@ -199,7 +198,7 @@ const control = {
 
   'build-fail.wav': {
     describe: 'Alerta del Bureau: dos toques graves de sirena filtrada que resuenan en un pasillo de hormigón.',
-    peakDb: -5,
+    rmsDb: -14,
     render() {
       const b = D.buffer(1.5);
       for (const start of [0, 0.42]) {
@@ -216,7 +215,7 @@ const control = {
 
   'terminal-fail.wav': {
     describe: 'Estática de radio: un chasquido de interferencias con un pitido apagado.',
-    peakDb: -8,
+    rmsDb: -17,
     render() {
       const b = D.buffer(0.6);
       const n = D.noise('white', 51);
@@ -237,7 +236,7 @@ const control = {
 
   'debug.wav': {
     describe: 'Transformación del Service Weapon: un trinquete mecánico que acelera, energía que sube y un cierre metálico.',
-    peakDb: -4,
+    rmsDb: -13,
     render() {
       const b = D.buffer(1.0);
       [0, 0.07, 0.13, 0.18, 0.22, 0.255, 0.285, 0.31].forEach((t, i) => click(b, t, { freq: 2600 + i * 120, tau: 0.004, gain: 0.5, seed: 60 + i }));
@@ -253,7 +252,7 @@ const control = {
 
   'breakpoint.wav': {
     describe: 'Proyector de diapositivas: «ka-chunk», el carro avanza y la diapositiva cae en su sitio.',
-    peakDb: -10,
+    rmsDb: -18,
     render() {
       const b = D.buffer(0.32);
       click(b, 0, { freq: 2200, tau: 0.006, gain: 0.8, seed: 71 });
@@ -267,7 +266,7 @@ const control = {
 
   'commit.wav': {
     describe: 'Máquina de escribir y timbre del carro: tres teclas y la campanilla de fin de línea.',
-    peakDb: -6,
+    rmsDb: -15,
     render() {
       const b = D.buffer(1.0);
       [0, 0.09, 0.17].forEach((t, i) => {
@@ -286,7 +285,7 @@ const control = {
 const resonant = {
   'startup.wav': {
     describe: 'Manhattan a lo lejos, deformado: rumor de ciudad, un acorde que se hunde por la gravedad y un motivo de cristal que se repite.',
-    peakDb: -5,
+    rmsDb: -14,
     render() {
       const b = D.buffer(3.4);
       const rumble = D.noise('brown', 101);
@@ -308,7 +307,7 @@ const resonant = {
 
   'theme.wav': {
     describe: 'Pulso de la Hedron: dos tonos de cristal puros que se repiten tres veces, cada vez más lejos.',
-    peakDb: -6,
+    rmsDb: -15,
     render() {
       const b = D.buffer(1.5);
       [0, 1, 2].forEach((k) => {
@@ -322,7 +321,7 @@ const resonant = {
 
   'save.wav': {
     describe: 'Clic metálico: un «tic» sintético y breve. Muy discreto.',
-    peakDb: -12,
+    rmsDb: -18,
     render() {
       const b = D.buffer(0.15);
       const tick = D.fm(3200, 1.41, (t) => 3 * Math.exp(-t / 0.008));
@@ -337,8 +336,7 @@ const resonant = {
 
   'error.wav': {
     describe: 'El Hiss invade la ciudad: un susurro que se repite en ecos cada vez más graves y un tono distorsionado.',
-    peakDb: -4,
-    maxRmsDb: -15,
+    rmsDb: -14,
     render() {
       const b = D.buffer(1.5);
       [0, 1, 2, 3].forEach((k) => {
@@ -356,7 +354,7 @@ const resonant = {
 
   'clear.wav': {
     describe: 'Resonant derrotado: un impacto profundo, un acorde que se eleva y un brillo que se desvanece.',
-    peakDb: -4,
+    rmsDb: -13,
     render() {
       const b = D.buffer(1.9);
       thump(b, 0, { from: 70, to: 35, tau: 0.18, noiseGain: 0.35, gain: 0.9, seed: 141 });
@@ -377,7 +375,7 @@ const resonant = {
 
   'build-ok.wav': {
     describe: 'Arpegio ascendente de cristal (mi–sol#–si) con un eco que lo repite más lejos.',
-    peakDb: -5,
+    rmsDb: -14,
     render() {
       const b = D.buffer(1.3);
       [659.25, 830.61, 987.77].forEach((f, i) => glass(b, i * 0.09, f, { gain: 0.5, tau: 0.4 }));
@@ -387,7 +385,7 @@ const resonant = {
 
   'build-fail.wav': {
     describe: 'Distorsión gravitatoria: un tono que se desploma dos octavas mientras se rompe digitalmente, con un golpe sub.',
-    peakDb: -5,
+    rmsDb: -14,
     render() {
       const b = D.buffer(1.3);
       const o = D.osc('saw', (t) => 440 * Math.pow(0.25, Math.min(1, t / 0.8)));
@@ -405,7 +403,7 @@ const resonant = {
 
   'terminal-fail.wav': {
     describe: 'Estática con «glitch»: un fragmento de interferencia que se repite cuatro veces, como un patrón atascado.',
-    peakDb: -8,
+    rmsDb: -17,
     render() {
       const slice = D.buffer(0.04);
       const n = D.noise('white', 171);
@@ -422,7 +420,7 @@ const resonant = {
 
   'debug.wav': {
     describe: 'El Aberrant cambia de forma: tres transformaciones sintéticas que suben de tono, cada una con su clic, y un cierre.',
-    peakDb: -4,
+    rmsDb: -13,
     render() {
       const b = D.buffer(1.1);
       [220, 330, 440].forEach((f, k) => {
@@ -440,7 +438,7 @@ const resonant = {
 
   'breakpoint.wav': {
     describe: 'Shift: un desplazamiento rápido que cae y vuelve a subir, como cambiar de gravedad.',
-    peakDb: -10,
+    rmsDb: -18,
     render() {
       const b = D.buffer(0.4);
       const curve = D.env([[0, 3000], [0.12, 600], [0.3, 2000]]);
@@ -453,7 +451,7 @@ const resonant = {
 
   'commit.wav': {
     describe: 'Golpe metálico con eco: una pieza de hierro golpeada cuyo sonido se repite en patrón.',
-    peakDb: -6,
+    rmsDb: -15,
     render() {
       const b = D.buffer(1.1);
       bell(b, 0, 523.25, [[1, 0.6, 0.3], [2.5, 0.35, 0.18], [3.99, 0.22, 0.1], [5.56, 0.12, 0.06]]);
@@ -465,6 +463,33 @@ const resonant = {
 
 // --- Generación --------------------------------------------------------------
 
+// Teclear en el editor: tres variantes por pack (afinación y golpe distintos)
+// para que una ráfaga de teclas no suene a metralleta.
+for (const [i, pitch] of /** @type {Array<[number, number]>} */ ([[1, 1], [2, 1.07], [3, 0.94]])) {
+  const name = i === 1 ? 'typing.wav' : `typing-${i}.wav`;
+  control[name] = {
+    describe: `Tecla de la máquina de escribir de la Agencia: clic metálico y golpe seco del tipo contra el rodillo (variante ${i}).`,
+    rmsDb: -19,
+    render() {
+      const b = D.buffer(0.09);
+      click(b, 0, { freq: 2600 * pitch, tau: 0.0025, gain: 0.5, seed: 40 + i });
+      thump(b, 0.003, { from: 190 * pitch, to: 110 * pitch, tau: 0.012, noiseGain: 0.6, seed: 50 + i });
+      click(b, 0.02, { freq: 1500 * pitch, tau: 0.002, gain: 0.16, seed: 60 + i });
+      return b;
+    },
+  };
+  resonant[name] = {
+    describe: `Tic de resonancia: un golpe de cristal muy corto, como una tecla en el Manhattan alterado (variante ${i}).`,
+    rmsDb: -19,
+    render() {
+      const b = D.buffer(0.12);
+      glass(b, 0, 2100 * pitch, { tau: 0.03, gain: 0.5, ratio: 3.5, index: 1.2 });
+      click(b, 0, { freq: 4200 * pitch, tau: 0.0015, gain: 0.2, seed: 70 + i });
+      return b;
+    },
+  };
+}
+
 const PACKS = { control, resonant };
 
 function main() {
@@ -473,7 +498,7 @@ function main() {
     const dir = path.join(ROOT, 'sounds', pack);
     fs.mkdirSync(dir, { recursive: true });
     for (const [file, spec] of Object.entries(sounds)) {
-      const audio = D.finish(spec.render(), { peakDb: spec.peakDb, maxRmsDb: spec.maxRmsDb });
+      const audio = D.finish(spec.render(), { rmsDb: spec.rmsDb });
       fs.writeFileSync(path.join(dir, file), D.toWav(audio));
       const peak = 20 * Math.log10(D.peakOf(audio));
       const rms = 20 * Math.log10(D.rmsOf(audio));
@@ -496,6 +521,9 @@ const EVENT_OF = {
   'startup.wav': 'Arranque de VS Code',
   'theme.wav': 'Activar un tema CONTROL',
   'save.wav': 'Guardar (manual)',
+  'typing.wav': 'Escribir en el editor',
+  'typing-2.wav': 'Escribir en el editor',
+  'typing-3.wav': 'Escribir en el editor',
   'error.wav': 'Errores nuevos',
   'clear.wav': 'Todos los errores corregidos',
   'build-ok.wav': 'Tarea terminada con éxito',
