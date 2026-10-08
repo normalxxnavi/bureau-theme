@@ -1,6 +1,6 @@
 {
-  "displayName": "Theme CONTROL",
-  "description": "Cuatro temas de color, iconos de archivo y de interfaz, y tipografía inspirados en CONTROL y CONTROL Resonant. Proyecto fan no oficial.",
+  "displayName": "Bureau — CONTROL Fan Theme",
+  "description": "Acceso autorizado. Convierte VS Code en la Agencia Federal de Control: cuatro temas verificados con WCAG, iconos de archivo y de interfaz Bureau, tipografía del juego y una consola de sonido opcional. Obra fan no oficial.",
   "command.toggleSounds": "Activar/desactivar sonidos",
   "command.previewSounds": "Probar sonidos…",
   "command.openSoundSettings": "Abrir ajustes de sonido",
@@ -36,5 +36,8 @@
   "config.font.none": "Mantener tu tipografía (no se cambia nada).",
   "config.font.bureau": "Bureau (Control): Overpass Mono y Overpass, inspiradas en la señalética del Bureau. Usa Interstate si la tienes instalada.",
   "config.font.resonant": "Resonant (Control Resonant): Space Mono y Space Grotesk.",
-  "config.font.auto": "Según el tema: Resonant con CONTROL Resonant, Bureau con los demás temas CONTROL y tu tipografía con cualquier otro tema."
+  "config.font.auto": "Según el tema: Resonant con CONTROL Resonant, Bureau con los demás temas CONTROL y tu tipografía con cualquier otro tema.",
+  "command.soundMenu": "Abrir la consola de sonido…",
+  "command.toggleSoundStatusBar": "Mostrar/ocultar el icono de sonido en la barra de estado",
+  "config.sounds.statusBarItem": "Muestra el icono de sonido (la *resonancia*) en la barra de estado. Al pulsarlo se abre la consola de sonido para configurarlo todo sin editar `settings.json`. También puedes ocultarlo desde la propia consola o con el botón derecho sobre la barra de estado."
 }

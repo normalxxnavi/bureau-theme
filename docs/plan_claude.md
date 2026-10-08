@@ -667,3 +667,18 @@ Peticiones: (1) insignias de «cómo está hecho» y emblemas fan en los detalle
 | **Aviso legal** con el texto exacto de las normas de contenido fan de Remedy | `README.md` | — |
 
 El 1560 ms que veía Javier en su VS Code incluye esperas del propio VS Code (traducciones, almacenamiento de la extensión) mientras C# Dev Kit, Docker y otras extensiones arrancan a la vez; el trabajo propio de la extensión es ahora de unos 3 ms.
+
+### Versión 0.10.0: Bureau — CONTROL Fan Theme, consola de sonido y lore
+
+Peticiones: (1) nombre fácil de buscar que haga referencia a CONTROL; (2) descripción más profesional; (3) color en **todos** los iconos de producto (versión Color); (4) consola de sonido para quien no sabe tocar `settings.json`, con un icono que se pueda ocultar; (5) menos pirámides y más iconos del lore; (6) iconos repartidos por las descripciones en lugar de un bloque de insignias; todo optimizado.
+
+| Qué | Dónde | Verificado |
+|---|---|---|
+| Nombre **Bureau — CONTROL Fan Theme** (marca propia + «CONTROL», «Fan» y «Theme» para la búsqueda) y descripción nueva; 28 palabras clave | `package.nls*.json`, `package.json` | Página de detalles en un perfil aislado |
+| **Consola de sonido**: icono de *resonancia* en la barra de estado → menú (activar, pack, volumen con muestra, eventos, probar, avanzado, ocultar icono). Ajuste `bureauTheme.sounds.statusBarItem`, comandos «Abrir la consola de sonido…» y «Mostrar/ocultar el icono de sonido» | `src/extension/sound-status.js`, `sound-menu.js`, `labels.js` | Test de integración (icono visible, cambia con los sonidos, se oculta y vuelve); captura real de la consola |
+| **16 glifos nuevos del lore** (Polaris, Laberinto del Cenicero, patito de goma, disquete, cinta de Ahti, televisión Benicoff, proyector, caja fuerte, fregona de Ahti, llave del Motel Oceanview, Casa Inmemorial, Umbral, Aberrante, gramola Songmaster, resonancia encendida/apagada); 184 iconos de VS Code sustituidos con 111 glifos | `scripts/product-icons.js` | Hoja de glifos a 56 y 16 px |
+| **Todos** los glifos con color en la versión Color (ninguna capa sigue al tema) | `scripts/product-icons.js` | Test: 111 glifos base en COLR y ninguna capa 0xFFFF |
+| Menos pirámides: carpeta raíz = Casa Inmemorial, `.git` = Laberinto, archivos de IA = Polaris | `scripts/icons.js` | Iconos a 16 y 48 px |
+| **Chapas** (shields.io con glifos propios) repartidas por las descripciones y tablas, tabla «Objetos de Poder en tu barra de herramientas»; generadas por script como referencias al final del README | `scripts/badges.js`, `README.md` | Se ven en la página de detalles local |
+| **Arranque**: el código se divide en tres archivos (`extension.js` 14 KB al arrancar, `controller.js` solo con sonidos y `sound-menu.js` al abrir la consola). Trabajo propio al arrancar: 2,6 ms | `scripts/bundle.js`, `src/extension/extension.js` | Mediana de 7 arranques con `vscode` simulado |
+| El test de integración vuelve a instalar las fuentes que el usuario ya tenía (antes las desregistraba) | `test/integration/index.js` | Registro de Windows tras el test |

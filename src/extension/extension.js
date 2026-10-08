@@ -6,16 +6,19 @@
  *
  * Los temas de color y de iconos no necesitan código: VS Code los lee de
  * package.json. Este archivo añade el módulo de sonidos opcional (desactivado
- * por defecto) y las tipografías opcionales inspiradas en los juegos.
+ * por defecto), su consola en la barra de estado y las tipografías opcionales.
  *
- * `activate` solo registra comandos y listeners y vuelve enseguida: el trabajo
- * inicial se hace en el siguiente turno y el motor de sonido, el instalador de
- * fuentes y el canal de log se cargan la primera vez que hacen falta.
+ * Arranque mínimo: `activate` solo registra comandos y listeners y vuelve
+ * enseguida. El motor de sonido (`./controller`) se carga cuando los sonidos
+ * están activados o se usa un comando de sonido, la consola (`./sound-menu`)
+ * cuando se abre, y el canal de log la primera vez que se escribe en él.
+ * En el paquete son archivos separados (scripts/bundle.js).
  */
 
 const vscode = require('vscode');
-const { SoundController } = require('./controller');
+const { SECTION } = require('./config');
 const { FontController } = require('./fonts');
+const { SoundStatus } = require('./sound-status');
 
 /**
  * Canal de log que se crea la primera vez que se escribe en él (en un arranque
@@ -46,31 +49,62 @@ function lazyLog(context) {
 /** @param {vscode.ExtensionContext} context */
 function activate(context) {
   const log = lazyLog(context);
-  const controller = new SoundController(context, log);
   const fonts = new FontController(context, log);
+  const status = new SoundStatus(context);
+
+  /** @type {import('./controller').SoundController | undefined} */
+  let controller;
+  /** El motor de sonido, creado la primera vez que hace falta. */
+  const sounds = () => {
+    if (!controller) {
+      const { SoundController } = require('./controller');
+      controller = new SoundController(context, log);
+      controller.init();
+    }
+    return controller;
+  };
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('bureauTheme.toggleSounds', () => controller.toggle()),
-    vscode.commands.registerCommand('bureauTheme.previewSounds', () => controller.preview()),
-    vscode.commands.registerCommand('bureauTheme.openSoundSettings', () => controller.openSettings()),
+    vscode.commands.registerCommand('bureauTheme.toggleSounds', () => sounds().toggle()),
+    vscode.commands.registerCommand('bureauTheme.previewSounds', () => sounds().preview()),
+    vscode.commands.registerCommand('bureauTheme.openSoundSettings', () => sounds().openSettings()),
+    vscode.commands.registerCommand('bureauTheme.soundMenu', () => require('./sound-menu').openSoundMenu(sounds(), status)),
+    vscode.commands.registerCommand('bureauTheme.toggleSoundStatusBar', () => status.setVisible(!status.visible())),
     vscode.commands.registerCommand('bureauTheme.chooseFont', () => fonts.choose()),
     vscode.commands.registerCommand('bureauTheme.removeFonts', () => fonts.removeFonts())
   );
 
-  controller.init();
+  // Con los sonidos desactivados (lo normal) solo se vigila el interruptor.
+  const enabled = () => vscode.workspace.getConfiguration(SECTION).get('enabled') === true;
+  if (enabled()) sounds();
+  else {
+    const watch = vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration(`${SECTION}.enabled`) && enabled()) {
+        watch.dispose();
+        sounds();
+      }
+    });
+    context.subscriptions.push(watch);
+  }
+
   fonts.init();
+  status.init();
 
   // API interna para el test de integración (test/integration). No es pública.
   return {
     get soundHistory() {
-      return controller.history;
+      return controller?.history ?? [];
     },
     get soundsStarted() {
-      return controller.started;
+      return controller?.started ?? false;
     },
     /** Espera a que termine la sincronización de tipografías en curso. */
     fontsIdle() {
       return fonts.queue;
+    },
+    /** Texto del icono de sonido de la barra de estado (undefined si está oculto). */
+    get soundStatusText() {
+      return status.item?.text;
     },
   };
 }

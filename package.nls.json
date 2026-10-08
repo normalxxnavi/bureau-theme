@@ -1,6 +1,6 @@
 {
-  "displayName": "Theme CONTROL",
-  "description": "Four color themes, file and product icons, and typography inspired by CONTROL and CONTROL Resonant. Unofficial fan project.",
+  "displayName": "Bureau — CONTROL Fan Theme",
+  "description": "Clearance granted. Turn VS Code into the Federal Bureau of Control: four WCAG-tested themes, Bureau file & product icons, game typography and an optional sound console. Unofficial fan work.",
   "command.toggleSounds": "Toggle Sounds",
   "command.previewSounds": "Preview Sounds…",
   "command.openSoundSettings": "Open Sound Settings",
@@ -36,5 +36,8 @@
   "config.font.none": "Keep your own font (nothing is changed).",
   "config.font.bureau": "Bureau (Control): Overpass Mono and Overpass, inspired by the Bureau signage. Uses Interstate if you have it installed.",
   "config.font.resonant": "Resonant (Control Resonant): Space Mono and Space Grotesk.",
-  "config.font.auto": "Follow the theme: Resonant with CONTROL Resonant, Bureau with the other CONTROL themes, your own font with any other theme."
+  "config.font.auto": "Follow the theme: Resonant with CONTROL Resonant, Bureau with the other CONTROL themes, your own font with any other theme.",
+  "command.soundMenu": "Open Sound Console…",
+  "command.toggleSoundStatusBar": "Show/Hide Sound Icon in Status Bar",
+  "config.sounds.statusBarItem": "Show the sound icon (the *resonance*) in the status bar. Click it to open the sound console and configure everything without editing `settings.json`. You can also hide it from the console itself or by right-clicking the status bar."
 }

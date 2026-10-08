@@ -16,6 +16,8 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const { FONT_SETS } = require('../../src/extension/fontsets');
+const { installFonts, userFontsDir } = require('../../src/extension/font-installer');
 
 const EXTENSION_ID = 'Normalxxnavi.bureau-theme';
 const FILES = ['startup', 'theme', 'save', 'error', 'clear', 'build-ok', 'build-fail', 'terminal-fail', 'debug', 'breakpoint', 'commit'];
@@ -108,6 +110,8 @@ async function run() {
   await step('los sonidos están desactivados por defecto y sin listeners', async () => {
     assert.equal(sounds.get('enabled'), false);
     assert.equal(api.soundsStarted, false);
+    // El icono de la barra de estado está visible por defecto, con la resonancia apagada.
+    await waitFor(() => api.soundStatusText === '$(bureau-resonance-off)', 'icono de sonido apagado');
   });
 
   await step('los cuatro temas están registrados', async () => {
@@ -120,6 +124,11 @@ async function run() {
     const cfg = () => vscode.workspace.getConfiguration();
     const family = () => String(cfg().get('editor.fontFamily'));
     const before = cfg().inspect('editor.fontFamily')?.globalValue;
+    // Este paso termina con «Quitar las tipografías instaladas», que actúa sobre
+    // las fuentes reales del usuario: las que ya tenía se vuelven a instalar al final.
+    const installedBefore = Object.values(FONT_SETS).filter((set) =>
+      set.files.every((f) => fs.existsSync(path.join(userFontsDir(), `BureauTheme-${path.basename(f.file)}`)))
+    );
 
     await cfg().update('bureauTheme.font', 'bureau', G);
     await waitFor(() => family().includes('Overpass Mono'), 'editor con Overpass Mono', 20000);
@@ -141,6 +150,7 @@ async function run() {
     await waitFor(() => cfg().inspect('editor.fontFamily')?.globalValue === before, 'tipografía original restaurada', 20000);
     await vscode.commands.executeCommand('bureauTheme.removeFonts');
     await api.fontsIdle();
+    for (const set of installedBefore) installFonts(path.join(ext.extensionPath, 'fonts'), set.files);
   }, 90000);
 
   await step('activar los sonidos registra los listeners', async () => {
@@ -151,6 +161,15 @@ async function run() {
     await sounds.update('events.terminalFail', true, G);
     await sounds.update('enabled', true, G);
     await waitFor(() => api.soundsStarted === true, 'controller.started');
+  });
+
+  await step('icono de sonido: refleja el estado y se puede ocultar y volver a mostrar', async () => {
+    await waitFor(() => api.soundStatusText === '$(bureau-resonance)', 'icono de resonancia encendido');
+    await vscode.commands.executeCommand('bureauTheme.toggleSoundStatusBar');
+    await waitFor(() => api.soundStatusText === undefined, 'icono oculto');
+    assert.equal(vscode.workspace.getConfiguration('bureauTheme.sounds').get('statusBarItem'), false);
+    await vscode.commands.executeCommand('bureauTheme.toggleSoundStatusBar');
+    await waitFor(() => api.soundStatusText === '$(bureau-resonance)', 'icono visible otra vez');
   });
 
   await step('cambiar a CONTROL Resonant → tema activado con el pack Resonant', async () => {
