@@ -78,24 +78,24 @@ module.exports = {
   syntax: {
     text: '#18181B',
     function: '#000000', // lo más «oscuro» del código: la geometría del Consejo
-    property: '#3A372F',
-    type: '#174A72',
-    namespace: '#33475A',
-    keyword: '#A31A12', // detalles rojos
-    storage: '#6A3127',
-    string: '#674A0C',
-    number: '#8C3A06',
-    attribute: '#175A55',
-    regexp: '#175A55',
-    tag: '#174A72',
-    operator: '#4A4842',
-    punctuation: '#4A4842',
-    comment: '#5B5850',
-    commentTag: '#4A4842',
-    heading: '#A31A12',
+    property: '#6B5A3E',
+    type: '#1F6AAD',
+    namespace: '#46698C',
+    keyword: '#C4271D', // detalles rojos
+    storage: '#9C4433',
+    string: '#7F6400',
+    number: '#B1500C',
+    attribute: '#0F7F78',
+    regexp: '#0F7F78',
+    tag: '#1F6AAD',
+    operator: '#66635C',
+    punctuation: '#66635C',
+    comment: '#73706A',
+    commentTag: '#5E5B54',
+    heading: '#C4271D',
   },
 
-  brackets: ['#A31A12', '#674A0C', '#174A72'],
+  brackets: ['#C4271D', '#7F6400', '#1F6AAD'],
 
   ansi: {
     black: '#18181B',

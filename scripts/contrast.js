@@ -24,10 +24,11 @@ const MIN = { text: 7, code: 4.5, comment: 4.3, ui: 4.5, graphic: 3, placeholder
 function checksFor(p) {
   const { bg, fg, accent, status, git, syntax: s } = p;
   const isLight = p.type === 'light';
-  // En un tema claro el texto fino se «lava»: se exige nivel AAA.
+  // En un tema claro el texto fino se «lava»: el texto exige nivel AAA. El
+  // código se queda en AA (4,5:1) para que los colores se distingan del negro.
   const MIN_TEXT = isLight ? 15 : MIN.text;
-  const MIN_CODE = isLight ? 7 : MIN.code;
-  const MIN_COMMENT = isLight ? 6.5 : MIN.comment;
+  const MIN_CODE = MIN.code;
+  const MIN_COMMENT = isLight ? MIN.code : MIN.comment;
   const selection = over(`${accent.main}${Math.round(p.selectionAlpha * 255).toString(16).padStart(2, '0')}`, bg.editor);
   const listActive = mix(bg.sidebar, accent.main, isLight ? 0.12 : 0.2);
   const sectionHeader = over(isLight ? '#00000009' : '#FFFFFF09', bg.sidebar);

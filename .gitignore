@@ -11,3 +11,6 @@ references/
 
 # Salidas temporales de los scripts de preview
 .preview/
+
+# Código empaquetado (npm run bundle)
+dist/

@@ -118,22 +118,79 @@ test('el tema de iconos apunta a SVG que existen y son válidos', () => {
   assert.ok(theme.light && theme.light.file, 'debe tener variante para temas claros');
 });
 
-test('el tema de iconos internos (product icons) apunta a una fuente válida y a glifos existentes', () => {
-  const entry = pkg.contributes.productIconThemes[0];
-  const file = path.join(ROOT, entry.path);
-  const theme = JSON.parse(fs.readFileSync(file, 'utf8'));
-  const woff = path.join(path.dirname(file), theme.fonts[0].src[0].path);
-  assert.equal(fs.readFileSync(woff).toString('latin1', 0, 4), 'wOFF');
+/** Tablas de una fuente WOFF 1.0 (descomprimidas). */
+function woffTables(/** @type {Buffer} */ woff) {
+  const zlib = require('node:zlib');
+  /** @type {Map<string, Buffer>} */
+  const tables = new Map();
+  for (let i = 0; i < woff.readUInt16BE(12); i++) {
+    const at = 44 + i * 20;
+    const offset = woff.readUInt32BE(at + 4);
+    const comp = woff.readUInt32BE(at + 8);
+    const orig = woff.readUInt32BE(at + 12);
+    const data = woff.subarray(offset, offset + comp);
+    tables.set(woff.toString('latin1', at, at + 4), comp < orig ? zlib.inflateSync(data) : data);
+  }
+  return tables;
+}
+
+test('los dos temas de iconos internos (product icons) apuntan a fuentes válidas y a glifos existentes', () => {
   const { GLYPHS, MAPPING } = require('../scripts/product-icons');
   const codes = new Set(Object.keys(GLYPHS).map((_, i) => (0xe001 + i).toString(16).toUpperCase()));
-  for (const [id, def] of Object.entries(theme.iconDefinitions)) {
-    assert.ok(codes.has(/** @type {any} */ (def).fontCharacter.slice(1)), `${id}: glifo inexistente`);
-    assert.ok(id in MAPPING, id);
+  assert.deepEqual(
+    pkg.contributes.productIconThemes.map((/** @type {any} */ t) => t.id),
+    ['bureau-product-icons', 'bureau-product-icons-color']
+  );
+  for (const entry of pkg.contributes.productIconThemes) {
+    const file = path.join(ROOT, entry.path);
+    const theme = JSON.parse(fs.readFileSync(file, 'utf8'));
+    const woff = path.join(path.dirname(file), theme.fonts[0].src[0].path);
+    assert.equal(fs.readFileSync(woff).toString('latin1', 0, 4), 'wOFF');
+    for (const [id, def] of Object.entries(theme.iconDefinitions)) {
+      assert.ok(codes.has(/** @type {any} */ (def).fontCharacter.slice(1)), `${id}: glifo inexistente`);
+      assert.ok(id in MAPPING, id);
+    }
+    // La barra de actividad y la rama de Git están cubiertas.
+    for (const id of ['explorer-view-icon', 'search-view-icon', 'source-control-view-icon', 'run-view-icon', 'extensions-view-icon', 'git-branch', 'copilot']) {
+      assert.ok(id in theme.iconDefinitions, `${entry.id}: ${id}`);
+    }
   }
-  // La barra de actividad y la rama de Git están cubiertas.
-  for (const id of ['explorer-view-icon', 'search-view-icon', 'source-control-view-icon', 'run-view-icon', 'extensions-view-icon', 'git-branch', 'copilot']) {
-    assert.ok(id in theme.iconDefinitions, id);
+});
+
+test('la versión a color lleva tablas COLR/CPAL coherentes (capas y colores existentes)', () => {
+  const { cmapLookup } = require('../scripts/lib/colr');
+  const { GLYPHS, COLOR } = require('../scripts/product-icons');
+  const tables = woffTables(fs.readFileSync(path.join(ROOT, 'product-icons', 'bureau-product-icons-color.woff')));
+  const colr = /** @type {Buffer} */ (tables.get('COLR'));
+  const cpal = /** @type {Buffer} */ (tables.get('CPAL'));
+  assert.ok(colr && cpal, 'faltan las tablas COLR/CPAL');
+  const numGlyphs = /** @type {Buffer} */ (tables.get('maxp')).readUInt16BE(4);
+  const entries = cpal.readUInt16BE(2);
+  const numBase = colr.readUInt16BE(2);
+  const baseAt = colr.readUInt32BE(4);
+  const layerAt = colr.readUInt32BE(8);
+  const numLayers = colr.readUInt16BE(12);
+  assert.equal(numBase, Object.keys(COLOR).length);
+
+  let previous = -1;
+  for (let i = 0; i < numBase; i++) {
+    const gid = colr.readUInt16BE(baseAt + i * 6);
+    assert.ok(gid > previous, 'los glifos base deben ir ordenados');
+    previous = gid;
+    const first = colr.readUInt16BE(baseAt + i * 6 + 2);
+    const n = colr.readUInt16BE(baseAt + i * 6 + 4);
+    assert.ok(n > 0 && first + n <= numLayers);
   }
+  for (let i = 0; i < numLayers; i++) {
+    assert.ok(colr.readUInt16BE(layerAt + i * 4) < numGlyphs, 'capa con un glifo inexistente');
+    const palette = colr.readUInt16BE(layerAt + i * 4 + 2);
+    assert.ok(palette === 0xffff || palette < entries, 'capa con un color inexistente');
+  }
+  // El teléfono de la Hotline tiene color (es un glifo base de COLR).
+  const gid = cmapLookup(/** @type {Buffer} */ (tables.get('cmap')));
+  const hotline = gid(0xe001 + Object.keys(GLYPHS).indexOf('hotline'));
+  const bases = Array.from({ length: numBase }, (_, i) => colr.readUInt16BE(baseAt + i * 6));
+  assert.ok(bases.includes(hotline));
 });
 
 test('la tipografía es opcional y solo se configura en los ajustes de usuario', () => {

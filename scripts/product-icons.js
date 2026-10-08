@@ -32,6 +32,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { Readable } = require('node:stream');
+const { addColorTables } = require('./lib/colr');
 
 const ROOT = path.resolve(__dirname, '..');
 const OUT = path.join(ROOT, 'product-icons');
@@ -368,16 +369,59 @@ const MAPPING = {
   layout: 'layout', 'split-horizontal': 'splitHorizontal', 'split-vertical': 'splitVertical',
 };
 
+// --- Versión a color -------------------------------------------------------------
+
+/**
+ * Colores reales de los objetos del juego para «Bureau Product Icons (Color)».
+ * Tonos medios: tienen que leerse sobre el monolito oscuro y sobre CONTROL Astral.
+ */
+const REAL = {
+  red: '#E0352B', // la Hotline (el teléfono rojo), el Hiss, el rojo del FBC
+  amber: '#C98A1E',
+  green: '#4FA05A',
+  cyan: '#2FA7B8', // la Hedron
+  blue: '#4A8CD0',
+  paper: '#C9A15C', // los expedientes de la Agencia
+  brass: '#C2953F', // la placa del FBC
+};
+
+/**
+ * Capas de color de cada glifo: [color, formas]. `null` es el color del tema,
+ * como en la versión en negro. Los glifos que no aparecen siguen al tema.
+ * @type {Record<string, (p: Poly[]) => Array<[string | null, Poly[]]>>}
+ */
+const COLOR = {
+  hotline: (p) => [[REAL.red, p]],
+  hotlineDot: (p) => [[REAL.red, p.slice(0, -1)], [null, p.slice(-1)]],
+  board: (p) => [[REAL.red, p.slice(0, 1)], [null, p.slice(1)]],
+  pyramidDot: (p) => [[null, p.slice(0, -1)], [REAL.amber, p.slice(-1)]],
+  pyramidPlus: (p) => [[null, p.slice(0, -2)], [REAL.green, p.slice(-2)]],
+  pyramidMinus: (p) => [[null, p.slice(0, -1)], [REAL.red, p.slice(-1)]],
+  pyramidAlert: (p) => [[null, p.slice(0, -1)], [REAL.red, p.slice(-1)]],
+  hedronPlay: (p) => [[REAL.cyan, p]],
+  hedronCheck: (p) => [[REAL.cyan, p]],
+  dossier: (p) => [[REAL.paper, p]],
+  badge: (p) => [[REAL.brass, p.slice(0, -3)], [REAL.red, p.slice(-3, -2)], [REAL.brass, p.slice(-2)]],
+  blocks: (p) => [[null, p.slice(0, 3)], [REAL.red, p.slice(3)]],
+  prompt: (p) => [[REAL.green, p]],
+  error: (p) => [[REAL.red, p]],
+  warning: (p) => [[REAL.amber, p]],
+  info: (p) => [[REAL.blue, p]],
+  lightbulb: (p) => [[REAL.amber, p]],
+  starFull: (p) => [[REAL.amber, p]],
+  zap: (p) => [[REAL.amber, p]],
+};
+
 // --- Generación ----------------------------------------------------------------
 
 const fmt = (/** @type {number} */ n) => String(Math.round(n * 1000) / 1000);
 const toPath = (/** @type {Poly[]} */ polys) => polys.map((p) => `M${p.map(([x, y]) => `${fmt(x)} ${fmt(y)}`).join('L')}Z`).join('');
 const toSvg = (/** @type {Poly[]} */ polys) => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="${toPath(polys)}"/></svg>\n`;
 
-async function buildFont(/** @type {Array<{name: string, svg: string, code: number}>} */ glyphs) {
+/** Fuente TrueType con los glifos dados. */
+async function buildTtf(/** @type {Array<{name: string, svg: string, code: number}>} */ glyphs) {
   const { SVGIcons2SVGFontStream } = await import('svgicons2svgfont');
   const svg2ttf = require('svg2ttf');
-  const ttf2woff = require('ttf2woff');
 
   const svgFont = await new Promise((resolve, reject) => {
     let out = '';
@@ -392,8 +436,27 @@ async function buildFont(/** @type {Array<{name: string, svg: string, code: numb
     }
     stream.end();
   });
-  const ttf = Buffer.from(svg2ttf(svgFont, { description: 'Bureau product icons (original, MIT)', url: 'https://github.com/Normalxxnavi/bureau-theme' }).buffer);
-  return Buffer.from(ttf2woff(ttf).buffer);
+  return Buffer.from(svg2ttf(svgFont, { description: 'Bureau product icons (original, MIT)', url: 'https://github.com/Normalxxnavi/bureau-theme' }).buffer);
+}
+
+const toWoff = (/** @type {Buffer} */ ttf) => Buffer.from(require('ttf2woff')(ttf).buffer);
+
+/**
+ * Escribe la fuente y el JSON de un product icon theme.
+ * @param {string} fontId nombre de la fuente (y del .woff)
+ * @param {string} json nombre del archivo del tema
+ * @param {Buffer} woff
+ * @param {Record<string, number>} codeOf glifo → punto de código
+ */
+function writeTheme(fontId, json, woff, codeOf) {
+  fs.writeFileSync(path.join(OUT, `${fontId}.woff`), woff);
+  const theme = {
+    fonts: [{ id: fontId, src: [{ path: `./${fontId}.woff`, format: 'woff' }], weight: 'normal', style: 'normal' }],
+    iconDefinitions: Object.fromEntries(
+      Object.entries(MAPPING).map(([icon, glyph]) => [icon, { fontCharacter: `\\${codeOf[glyph].toString(16).toUpperCase()}` }])
+    ),
+  };
+  fs.writeFileSync(path.join(OUT, json), JSON.stringify(theme, null, 2) + '\n');
 }
 
 async function main() {
@@ -409,18 +472,33 @@ async function main() {
 
   for (const [id, glyph] of Object.entries(MAPPING)) if (!(glyph in GLYPHS)) throw new Error(`${id} → glifo inexistente: ${glyph}`);
 
-  const woff = await buildFont(glyphs);
-  fs.writeFileSync(path.join(OUT, `${FONT_NAME}.woff`), woff);
-
   const codeOf = Object.fromEntries(glyphs.map((g) => [g.name, g.code]));
-  const theme = {
-    fonts: [{ id: FONT_NAME, src: [{ path: `./${FONT_NAME}.woff`, format: 'woff' }], weight: 'normal', style: 'normal' }],
-    iconDefinitions: Object.fromEntries(
-      Object.entries(MAPPING).map(([id, glyph]) => [id, { fontCharacter: `\\${codeOf[glyph].toString(16).toUpperCase()}` }])
-    ),
-  };
-  fs.writeFileSync(path.join(OUT, 'bureau-product-icon-theme.json'), JSON.stringify(theme, null, 2) + '\n');
-  console.log(`✔ product-icons/ (${names.length} glifos, ${Object.keys(MAPPING).length} iconos de VS Code sustituidos, ${(woff.length / 1024).toFixed(1)} KB)`);
+  const mono = toWoff(await buildTtf(glyphs));
+  writeTheme(FONT_NAME, 'bureau-product-icon-theme.json', mono, codeOf);
+
+  // Versión a color: los mismos glifos (respaldo monocromo) más un glifo por
+  // capa, unidos con las tablas COLR/CPAL.
+  /** @type {Array<{name: string, svg: string, code: number}>} */
+  const layerGlyphs = [];
+  /** @type {import('./lib/colr').ColorGlyph[]} */
+  const colorGlyphs = [];
+  for (const [name, layersOf] of Object.entries(COLOR)) {
+    if (!(name in GLYPHS)) throw new Error(`COLOR: glifo inexistente ${name}`);
+    const layers = layersOf(GLYPHS[name]()).map(([color, polys], i) => {
+      if (polys.length === 0) throw new Error(`COLOR: capa vacía en ${name}`);
+      const code = 0xe800 + layerGlyphs.length;
+      layerGlyphs.push({ name: `${name}-${i}`, svg: toSvg(polys), code });
+      return { code, color };
+    });
+    colorGlyphs.push({ code: codeOf[name], layers });
+  }
+  const color = toWoff(addColorTables(await buildTtf([...glyphs, ...layerGlyphs]), colorGlyphs));
+  writeTheme(`${FONT_NAME}-color`, 'bureau-product-icon-theme-color.json', color, codeOf);
+
+  console.log(
+    `✔ product-icons/ (${names.length} glifos, ${Object.keys(MAPPING).length} iconos de VS Code sustituidos, ${(mono.length / 1024).toFixed(1)} KB; ` +
+      `a color: ${colorGlyphs.length} glifos con color real, ${(color.length / 1024).toFixed(1)} KB)`
+  );
 }
 
 if (require.main === module) {
@@ -430,4 +508,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { GLYPHS, MAPPING, toSvg, area };
+module.exports = { GLYPHS, MAPPING, COLOR, REAL, toSvg, area };
