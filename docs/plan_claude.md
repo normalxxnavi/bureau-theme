@@ -652,3 +652,18 @@ Peticiones: título **Theme CONTROL**; descripción más corta y profesional; ca
 | **README bilingüe**: sección completa en inglés y otra en español, con las nuevas imágenes | `README.md` | Todas las imágenes enlazadas existen |
 | Rama de Git con cambios, preparada o con conflictos: la pirámide con una marca (4 glifos nuevos, 166 iconos) | `scripts/product-icons.js` | Barra de estado con `main*` en las capturas |
 | La página de detalles de VS Code solo carga imágenes `https:` (quita las rutas relativas y `data:`): en una instalación local las capturas se verán cuando el repositorio sea público, porque vsce reescribe los enlaces a GitHub | `README.md` | Página de detalles en un perfil aislado |
+
+### Versión 0.9.0: iconos a color, archivos nítidos, Astral más vivo, arranque rápido
+
+Peticiones: (1) insignias de «cómo está hecho» y emblemas fan en los detalles; (2) volver al diseño antiguo de los iconos de archivo, que el nuevo se pixela; (3) una versión a color de los iconos de producto (el teléfono rojo…); (4) arranque más rápido; (5) colores del código de CONTROL Astral más vivos; (6) investigar si es legal.
+
+| Qué | Dónde | Verificado |
+|---|---|---|
+| **Insignias** (shields.io, por https: se ven en la página de detalles) con emblemas fan hechos con glifos propios y las herramientas del proyecto; sección **How it's made / Cómo está hecho** | `scripts/badges.js`, `README.md` | Renderizadas en Edge; la URL más larga, 731 caracteres |
+| **Bureau Icons**: archivos con el estilo 0.7 (etiqueta o pictograma de color sobre la franja de clasificación), más grandes y en píxeles enteros; pictogramas como máscara para que sus huecos sean transparentes. Carpetas y cobertura de la 0.8 sin cambios | `scripts/icons.js` | Comparativa 0.7 / 0.8 / 0.9 a 16 px y ampliada, en oscuro y claro |
+| **Bureau Product Icons (Color)**: segunda fuente con tablas COLR/CPAL escritas a mano (`scripts/lib/colr.js`); 19 glifos con color real, el resto sigue al tema (0xFFFF) | `scripts/product-icons.js`, `package.json` | Hoja en Edge (Chromium) sobre fondo oscuro y claro; test de coherencia de COLR/CPAL |
+| **Arranque**: bundle con esbuild (`dist/extension.js`, 26 KB); motor de sonido, instalador de fuentes y canal de log perezosos; trabajo inicial en el siguiente turno | `scripts/bundle.js`, `src/extension/*` | Carga + activate: 17,1 → 3,1 ms (mediana de 7); 14 → 1 archivos; «Running Extensions» con un host ocupado: fuera del top 7 (< 14 ms) |
+| **CONTROL Astral**: colores del código más vivos, código en AA (≥ 4,5:1) y texto en AAA | `src/theme/palettes/astral.js`, `scripts/contrast.js` | `npm run contrast` |
+| **Aviso legal** con el texto exacto de las normas de contenido fan de Remedy | `README.md` | — |
+
+El 1560 ms que veía Javier en su VS Code incluye esperas del propio VS Code (traducciones, almacenamiento de la extensión) mientras C# Dev Kit, Docker y otras extensiones arrancan a la vez; el trabajo propio de la extensión es ahora de unos 3 ms.

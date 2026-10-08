@@ -1,5 +1,13 @@
 # Theme CONTROL
 
+<!-- badges:fan -->
+![CONTROL — Fan Edition](https://img.shields.io/badge/CONTROL-Fan%20Edition-E0352B?style=flat-square&labelColor=0D0E0F&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSIjRjJFRkU4IiBkPSJNNSAyTDE5IDJMMTkgNC40TDUgNC40Wk0yLjUgNy41TDIxLjUgNy41TDEyIDIyLjVaTTguNCAxMi40TDE1LjYgMTIuNEwxNS42IDEwLjZMOC40IDEwLjZaIi8%2BPC9zdmc%2B)
+![CONTROL Resonant — Fan Edition](https://img.shields.io/badge/CONTROL%20Resonant-Fan%20Edition-2FA7B8?style=flat-square&labelColor=0D0E0F&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSIjRjJFRkU4IiBkPSJNMTIgMS40TDIxLjE4IDYuN0wyMS4xOCAxNy4zTDEyIDIyLjZMMi44MiAxNy4zTDIuODIgNi43Wk01LjAyIDcuOTdMNS4wMiAxNi4wM0wxMiAyMC4wNkwxOC45OCAxNi4wM0wxOC45OCA3Ljk3TDEyIDMuOTRaIi8%2BPC9zdmc%2B)
+![Federal Bureau of Control — Clearance 5](https://img.shields.io/badge/Federal%20Bureau%20of%20Control-Clearance%205-C2953F?style=flat-square&labelColor=0D0E0F&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSIjRjJFRkU4IiBkPSJNNCAxLjVMMjAgMS41TDIwIDIyLjVMNCAyMi41Wk02LjIgMjAuM0wxNy44IDIwLjNMMTcuOCAzLjdMNi4yIDMuN1pNOC40IDUuNkwxNS42IDUuNkwxMiAxMVpNOCAxNEwxNiAxNEwxNiAxNi4yTDggMTYuMlpNOCAxNy42TDEzIDE3LjZMMTMgMTkuOEw4IDE5LjhaIi8%2BPC9zdmc%2B)
+![The Hotline is ringing](https://img.shields.io/badge/Hotline-ringing-E0352B?style=flat-square&labelColor=0D0E0F&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSIjRjJFRkU4IiBkPSJNNCAzLjVMMjAgMy41TDIwIDYuOUw0IDYuOVpNMS41IDMuNUw3LjUgMy41TDcuNSAxMC41TDQgMTAuNUwxLjUgOFpNMTYuNSAzLjVMMjIuNSAzLjVMMjIuNSA4TDIwIDEwLjVMMTYuNSAxMC41Wk02LjUgMTIuNUwxNy41IDEyLjVMMjAuNSAyMS41TDMuNSAyMS41Wk0xMCAxOC41TDE0IDE4LjVMMTQgMTUuNUwxMCAxNS41WiIvPjwvc3ZnPg%3D%3D)
+![The Board: approved](https://img.shields.io/badge/The%20Board-%3C%3Capproved%3E%3E-F2EFE8?style=flat-square&labelColor=0D0E0F&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSIjRjJFRkU4IiBkPSJNMS44IDMuMkwyMi4yIDMuMkwxMiAyMS42Wk0xMiAxNi44NTZMMTguMjk1IDUuNUw1LjcwNSA1LjVaTTguOTQgNy40MDZMMTUuMDYgNy40MDZMMTIgMTIuOTI2WiIvPjwvc3ZnPg%3D%3D)
+<!-- /badges:fan -->
+
 **[English](#english)** · **[Español](#español)**
 
 ![Theme CONTROL — CONTROL Dark, Resonant, Black and Astral](images/screenshots/hero.png)
@@ -7,7 +15,20 @@
 **Four color themes, file and product icons, and typography inspired by CONTROL and CONTROL Resonant.**<br>
 **Cuatro temas de color, iconos de archivo y de interfaz, y tipografía inspirados en CONTROL y CONTROL Resonant.**
 
-*By **Normalxxnavi** · Unofficial fan project, not affiliated with Remedy Entertainment.*
+*By **Normalxxnavi** · This is unofficial fan work not approved or endorsed by Remedy Entertainment Plc or its affiliates.*
+
+<!-- badges:built -->
+![version: 0.9.0](https://img.shields.io/badge/version-0.9.0-E0352B?style=flat-square&labelColor=0D0E0F&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSIjRjJFRkU4IiBkPSJNMTIgMS40TDIxLjE4IDYuN0wyMS4xOCAxNy4zTDEyIDIyLjZMMi44MiAxNy4zTDIuODIgNi43Wk01LjAyIDcuOTdMNS4wMiAxNi4wM0wxMiAyMC4wNkwxOC45OCAxNi4wM0wxOC45OCA3Ljk3TDEyIDMuOTRaTTEzLjEgMTJMMTMuMSAyMkwxMC45IDIyTDEwLjkgMTJaTTExLjQ1NCAxMi45NTVMMy4wNTQgOC4xNTVMNC4xNDYgNi4yNDVMMTIuNTQ2IDExLjA0NVpNMTEuNDU0IDExLjA0NUwxOS44NTQgNi4yNDVMMjAuOTQ2IDguMTU1TDEyLjU0NiAxMi45NTVaIi8%2BPC9zdmc%2B)
+![VS Code: ≥ 1.93.0](https://img.shields.io/badge/VS%20Code-%E2%89%A5%201.93.0-2F80ED?style=flat-square&labelColor=0D0E0F&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSIjRjJFRkU4IiBkPSJNNC45NSA0Ljk3MUwxMS40NSAxMC45NzFMOS41NSAxMy4wMjlMMy4wNSA3LjAyOVpNMTEuNDUgMTMuMDI5TDQuOTUgMTkuMDI5TDMuMDUgMTYuOTcxTDkuNTUgMTAuOTcxWk0xMS45IDEyLjU4TDExLjA4IDEzLjRMOS45MiAxMy40TDkuMSAxMi41OEw5LjEgMTEuNDJMOS45MiAxMC42TDExLjA4IDEwLjZMMTEuOSAxMS40MlpNMTIuNSAxN0wyMSAxN0wyMSAxOS44TDEyLjUgMTkuOFoiLz48L3N2Zz4%3D)
+![made with: JavaScript](https://img.shields.io/badge/made%20with-JavaScript-D9B54A?style=flat-square&labelColor=0D0E0F&logo=javascript)
+![generated with: Node.js](https://img.shields.io/badge/generated%20with-Node.js-4FA05A?style=flat-square&labelColor=0D0E0F&logo=nodedotjs)
+![bundled with: esbuild](https://img.shields.io/badge/bundled%20with-esbuild-C98A1E?style=flat-square&labelColor=0D0E0F&logo=esbuild)
+![built with: Claude Code](https://img.shields.io/badge/built%20with-Claude%20Code-D97757?style=flat-square&labelColor=0D0E0F&logo=claude)
+![runtime dependencies: 0](https://img.shields.io/badge/runtime%20dependencies-0-4FA05A?style=flat-square&labelColor=0D0E0F)
+![contrast: WCAG AA · AAA](https://img.shields.io/badge/contrast-WCAG%20AA%20%C2%B7%20AAA-4A8CD0?style=flat-square&labelColor=0D0E0F&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSIjRjJFRkU4IiBkPSJNMTIgMS40TDIxLjE4IDYuN0wyMS4xOCAxNy4zTDEyIDIyLjZMMi44MiAxNy4zTDIuODIgNi43Wk01LjAyIDcuOTdMNS4wMiAxNi4wM0wxMiAyMC4wNkwxOC45OCAxNi4wM0wxOC45OCA3Ljk3TDEyIDMuOTRaTTguNTE5IDExLjI4MUwxMS41MTkgMTQuMjgxTDkuNjgxIDE2LjExOUw2LjY4MSAxMy4xMTlaTTkuNjUyIDE0LjMxTDE1Ljg1MiA3LjcxTDE3Ljc0OCA5LjQ5TDExLjU0OCAxNi4wOVpNMTEuOSAxNS43MzhMMTEuMTM4IDE2LjVMMTAuMDYyIDE2LjVMOS4zIDE1LjczOEw5LjMgMTQuNjYyTDEwLjA2MiAxMy45TDExLjEzOCAxMy45TDExLjkgMTQuNjYyWiIvPjwvc3ZnPg%3D%3D)
+![languages: EN · ES](https://img.shields.io/badge/languages-EN%20%C2%B7%20ES-8E8B85?style=flat-square&labelColor=0D0E0F)
+[![license: MIT](https://img.shields.io/badge/license-MIT-8E8B85?style=flat-square&labelColor=0D0E0F)](LICENSE)
+<!-- /badges:built -->
 
 ---
 
@@ -23,7 +44,7 @@ Theme CONTROL dresses Visual Studio Code in the brutalist world of the Federal B
 |---|---|
 | **4 color themes** | **CONTROL Dark** (The Oldest House), **CONTROL Black** (OLED), **CONTROL Resonant** (patterned Manhattan) and **CONTROL Astral** (the light Astral Plane). |
 | **Bureau Icons** | File and folder icons designed as Bureau dossiers: 498 icons covering 340 file extensions, 284 well-known file names, 84 languages and 278 folder names with their own emblem. Dark and light variants. |
-| **Bureau Product Icons** | VS Code's own icons redrawn: 166 icons across the activity bar, status bar, panels, trees, title bar and debug toolbar — with **the Board's inverted pyramid** for Git and **the Board** for Copilot and chat. |
+| **Bureau Product Icons** | VS Code's own icons redrawn: 166 icons across the activity bar, status bar, panels, trees, title bar and debug toolbar — with **the Board's inverted pyramid** for Git and **the Board** for Copilot and chat. Two versions: one that follows the theme colour and one in the **real colours** of the game (the red Hotline, the Hedron's cyan, the FBC brass badge…). |
 | **Typography** *(optional)* | Free fonts inspired by the games for the editor, terminal and chat, installed only for your user. |
 | **Sounds** *(optional, off by default)* | Original sound effects for saving, errors, builds, debugging and commits. |
 
@@ -51,7 +72,7 @@ Inspired by *Control Resonant* (2026): cold wet-asphalt greys, steel blue and th
 
 ![CONTROL Astral](images/screenshots/theme-astral.png)
 
-The only light theme: a white void framed by black geometry, like the Astral Plane, with FBC red reserved for small details. Designed for readability in bright rooms and checked against stricter **AAA** contrast targets: body text 16.8:1, code at least 7:1 and comments 6.75:1.
+The only light theme: a white void framed by black geometry, like the Astral Plane, with FBC red reserved for small details. Designed for readability in bright rooms and checked against WCAG: body text 16.8:1 (**AAA**) and code colours of at least 4.5:1 (**AA**), vivid enough to tell keywords, types, strings and numbers apart from the black text at a glance.
 
 ### More than colours: Bureau signage
 
@@ -64,7 +85,7 @@ The only light theme: a white void framed by black geometry, like the Astral Pla
 
 Design rules:
 
-- **Readability first.** Every text colour is checked against WCAG contrast ratios (body text ≥ 7:1, code ≥ 4.5:1); CONTROL Astral meets stricter AAA targets.
+- **Readability first.** Every text colour is checked against WCAG contrast ratios (body text ≥ 7:1, code ≥ 4.5:1); in CONTROL Astral body text reaches AAA (≥ 15:1).
 - **Red is used sparingly.** Only control-flow keywords are red in code; declarations (`public`, `const`, `class`…) use a muted tone.
 - **Active is not broken.** The error colour is never the accent colour, so a squiggle is never confused with an active element.
 - **Full coverage.** 687 UI colour keys (including the *modern UI* of VS Code 1.140), the terminal's 16 ANSI colours, Git, diff and merge editors, bracket pairs and **semantic highlighting** (including C#/Roslyn and Razor).
@@ -74,14 +95,14 @@ Design rules:
 1. Install **Theme CONTROL** from the Marketplace (or run `code --install-extension bureau-theme-<version>.vsix`).
 2. Press <kbd>Ctrl</kbd>+<kbd>K</kbd> <kbd>Ctrl</kbd>+<kbd>T</kbd> (<kbd>Cmd</kbd>+<kbd>K</kbd> <kbd>Cmd</kbd>+<kbd>T</kbd> on macOS) and pick **CONTROL Dark**, **CONTROL Black**, **CONTROL Resonant** or **CONTROL Astral**.
 3. Run **Preferences: File Icon Theme** → **Bureau Icons**.
-4. Run **Preferences: Product Icon Theme** → **Bureau Product Icons**.
+4. Run **Preferences: Product Icon Theme** → **Bureau Product Icons** (theme colour) or **Bureau Product Icons (Color)** (the game's real colours).
 5. The first time the extension starts it offers the game typography; you can also run **CONTROL: Choose Typography…** at any time.
 
 ## Bureau Icons
 
 ![Bureau Icons](images/screenshots/bureau-icons.png)
 
-Every file is a **Bureau dossier**: a solid sheet in the colour of its language, with a folded corner and a classification band, and its code (`TS`, `C#`, `PY`…) or a pictogram cut out of it. Every folder is solid, coloured by category and carries an **emblem**: `</>` for `src`, a check for `test`, a mountain for `images`, a wave for `sounds`, the pyramid for `.git`, a hex nut for `.vscode`, a cube for `node_modules`, a prompt for `scripts`, a globe for `l10n`, a shield for `auth`…
+Every file carries the label of a **Bureau dossier**: its code (`TS`, `C#`, `PY`…) or a pictogram in the colour of its language, over a classification band with an astral notch. Large, pixel-aligned shapes keep them sharp at 16 px. Every folder is solid, coloured by category and carries an **emblem**: `</>` for `src`, a check for `test`, a mountain for `images`, a wave for `sounds`, the pyramid for `.git`, a hex nut for `.vscode`, a cube for `node_modules`, a prompt for `scripts`, a globe for `l10n`, a shield for `auth`…
 
 - **Coverage:** programming languages, web, .NET (`.csproj`, `.sln`, `appsettings.json`…), configuration for the usual tools (Vite, Webpack, ESLint, Prettier, Jest, Vitest, Playwright, Tailwind, Next, Nuxt, Angular…), package managers and lockfiles, Docker and CI files, documents, images, audio, video, fonts, archives, certificates and keys.
 - **Lore details:** `.env` files are a **classified, redacted document**; tests carry the **Hedron**; AI instruction files (`CLAUDE.md`, `AGENTS.md`, `*.prompt.md`…) carry **the Board**; the root folder of a multi-root workspace is the **Board's inverted pyramid**.
@@ -92,6 +113,11 @@ Every file is a **Bureau dossier**: a solid sheet in the colour of its language,
 ![Bureau Product Icons](images/screenshots/bureau-product-icons.png)
 
 Redraws the icons VS Code draws itself, with geometric, brutalist glyphs: octagons instead of circles, square dots and thick strokes. They work with the activity bar on the side, on top or at the bottom.
+
+Two product icon themes are included:
+
+- **Bureau Product Icons** — every icon in the theme colour, like VS Code's own icons.
+- **Bureau Product Icons (Color)** — objects from the game in their **real colours**: the Hotline is the red telephone, the Hedron (Run and Debug, Testing) is cyan, the explorer dossier is manila paper, the accounts badge is FBC brass with its red pyramid, the Board speaks in red, errors are Hiss red, warnings amber, the terminal prompt phosphor green, and the Git pyramid gets a coloured mark for changes (amber), staged changes (green) and conflicts (red). Everything else follows the theme. It is a colour font (COLR/CPAL), so the colours are fixed and do not dim when inactive.
 
 | Where | What changes |
 |---|---|
@@ -212,11 +238,27 @@ C#, Razor (`.cshtml`), JavaScript, TypeScript, JSON, HTML, CSS, SCSS, SQL, Markd
 
 See the [CHANGELOG](CHANGELOG.md) for the release history.
 
+## How it's made
+
+Everything in the pack is generated by code — no drawing programs and no assets taken from the games.
+
+| Part | How it is made |
+|---|---|
+| Colour themes | Role-based palettes (`src/theme/palettes`) turned into 687 UI colours, TextMate rules and semantic tokens by a Node.js script; every colour pair is checked against WCAG contrast ratios before packaging. |
+| Bureau Icons | 498 SVG icons written by a script: dossier labels, pictograms and folder emblems drawn as shapes on a 16 px grid, with dark and light variants. |
+| Bureau Product Icons | 101 glyphs drawn as polygons on a 24 px grid and converted into an icon font (svgicons2svgfont → svg2ttf → ttf2woff). The colour version adds hand-written COLR/CPAL colour tables. |
+| Extension icon | Rendered pixel by pixel (with 4×4 supersampling) and saved with a tiny PNG encoder written for the project. |
+| Sounds | Synthesized from scratch in JavaScript (oscillators, noise and envelopes) — no samples. |
+| Extension code | JavaScript checked with TypeScript (`// @ts-check` + JSDoc), bundled with esbuild into a single 26 KB file with no runtime dependencies. Its own work at startup takes about 3 ms. |
+| Quality | 49 unit tests (`node:test`) and an integration test that drives a real VS Code (sounds, typography, tasks, debugging, Git). |
+| Screenshots | Taken from a real VS Code with a demo project, then framed with HTML and rendered with a headless browser. |
+| Tools | Visual Studio Code, Node.js, esbuild, Git — and [Claude Code](https://claude.com/claude-code) as a pair programmer. |
+
 ## Credits and disclaimer
 
 Made by **Normalxxnavi**. Fonts: Overpass, Overpass Mono, Space Mono and Space Grotesk (SIL Open Font License, see [`fonts/`](fonts/README.md)). Everything else — colours, icons, glyphs and sounds — is original and released under the [MIT license](LICENSE).
 
-Unofficial fan project. Not affiliated with or endorsed by Remedy Entertainment. CONTROL and CONTROL Resonant are trademarks of their respective owners. No game assets (images, logos, audio, music or text) are included.
+**This is unofficial fan work not approved or endorsed by Remedy Entertainment Plc or its affiliates.** CONTROL and CONTROL Resonant are trademarks of their respective owners and are only used to describe what inspired this theme. It is free and has no commercial purpose. No game assets (images, logos, audio, music, fonts or text) are included: every colour, icon, glyph and sound was made for this project.
 
 **[Back to top](#theme-control)** · **[Español](#español)**
 
@@ -234,7 +276,7 @@ Theme CONTROL viste Visual Studio Code con el mundo brutalista de la Agencia Fed
 |---|---|
 | **4 temas de color** | **CONTROL Dark** (la Casa Inmemorial), **CONTROL Black** (OLED), **CONTROL Resonant** (el Manhattan alterado) y **CONTROL Astral** (el Plano Astral, tema claro). |
 | **Bureau Icons** | Iconos de archivos y carpetas diseñados como expedientes de la Agencia: 498 iconos que cubren 340 extensiones, 284 nombres de archivo conocidos, 84 lenguajes y 278 nombres de carpeta con su propio emblema. Variantes oscura y clara. |
-| **Bureau Product Icons** | Los iconos del propio VS Code redibujados: 166 iconos en la barra de actividad, la barra de estado, los paneles, los árboles, la barra de título y la barra de depuración, con **la pirámide invertida del Consejo** para Git y **el Consejo** para Copilot y el chat. |
+| **Bureau Product Icons** | Los iconos del propio VS Code redibujados: 166 iconos en la barra de actividad, la barra de estado, los paneles, los árboles, la barra de título y la barra de depuración, con **la pirámide invertida del Consejo** para Git y **el Consejo** para Copilot y el chat. Dos versiones: una que sigue el color del tema y otra con los **colores reales** del juego (la Línea Directa roja, el cian del Hedrón, la placa de latón de la FBC…). |
 | **Tipografía** *(opcional)* | Fuentes libres inspiradas en los juegos para el editor, la terminal y el chat, instaladas solo para tu usuario. |
 | **Sonidos** *(opcionales, desactivados por defecto)* | Efectos de sonido originales al guardar, con errores, compilaciones, depuración y commits. |
 
@@ -262,7 +304,7 @@ Inspirado en *Control Resonant* (2026): grises fríos de asfalto mojado, azul ac
 
 ![CONTROL Astral](images/screenshots/theme-astral.png)
 
-El único tema claro: un vacío blanco enmarcado por geometría negra, como el Plano Astral, con el rojo FBC reservado para pequeños detalles. Pensado para leer bien en espacios luminosos y comprobado con objetivos de contraste **AAA** más estrictos: texto 16,8:1, código como mínimo 7:1 y comentarios 6,75:1.
+El único tema claro: un vacío blanco enmarcado por geometría negra, como el Plano Astral, con el rojo FBC reservado para pequeños detalles. Pensado para leer bien en espacios luminosos y comprobado con WCAG: el texto llega a 16,8:1 (**AAA**) y los colores del código a 4,5:1 como mínimo (**AA**), lo bastante vivos para distinguir de un vistazo palabras clave, tipos, cadenas y números del texto negro.
 
 ### Más que colores: la señalética de la Agencia
 
@@ -275,7 +317,7 @@ El único tema claro: un vacío blanco enmarcado por geometría negra, como el P
 
 Reglas de diseño:
 
-- **Primero, que se lea.** Todos los colores de texto se comprueban con los ratios de contraste WCAG (texto ≥ 7:1, código ≥ 4,5:1); CONTROL Astral cumple objetivos AAA más estrictos.
+- **Primero, que se lea.** Todos los colores de texto se comprueban con los ratios de contraste WCAG (texto ≥ 7:1, código ≥ 4,5:1); en CONTROL Astral el texto llega a AAA (≥ 15:1).
 - **El rojo, con moderación.** Solo las palabras clave de control de flujo van en rojo; las declaraciones (`public`, `const`, `class`…) usan un tono apagado.
 - **Activo no es roto.** El color de error nunca es el color de acento, así que un subrayado de error nunca se confunde con un elemento activo.
 - **Cobertura completa.** 687 claves de color de la interfaz (incluida la *interfaz moderna* de VS Code 1.140), los 16 colores ANSI de la terminal, Git, editores de diferencias y fusión, pares de corchetes y **resaltado semántico** (incluidos C#/Roslyn y Razor).
@@ -285,14 +327,14 @@ Reglas de diseño:
 1. Instala **Theme CONTROL** desde el Marketplace (o ejecuta `code --install-extension bureau-theme-<versión>.vsix`).
 2. Pulsa <kbd>Ctrl</kbd>+<kbd>K</kbd> <kbd>Ctrl</kbd>+<kbd>T</kbd> (<kbd>Cmd</kbd>+<kbd>K</kbd> <kbd>Cmd</kbd>+<kbd>T</kbd> en macOS) y elige **CONTROL Dark**, **CONTROL Black**, **CONTROL Resonant** o **CONTROL Astral**.
 3. Ejecuta **Preferencias: Tema de icono de archivo** → **Bureau Icons**.
-4. Ejecuta **Preferencias: Tema de icono de producto** → **Bureau Product Icons**.
+4. Ejecuta **Preferencias: Tema de icono de producto** → **Bureau Product Icons** (color del tema) o **Bureau Product Icons (Color)** (los colores reales del juego).
 5. La primera vez que se inicia, la extensión ofrece la tipografía de los juegos; también puedes ejecutar **CONTROL: Elegir tipografía…** cuando quieras.
 
 ## Bureau Icons
 
 ![Bureau Icons](images/screenshots/bureau-icons.png)
 
-Cada archivo es un **expediente de la Agencia**: una hoja maciza del color de su lenguaje, con la esquina doblada y una banda de clasificación, y su código (`TS`, `C#`, `PY`…) o un pictograma recortado. Cada carpeta es maciza, del color de su categoría, y lleva un **emblema**: `</>` para `src`, un check para `test`, una montaña para `images`, una onda para `sounds`, la pirámide para `.git`, una tuerca hexagonal para `.vscode`, un cubo para `node_modules`, un prompt para `scripts`, un globo para `l10n`, un escudo para `auth`…
+Cada archivo lleva la etiqueta de un **expediente de la Agencia**: su código (`TS`, `C#`, `PY`…) o un pictograma del color de su lenguaje, sobre una banda de clasificación con su muesca astral. Las formas son grandes y están alineadas a los píxeles para que se vean nítidas a 16 px. Cada carpeta es maciza, del color de su categoría, y lleva un **emblema**: `</>` para `src`, un check para `test`, una montaña para `images`, una onda para `sounds`, la pirámide para `.git`, una tuerca hexagonal para `.vscode`, un cubo para `node_modules`, un prompt para `scripts`, un globo para `l10n`, un escudo para `auth`…
 
 - **Cobertura:** lenguajes de programación, web, .NET (`.csproj`, `.sln`, `appsettings.json`…), configuración de las herramientas habituales (Vite, Webpack, ESLint, Prettier, Jest, Vitest, Playwright, Tailwind, Next, Nuxt, Angular…), gestores de paquetes y archivos de bloqueo, Docker y CI, documentos, imágenes, audio, vídeo, fuentes, archivos comprimidos, certificados y claves.
 - **Detalles del lore:** los archivos `.env` son un **documento clasificado y censurado**; los tests llevan el **Hedrón**; los archivos de instrucciones para IA (`CLAUDE.md`, `AGENTS.md`, `*.prompt.md`…) llevan **el Consejo**; la carpeta raíz de un área de trabajo con varias raíces es **la pirámide invertida del Consejo**.
@@ -303,6 +345,11 @@ Cada archivo es un **expediente de la Agencia**: una hoja maciza del color de su
 ![Bureau Product Icons](images/screenshots/bureau-product-icons.png)
 
 Redibuja los iconos que dibuja el propio VS Code con glifos geométricos y brutalistas: octógonos en lugar de círculos, puntos cuadrados y trazos gruesos. Funcionan con la barra de actividad a un lado, arriba o abajo.
+
+Incluye dos temas de iconos de producto:
+
+- **Bureau Product Icons**: todos los iconos en el color del tema, como los del propio VS Code.
+- **Bureau Product Icons (Color)**: los objetos del juego con sus **colores reales**: la Línea Directa es el teléfono rojo, el Hedrón (Ejecutar y depurar, Pruebas) es cian, el expediente del explorador es de papel manila, la placa de Cuentas es de latón de la FBC con su pirámide roja, el Consejo habla en rojo, los errores son rojo Hiss, las advertencias ámbar, el prompt de la terminal verde fósforo, y la pirámide de Git lleva una marca de color para los cambios (ámbar), los cambios preparados (verde) y los conflictos (rojo). Todo lo demás sigue al tema. Es una fuente de color (COLR/CPAL), así que los colores son fijos y no se atenúan cuando el icono está inactivo.
 
 | Dónde | Qué cambia |
 |---|---|
@@ -423,10 +470,26 @@ C#, Razor (`.cshtml`), JavaScript, TypeScript, JSON, HTML, CSS, SCSS, SQL, Markd
 
 Consulta el [CHANGELOG](CHANGELOG.md) para ver el historial de versiones.
 
+## Cómo está hecho
+
+Todo el pack se genera con código: sin programas de dibujo y sin recursos sacados de los juegos.
+
+| Parte | Cómo se hace |
+|---|---|
+| Temas de color | Paletas por funciones (`src/theme/palettes`) que un script de Node.js convierte en 687 colores de interfaz, reglas TextMate y tokens semánticos; cada pareja de colores se comprueba con los ratios de contraste WCAG antes de empaquetar. |
+| Bureau Icons | 498 iconos SVG escritos por un script: etiquetas de expediente, pictogramas y emblemas de carpeta dibujados como formas sobre una cuadrícula de 16 px, con variantes oscura y clara. |
+| Bureau Product Icons | 101 glifos dibujados como polígonos sobre una cuadrícula de 24 px y convertidos en una fuente de iconos (svgicons2svgfont → svg2ttf → ttf2woff). La versión a color añade las tablas de color COLR/CPAL, escritas a mano. |
+| Icono de la extensión | Renderizado píxel a píxel (con supermuestreo 4×4) y guardado con un pequeño codificador PNG escrito para el proyecto. |
+| Sonidos | Sintetizados desde cero en JavaScript (osciladores, ruido y envolventes), sin muestras. |
+| Código de la extensión | JavaScript comprobado con TypeScript (`// @ts-check` + JSDoc) y empaquetado con esbuild en un único archivo de 26 KB sin dependencias. Su trabajo propio al arrancar dura unos 3 ms. |
+| Calidad | 49 tests unitarios (`node:test`) y un test de integración que maneja un VS Code real (sonidos, tipografía, tareas, depuración, Git). |
+| Capturas | Hechas en un VS Code real con un proyecto de demostración, enmarcadas con HTML y renderizadas con un navegador sin interfaz. |
+| Herramientas | Visual Studio Code, Node.js, esbuild, Git y [Claude Code](https://claude.com/claude-code) como compañero de programación. |
+
 ## Créditos y aviso legal
 
 Hecho por **Normalxxnavi**. Fuentes: Overpass, Overpass Mono, Space Mono y Space Grotesk (SIL Open Font License, ver [`fonts/`](fonts/README.md)). Todo lo demás (colores, iconos, glifos y sonidos) es original y se publica con [licencia MIT](LICENSE).
 
-Proyecto fan no oficial. Sin relación con Remedy Entertainment ni respaldado por ella. CONTROL y CONTROL Resonant son marcas registradas de sus respectivos propietarios. No se incluye ningún recurso de los juegos (imágenes, logotipos, audio, música ni textos).
+**Esta es una obra fan no oficial, no aprobada ni respaldada por Remedy Entertainment Plc ni sus filiales** (*This is unofficial fan work not approved or endorsed by Remedy Entertainment Plc or its affiliates.*). CONTROL y CONTROL Resonant son marcas registradas de sus respectivos propietarios y solo se usan para describir en qué se inspira este tema. Es gratuito y no tiene fines comerciales. No incluye ningún recurso de los juegos (imágenes, logotipos, audio, música, fuentes ni textos): todos los colores, iconos, glifos y sonidos se han hecho para este proyecto.
 
 **[Volver arriba](#theme-control)** · **[English](#english)**

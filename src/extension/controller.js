@@ -13,9 +13,8 @@ const path = require('node:path');
 const { SOUNDS, EVENTS, PACKS } = require('./catalog');
 const { SECTION, normalizeConfig } = require('./config');
 const rules = require('./rules');
-const { resolveSoundFile } = require('./soundbank');
-const { getScaledFile, pruneCache } = require('./volume');
-const { createPlayer } = require('./player');
+// El motor de sonido (soundbank, volume, player) se carga con `require` dentro
+// de las funciones que lo usan: con los sonidos desactivados no se evalúa.
 const { readActiveThemeLabel, THEME_SETTING_KEYS } = require('./theme-state');
 
 /** Espera tras el último cambio de diagnósticos antes de contar errores. */
@@ -97,7 +96,9 @@ class SoundController {
       { dispose: () => this.stop() }
     );
     if (this.config.enabled) {
-      this.start();
+      // En el siguiente turno, para no alargar la activación.
+      const s = setTimeout(() => this.start(), 0);
+      this.context.subscriptions.push({ dispose: () => clearTimeout(s) });
       if (this.config.events.startup) {
         const t = setTimeout(() => this.play('startup'), STARTUP_DELAY_MS);
         this.context.subscriptions.push({ dispose: () => clearTimeout(t) });
@@ -184,7 +185,7 @@ class SoundController {
     this.config = this.readConfig();
     if (previous.volume !== this.config.volume) {
       try {
-        pruneCache(this.cacheDir, this.config.volume);
+        require('./volume').pruneCache(this.cacheDir, this.config.volume);
       } catch (err) {
         this.log.debug(`Could not prune volume cache: ${/** @type {Error} */ (err).message}`);
       }
@@ -276,7 +277,7 @@ class SoundController {
   // --- Reproducción ---------------------------------------------------------
 
   ensurePlayer() {
-    if (!this.player) this.player = createPlayer(this.log);
+    if (!this.player) this.player = require('./player').createPlayer(this.log);
     if (!this.player.available && !this.playerWarned) {
       this.playerWarned = true;
       vscode.window.showWarningMessage(
@@ -301,10 +302,10 @@ class SoundController {
       }
     }
     const pack = options.pack ?? rules.resolvePack(cfg.pack, this.activeThemePack());
-    const resolved = resolveSoundFile({ extensionPath: this.context.extensionPath, pack, customFolder: cfg.customFolder, file: SOUNDS[event].file });
+    const resolved = require('./soundbank').resolveSoundFile({ extensionPath: this.context.extensionPath, pack, customFolder: cfg.customFolder, file: SOUNDS[event].file });
     try {
       const volume = options.force && cfg.volume === 0 ? 50 : cfg.volume;
-      const file = getScaledFile(resolved.path, volume, this.cacheDir);
+      const file = require('./volume').getScaledFile(resolved.path, volume, this.cacheDir);
       const player = this.ensurePlayer();
       if (!player.available) return;
       player.play(file);

@@ -14,7 +14,7 @@
 const vscode = require('vscode');
 const path = require('node:path');
 const { FONT_SETS, FONT_SETTINGS, settingsFor, resolveFontSet } = require('./fontsets');
-const { installFonts, uninstallFonts } = require('./font-installer');
+// El instalador (child_process, registro de Windows) se carga solo al instalar o quitar.
 const { readActiveThemeLabel, THEME_SETTING_KEYS } = require('./theme-state');
 
 const SETTING = 'bureauTheme.font';
@@ -46,8 +46,11 @@ class FontController {
         if (this.mode() === 'auto') this.sync({ quiet: true });
       })
     );
+    // La comprobación inicial y la oferta de la primera vez esperan al
+    // siguiente turno: así activate() vuelve en cuanto registra los listeners.
+    this.queue = new Promise((resolve) => setTimeout(resolve, 0));
     this.sync({ quiet: true });
-    this.offerOnce();
+    this.queue.then(() => this.offerOnce());
   }
 
   /** @returns {import('./fontsets').FontMode} */
@@ -74,7 +77,7 @@ class FontController {
   /** @param {import('./fontsets').FontSetId} id @param {boolean} quiet */
   async apply(id, quiet) {
     try {
-      const installed = installFonts(this.fontsRoot, FONT_SETS[id].files);
+      const installed = require('./font-installer').installFonts(this.fontsRoot, FONT_SETS[id].files);
       this.log.info(`Fonts installed for the current user: ${installed.join(', ')}`);
     } catch (err) {
       vscode.window.showErrorMessage(vscode.l10n.t('CONTROL Theme could not install the fonts: {0}', /** @type {Error} */ (err).message));
@@ -153,6 +156,7 @@ class FontController {
     await this.queue;
     await this.restore(true);
     let removed = 0;
+    const { uninstallFonts } = require('./font-installer');
     for (const set of Object.values(FONT_SETS)) removed += uninstallFonts(set.files);
     this.log.info(`Fonts removed: ${removed}`);
     vscode.window.showInformationMessage(vscode.l10n.t('The CONTROL fonts have been removed. Some files are only deleted after restarting your computer if they are in use.'));

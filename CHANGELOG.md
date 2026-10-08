@@ -3,6 +3,21 @@
 All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [0.9.0] — 2026-10-08
+
+### Added
+
+- **Bureau Product Icons (Color)**: a second product icon theme with the game objects in their real colours — the red Hotline telephone, the cyan Hedron, the manila dossier, the brass FBC badge, the Board speaking in red, Hiss-red errors, amber warnings, a phosphor-green terminal prompt and coloured marks on the Git pyramid. It is a colour font (COLR/CPAL tables written by the project). The theme-colour version stays as it was.
+- Badges on the details page (they load over https): fan emblems drawn with the project's own glyphs, and how the pack is built (JavaScript, Node.js, esbuild, Claude Code, no runtime dependencies, WCAG, MIT).
+- A **How it's made** section in English and Spanish.
+
+### Changed
+
+- **Bureau Icons**: files go back to the 0.7 look — the label or pictogram in the colour of the language over the classification band, without the solid sheet — larger and aligned to whole pixels, so they stay sharp at 16 px. Folders keep their 0.8 design and all 340 extensions are still covered.
+- **CONTROL Astral**: livelier code colours (keywords, types, strings, numbers, attributes…), clearly different from the black text. Code is now checked at WCAG AA (≥ 4.5:1); body text stays AAA (16.8:1).
+- **Faster start-up**: the extension code is bundled with esbuild into a single 26 KB file; the sound engine, the font installer and the log channel are only loaded when needed, and the initial work runs after activation. Its own work at start-up went from 17 ms to 3 ms.
+- The disclaimer uses the exact wording of Remedy's rules for fan content.
+
 ## [0.8.1] — 2026-10-07
 
 ### Changed

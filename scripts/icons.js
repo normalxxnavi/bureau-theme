@@ -7,9 +7,9 @@
  *   npm run icons
  *
  * Diseño:
- *   - ARCHIVOS: un expediente del Bureau (hoja sólida con la esquina doblada y
- *     la franja de clasificación) del color del lenguaje, con su código (TS,
- *     C#, {}…) o un pictograma recortado encima.
+ *   - ARCHIVOS: la etiqueta de un expediente del Bureau: el código (TS, C#,
+ *     {}…) o un pictograma en el color del lenguaje, sobre la franja de
+ *     clasificación con su muesca. Sin hoja de fondo, para que a 16 px se lea.
  *   - CARPETAS: carpeta sólida del color de su categoría con un EMBLEMA (</> en
  *     src, check en test, montaña en images, onda en sounds, pirámide en .git…).
  *   - Carpeta raíz: la pirámide invertida del Consejo (Plano Astral).
@@ -53,6 +53,8 @@ const BOARD = { fill: ['#0D0E0F', '#151517'], stroke: ['#F2EFE8', '#151517'], li
 const FONT = "font-family='Segoe UI, -apple-system, Helvetica Neue, Arial, sans-serif' font-weight='700' text-anchor='middle'";
 
 const esc = (/** @type {string} */ s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+/** Muesca de la franja de clasificación: luz astral (oscuro) o tinta (claro). */
+const NOTCH = ['#F2EFE8', '#1A1A1C'];
 const svg = (/** @type {string} */ body) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">${body}</svg>\n`;
 
 /** Oscurece un color (mezcla con negro). */
@@ -68,7 +70,7 @@ const stroke = (/** @type {string} */ k, w = 1.2) => `fill="none" stroke="${k}" 
 
 /** @type {Record<string, (k: string, c: string) => string>} */
 const PICTO = {
-  image: (k) => `<path d="M3.4 12.4 6.4 8l2 2.6 1.5-1.7 2.6 3.5z" fill="${k}"/><rect x="10.3" y="4.4" width="2.2" height="2.2" fill="${k}"/>`,
+  image: (k) => `<rect x="3.3" y="3.7" width="9" height="8.6" ${stroke(k, 1.1)}/><path d="M4.2 11.6 6.6 8.1l1.8 2.2 1.3-1.5 2.1 2.8z" fill="${k}"/><rect x="9.3" y="5.2" width="1.8" height="1.8" fill="${k}"/>`,
   audio: (k) => [2.4, 6, 8, 5.2, 2.8].map((h, i) => `<rect x="${3.2 + i * 1.9}" y="${8.5 - h / 2}" width="1.2" height="${h}" fill="${k}"/>`).join(''),
   video: (k) => `<path d="M5.4 4.8v7.4l6.2-3.7z" fill="${k}"/>`,
   database: (k, c) => `<path d="M3.6 5.2C3.6 4 5.6 3.4 7.8 3.4s4.2.6 4.2 1.8v6.6c0 1.2-2 1.8-4.2 1.8s-4.2-.6-4.2-1.8z" fill="${k}"/><path d="M3.6 8.4c0 1.1 2 1.7 4.2 1.7s4.2-.6 4.2-1.7" ${stroke(c, 0.9)}/>`,
@@ -78,7 +80,7 @@ const PICTO = {
   archive: (k, c) => `<rect x="3.4" y="4.2" width="8.8" height="8.4" fill="${k}"/><rect x="3.4" y="6.4" width="8.8" height="1" fill="${c}"/><rect x="7" y="6.4" width="1.6" height="2.4" fill="${c}"/>`,
   text: (k) => `<path d="M3.6 4.4h8M3.6 6.9h6M3.6 9.4h8M3.6 11.9h4.6" ${stroke(k, 1.2)}/>`,
   license: (k, c) => `<path d="M7.8 3.2l3.6 2v4l-3.6 2-3.6-2v-4z" fill="${k}"/><rect x="7" y="6.4" width="1.6" height="1.6" fill="${c}"/><path d="M5.6 10.4 4.8 13.2l1.6-.8 1 1.1M10 10.4l.8 2.8-1.6-.8" ${stroke(k, 1.1)}/>`,
-  readme: (k) => `<rect x="6.9" y="7.2" width="1.8" height="5.4" fill="${k}"/><rect x="6.9" y="4.2" width="1.8" height="1.8" fill="${k}"/><rect x="5.6" y="11" width="4.4" height="1.6" fill="${k}"/>`,
+  readme: (k) => `<path d="M6 3.3h3.6l2.6 2.6v3.6l-2.6 2.6H6L3.4 9.5V5.9z" ${stroke(k, 1.1)}/><rect x="7" y="7.1" width="1.6" height="3.4" fill="${k}"/><rect x="7" y="5" width="1.6" height="1.5" fill="${k}"/>`,
   changelog: (k) => `<rect x="3.4" y="4" width="1.6" height="1.6" fill="${k}"/><rect x="3.4" y="7.6" width="1.6" height="1.6" fill="${k}"/><rect x="3.4" y="11.2" width="1.6" height="1.6" fill="${k}"/><path d="M6.4 4.8h5.8M6.4 8.4h5.8M6.4 12h3.6" ${stroke(k, 1.2)}/>`,
   classified: (k) => `<rect x="3.2" y="3.6" width="6" height="1.8" fill="${k}"/><rect x="5.2" y="7" width="7.2" height="1.8" fill="${k}"/><rect x="3.2" y="10.4" width="7.6" height="1.8" fill="${k}"/>`,
   test: (k) => `<path d="M7.8 3.2l4.2 2.4v4.8l-4.2 2.4-4.2-2.4V5.6z" ${stroke(k, 1.2)}/><path d="M5.8 8.2l1.4 1.4 2.8-2.9" ${stroke(k, 1.3)}/>`,
@@ -141,13 +143,19 @@ const EMBLEM = {
 /** Hoja de expediente con etiqueta o pictograma. */
 function fileIcon(/** @type {Spec} */ spec, /** @type {number} */ v) {
   const c = C[spec.color][v];
-  const k = KNOCK[v];
-  const sheet = `<path d="M1.5.8h9.3l3.7 3.7v10.7h-13z" fill="${c}"/><path d="M10.8.8v3.7h3.7z" fill="${k}" fill-opacity=".3"/><rect x="1.5" y="13.4" width="13" height="1.8" fill="${k}" fill-opacity=".22"/>`;
-  if (spec.kind === 'picto') return svg(sheet + PICTO[spec.value](k, c));
+  // Franja de clasificación con la muesca de luz astral, en píxeles enteros
+  // para que a 16 px quede nítida.
+  const band = `<rect x="2" y="13" width="12" height="2" fill="${c}" fill-opacity=".85"/><rect x="2" y="13" width="3" height="2" fill="${NOTCH[v]}"/>`;
+  if (spec.kind === 'picto') {
+    // El pictograma, algo más grande y por encima de la franja. Se dibuja como
+    // máscara para que sus recortes queden transparentes sobre cualquier fondo.
+    const shape = PICTO[spec.value]('#fff', '#000');
+    return svg(`<mask id="p"><g transform="translate(8 6.7) scale(1.2) translate(-7.85 -8.1)">${shape}</g></mask><rect width="16" height="12.6" fill="${c}" mask="url(#p)"/>${band}`);
+  }
   const n = [...spec.value].length;
-  const size = n === 1 ? 8.8 : n === 2 ? 7 : n === 3 ? 5.4 : 4.4;
-  const y = n === 1 ? 12 : n === 2 ? 11.6 : n === 3 ? 11.2 : 10.8;
-  return svg(`${sheet}<text x="7.6" y="${y}" font-size="${size}" ${FONT} letter-spacing="-.3" fill="${k}">${esc(spec.value)}</text>`);
+  const size = n === 1 ? 11 : n === 2 ? 8.8 : 6.8;
+  const y = n === 1 ? 11.5 : n === 2 ? 10.9 : 10.2;
+  return svg(`<text x="8" y="${y}" font-size="${size}" ${FONT} letter-spacing="${n > 2 ? -0.5 : -0.3}" fill="${c}">${esc(spec.value)}</text>${band}`);
 }
 
 /** Carpeta sólida con emblema. */
