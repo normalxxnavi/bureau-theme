@@ -19,6 +19,9 @@ They are distributed under the same MIT license as the rest of this extension.
 | `control/debug.wav` | Synthesized by `scripts/sounds/generate.js` | MIT |
 | `control/breakpoint.wav` | Synthesized by `scripts/sounds/generate.js` | MIT |
 | `control/commit.wav` | Synthesized by `scripts/sounds/generate.js` | MIT |
+| `control/typing.wav` | Synthesized by `scripts/sounds/generate.js` | MIT |
+| `control/typing-2.wav` | Synthesized by `scripts/sounds/generate.js` | MIT |
+| `control/typing-3.wav` | Synthesized by `scripts/sounds/generate.js` | MIT |
 | `resonant/startup.wav` | Synthesized by `scripts/sounds/generate.js` | MIT |
 | `resonant/theme.wav` | Synthesized by `scripts/sounds/generate.js` | MIT |
 | `resonant/save.wav` | Synthesized by `scripts/sounds/generate.js` | MIT |
@@ -30,3 +33,6 @@ They are distributed under the same MIT license as the rest of this extension.
 | `resonant/debug.wav` | Synthesized by `scripts/sounds/generate.js` | MIT |
 | `resonant/breakpoint.wav` | Synthesized by `scripts/sounds/generate.js` | MIT |
 | `resonant/commit.wav` | Synthesized by `scripts/sounds/generate.js` | MIT |
+| `resonant/typing.wav` | Synthesized by `scripts/sounds/generate.js` | MIT |
+| `resonant/typing-2.wav` | Synthesized by `scripts/sounds/generate.js` | MIT |
+| `resonant/typing-3.wav` | Synthesized by `scripts/sounds/generate.js` | MIT |

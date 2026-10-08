@@ -144,6 +144,30 @@ function smallPyramid() {
   return [...frameTriangle(tri, 2.1), solid(scale(tri, 0.3, cx, cy))];
 }
 
+/** Polaris (ocho rayos). `r` radio de los rayos largos. */
+function polarisStar(/** @type {number} */ cx, /** @type {number} */ cy, /** @type {number} */ r) {
+  /** @type {Poly} */
+  const p = [];
+  for (let i = 0; i < 16; i++) {
+    const rr = i % 2 ? r * 0.28 : i % 4 === 0 ? r : r * 0.63;
+    const a = ((-90 + 22.5 * i) * Math.PI) / 180;
+    p.push([cx + rr * Math.cos(a), cy + rr * Math.sin(a)]);
+  }
+  return solid(p);
+}
+
+/** Marcas de esquina (arriba a la derecha) para las variantes de estado de un glifo. */
+const MARK = {
+  dot: () => [rect(17.6, 0.8, 5, 5)],
+  alert: () => [solid([[20.1, 0.4], [23.6, 3.9], [20.1, 7.4], [16.6, 3.9]])],
+  error: () => [bar(17.2, 1.2, 23, 7, 1.9), bar(23, 1.2, 17.2, 7, 1.9)],
+  check: () => polyline([[16.9, 4.2], [19.1, 6.4], [23.2, 1.6]], 1.9),
+  off: () => [...frameOct(20.1, 3.9, 3.6, 1.3), bar(18.2, 6, 22.2, 1.8, 1.3)],
+  pause: () => [rect(17.6, 1, 2, 6), rect(20.8, 1, 2, 6)],
+};
+/** Polaris pequeña, desplazada abajo a la izquierda para dejar sitio a la marca. */
+const smallPolaris = () => [polarisStar(9.6, 13.4, 10.4)];
+
 /** Estrella de cinco puntas. */
 function star(/** @type {number} */ k) {
   /** @type {Poly} */
@@ -217,6 +241,15 @@ const GLYPHS = {
     }
     return [solid(p)];
   },
+  // Estados de Copilot y del chat: Polaris con una marca (trabajando, aviso, error, listo, sin conexión, en pausa).
+  polarisDot: () => [...smallPolaris(), ...MARK.dot()],
+  polarisAlert: () => [...smallPolaris(), ...MARK.alert()],
+  polarisError: () => [...smallPolaris(), ...MARK.error()],
+  polarisCheck: () => [...smallPolaris(), ...MARK.check()],
+  polarisOff: () => [...smallPolaris(), ...MARK.off()],
+  polarisPause: () => [...smallPolaris(), ...MARK.pause()],
+  // La Hotline en «no molestar» (notificaciones silenciadas).
+  hotlineOff: () => [...GLYPHS.hotlineDot().slice(0, -1), ...MARK.off()],
   // El Laberinto del Cenicero (Ashtray Maze): control de código fuente, caminos que se bifurcan.
   maze: () => polyline([[3, 21], [3, 3], [21, 3], [21, 21], [8, 21], [8, 8], [16, 8], [16, 16], [12, 16], [12, 12.4]], 2.3),
   // El patito de goma que se teletransporta (Objeto Alterado): depurar, «rubber duck debugging».
@@ -453,7 +486,58 @@ const MAPPING = {
   'chrome-restore': 'chromeRestore', 'chrome-close': 'chromeClose', 'layout-sidebar-left': 'layoutSidebarLeft', 'layout-sidebar-left-off': 'layoutSidebarLeftOff',
   'layout-sidebar-right': 'layoutSidebarRight', 'layout-sidebar-right-off': 'layoutSidebarRightOff', 'layout-panel': 'layoutPanel', 'layout-panel-off': 'layoutPanelOff',
   layout: 'layout', 'split-horizontal': 'splitHorizontal', 'split-vertical': 'splitVertical',
+  // Estados de Copilot, del chat y de los agentes (barra de estado y vista de chat).
+  'copilot-large': 'polaris', 'copilot-compact': 'polaris', agent: 'polaris', 'agent-compact': 'polaris',
+  'copilot-dot': 'polarisDot', 'copilot-dot-compact': 'polarisDot', 'copilot-in-progress': 'polarisDot',
+  'copilot-warning': 'polarisAlert', 'copilot-warning-large': 'polarisAlert', 'chat-sparkle-warning': 'polarisAlert',
+  'copilot-error': 'polarisError', 'chat-sparkle-error': 'polarisError', 'copilot-success': 'polarisCheck',
+  'copilot-not-connected': 'polarisOff', 'copilot-unavailable': 'polarisOff', 'copilot-blocked': 'polarisOff', 'copilot-snooze': 'polarisPause',
+  // Notificaciones en «no molestar».
+  'bell-slash': 'hotlineOff', 'bell-slash-dot': 'hotlineOff',
 };
+
+/**
+ * Variantes de tamaño o de matiz de VS Code que deben verse igual que su icono
+ * base (si no, se quedaban con el dibujo original en medio del tema). Lista
+ * sacada de los codicons registrados en VS Code 1.141.
+ */
+const ALIASES = {
+  'add-compact': 'add', 'add-small': 'add', 'arrow-small-down': 'arrow-down', 'arrow-small-left': 'arrow-left', 'arrow-small-right': 'arrow-right',
+  'arrow-small-up': 'arrow-up', 'arrow-up-compact': 'arrow-up', 'arrow-circle-down': 'arrow-down', 'arrow-circle-left': 'arrow-left',
+  'arrow-circle-right': 'arrow-right', 'arrow-circle-up': 'arrow-up', 'arrow-circle-up-sparkle': 'arrow-up', 'beaker-compact': 'beaker', 'book-compact': 'book',
+  'check-compact': 'check', 'chevron-down-compact': 'chevron-down', 'chevron-left-compact': 'chevron-left', 'chevron-right-compact': 'chevron-right',
+  'chevron-up-compact': 'chevron-up', 'circle-filled-compact': 'circle-filled', 'circle-small-filled': 'circle-filled', 'circle-small-filled-compact': 'circle-filled',
+  'circle-large-filled': 'circle-filled', 'close-compact': 'close', 'close-small': 'close', 'close-dirty': 'circle-filled', 'remove-close': 'close', 'remove-small': 'remove',
+  'cloud-download-compact': 'cloud-download', 'cloud-upload-compact': 'cloud-upload', 'collapse-all-compact': 'collapse-all',
+  'comment-add': 'comment', 'comment-compact': 'comment', 'comment-discussion-quote': 'comment', 'comment-discussion-sparkle': 'comment', 'comment-draft': 'comment',
+  'comment-unresolved': 'comment', 'comment-unresolved-compact': 'comment', 'debug-continue-small': 'debug-continue', 'debug-disconnect-compact': 'debug-disconnect',
+  'debug-rerun': 'refresh', 'debug-restart-frame': 'refresh', 'edit-code': 'edit', 'edit-compact': 'edit', 'edit-session': 'edit', 'edit-sparkle': 'edit',
+  'error-compact': 'error', 'error-small': 'error', 'warning-compact': 'warning', 'extensions-large': 'extensions', 'eye-watch': 'eye', 'eye-unwatch': 'eye-closed',
+  'file-add': 'new-file', 'file-code': 'file', 'file-text': 'file', 'file-binary': 'file', 'file-media': 'file', 'file-media-compact': 'file', 'file-pdf': 'file',
+  'file-zip': 'file', 'file-submodule': 'file', 'file-symlink-file': 'file', 'file-directory': 'folder', 'file-directory-create': 'new-folder',
+  'file-symlink-directory': 'folder', 'folder-compact': 'folder', 'folder-library': 'folder', 'folder-opened-compact': 'folder-opened', 'gear-compact': 'gear',
+  'settings-compact': 'settings-gear', 'git-compare': 'source-control', 'git-fork-private': 'source-control', 'git-fetch': 'cloud-download',
+  'git-stash': 'archive', 'git-stash-apply': 'archive', 'git-stash-pop': 'archive', 'git-pull-request-create': 'git-pull-request',
+  'git-pull-request-draft': 'git-pull-request', 'git-pull-request-done': 'git-pull-request', 'git-pull-request-closed': 'git-pull-request',
+  'git-pull-request-new-changes': 'git-pull-request', 'git-pull-request-go-to-changes': 'git-pull-request', 'go-to-search': 'search',
+  'layout-activitybar-left': 'layout-sidebar-left', 'layout-activitybar-right': 'layout-sidebar-right', 'layout-sidebar-left-dock': 'layout-sidebar-left',
+  'layout-sidebar-right-dock': 'layout-sidebar-right', 'layout-panel-center': 'layout-panel', 'layout-panel-justify': 'layout-panel', 'layout-panel-left': 'layout-panel',
+  'layout-panel-right': 'layout-panel', 'layout-panel-dock': 'layout-panel', 'layout-statusbar': 'layout-panel', 'layout-menubar': 'layout', 'layout-centered': 'layout',
+  'lightbulb-compact': 'lightbulb', 'lightbulb-empty': 'lightbulb', 'lightbulb-sparkle-autofix': 'lightbulb', 'list-filter': 'filter', 'list-ordered': 'list-flat',
+  'list-unordered': 'list-flat', 'list-selection': 'list-flat', 'loading-compact': 'loading', 'pass-compact': 'pass', 'pass-filled-compact': 'pass',
+  'person-add': 'person', 'person-filled': 'person', 'person-outline': 'person', 'person-follow': 'person', 'pinned-dirty': 'pin', 'play-circle': 'play',
+  'record-keys-compact': 'record-keys', 'refresh-compact': 'refresh', 'remote-compact': 'remote', 'repo-compact': 'repo', 'repo-clone': 'repo', 'repo-forked': 'repo',
+  'repo-forked-compact': 'repo', 'repo-selected': 'repo', 'repo-pinned': 'repo', 'repo-push': 'cloud-upload', 'repo-force-push': 'cloud-upload',
+  'repo-pull': 'cloud-download', 'repo-fetch': 'cloud-download', 'repo-sync': 'sync', 'repo-delete': 'trash', 'run-compact': 'play', 'run-above': 'play',
+  'run-below': 'play', 'run-coverage': 'play', 'run-all-coverage': 'play', 'run-errors': 'play', 'run-with-deps': 'play', 'search-compact': 'search',
+  'search-fuzzy': 'search', 'search-save': 'search', 'search-sparkle': 'search', 'shield-compact': 'shield', 'sparkle-compact': 'sparkle',
+  'star-add': 'star-empty', 'star-delete': 'star-empty', 'star-half': 'star-full', 'sync-compact': 'sync', 'sync-ignored': 'sync', 'terminal-compact': 'terminal',
+  'terminal-secure': 'terminal', 'workspace-unspecified': 'workspace-unknown',
+};
+for (const [alias, base] of Object.entries(ALIASES)) {
+  if (!(base in MAPPING)) throw new Error(`ALIASES: ${alias} → ${base} no está en MAPPING`);
+  /** @type {Record<string, string>} */ (MAPPING)[alias] = /** @type {Record<string, string>} */ (MAPPING)[base];
+}
 
 // --- Versión a color -------------------------------------------------------------
 
@@ -520,6 +604,13 @@ const COLOR = {
   hotlineDot: two(-1, R.red, R.amber),
   cube: one(R.violet),
   polaris: one(R.yellow),
+  polarisDot: two(1, R.yellow, R.amber),
+  polarisAlert: two(1, R.yellow, R.amber),
+  polarisError: two(1, R.yellow, R.red),
+  polarisCheck: two(1, R.yellow, R.green),
+  polarisOff: two(1, R.yellow, R.red),
+  polarisPause: two(1, R.yellow, R.steel),
+  hotlineOff: two(5, R.red, R.steel),
   maze: one(R.amber),
   duck: two(-1, R.yellow, R.orange),
   floppy: spans([[R.blue, 3], [R.steel, 4], [R.paper]]),
@@ -680,8 +771,13 @@ function writeTheme(fontId, json, woff, codeOf) {
   fs.writeFileSync(path.join(OUT, `${fontId}.woff`), woff);
   const theme = {
     fonts: [{ id: fontId, src: [{ path: `./${fontId}.woff`, format: 'woff' }], weight: 'normal', style: 'normal' }],
+    // También los iconos propios de la extensión (barra de estado, consola de
+    // sonido): así en la versión a color salen con sus colores.
     iconDefinitions: Object.fromEntries(
-      Object.entries(MAPPING).map(([icon, glyph]) => [icon, { fontCharacter: `\\${codeOf[glyph].toString(16).toUpperCase()}` }])
+      [...Object.entries(MAPPING), ...Object.entries(CONTRIBUTED).map(([id, [glyph]]) => [id, glyph])].map(([icon, glyph]) => [
+        icon,
+        { fontCharacter: `\\${codeOf[glyph].toString(16).toUpperCase()}` },
+      ])
     ),
   };
   fs.writeFileSync(path.join(OUT, json), JSON.stringify(theme, null, 2) + '\n');

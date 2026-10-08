@@ -14,6 +14,7 @@ function eventLabel(event) {
     case 'startup': return vscode.l10n.t('VS Code starts');
     case 'themeActivated': return vscode.l10n.t('CONTROL theme activated');
     case 'save': return vscode.l10n.t('File saved');
+    case 'typing': return vscode.l10n.t('Typing in the editor');
     case 'newError': return vscode.l10n.t('New errors');
     case 'allClear': return vscode.l10n.t('All errors fixed');
     case 'buildSuccess': return vscode.l10n.t('Task succeeded');

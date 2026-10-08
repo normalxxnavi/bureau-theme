@@ -18,17 +18,20 @@ Analógico e institucional: timbres, teléfonos, máquinas de escribir, alarmas 
 
 | Evento | Archivo | Sonido | Duración | Pico |
 |---|---|---|---|---|
-| Arranque de VS Code | `startup.wav` | Zumbido grave de la Oldest House: un drone de hormigón que respira, con una resonancia lejana. | 3.59 s | -5.0 dB |
-| Activar un tema CONTROL | `theme.wav` | La Hotline: el timbre de un teléfono antiguo (dos campanillas golpeadas por un badajo) en una sala de hormigón. | 1.44 s | -6.0 dB |
-| Guardar (manual) | `save.wav` | Sello de archivo: un golpe seco de goma sobre papel. Muy discreto. | 0.15 s | -12.0 dB |
-| Errores nuevos | `error.wav` | Susurro del Hiss: murmullos de ruido filtrado y un tono grave disonante (segunda menor) que crece. | 2.12 s | -4.0 dB |
-| Todos los errores corregidos | `clear.wav` | Control Point purificado: un barrido de aire que sube y un acorde mayor que se abre, con una campanilla. | 2.20 s | -4.0 dB |
-| Tarea terminada con éxito | `build-ok.wav` | Campana de ascensor: dos notas ascendentes (sol–do), limpias y breves. | 1.72 s | -5.0 dB |
-| Tarea fallida | `build-fail.wav` | Alerta del Bureau: dos toques graves de sirena filtrada que resuenan en un pasillo de hormigón. | 1.96 s | -5.0 dB |
-| Comando de terminal fallido | `terminal-fail.wav` | Estática de radio: un chasquido de interferencias con un pitido apagado. | 0.56 s | -8.0 dB |
-| Inicio de depuración | `debug.wav` | Transformación del Service Weapon: un trinquete mecánico que acelera, energía que sube y un cierre metálico. | 1.16 s | -4.0 dB |
-| Breakpoint alcanzado | `breakpoint.wav` | Proyector de diapositivas: «ka-chunk», el carro avanza y la diapositiva cae en su sitio. | 0.46 s | -10.0 dB |
-| Commit de Git | `commit.wav` | Máquina de escribir y timbre del carro: tres teclas y la campanilla de fin de línea. | 1.05 s | -6.0 dB |
+| Arranque de VS Code | `startup.wav` | Zumbido grave de la Oldest House: un drone de hormigón que respira, con una resonancia lejana. | 3.63 s | -4.8 dB |
+| Activar un tema CONTROL | `theme.wav` | La Hotline: el timbre de un teléfono antiguo (dos campanillas golpeadas por un badajo) en una sala de hormigón. | 1.51 s | -1.0 dB |
+| Guardar (manual) | `save.wav` | Sello de archivo: un golpe seco de goma sobre papel. Muy discreto. | 0.17 s | -3.7 dB |
+| Errores nuevos | `error.wav` | Susurro del Hiss: murmullos de ruido filtrado y un tono grave disonante (segunda menor) que crece. | 2.16 s | -1.0 dB |
+| Todos los errores corregidos | `clear.wav` | Control Point purificado: un barrido de aire que sube y un acorde mayor que se abre, con una campanilla. | 2.42 s | -1.0 dB |
+| Tarea terminada con éxito | `build-ok.wav` | Campana de ascensor: dos notas ascendentes (sol–do), limpias y breves. | 1.87 s | -1.0 dB |
+| Tarea fallida | `build-fail.wav` | Alerta del Bureau: dos toques graves de sirena filtrada que resuenan en un pasillo de hormigón. | 2.08 s | -1.0 dB |
+| Comando de terminal fallido | `terminal-fail.wav` | Estática de radio: un chasquido de interferencias con un pitido apagado. | 0.56 s | -1.0 dB |
+| Inicio de depuración | `debug.wav` | Transformación del Service Weapon: un trinquete mecánico que acelera, energía que sube y un cierre metálico. | 1.45 s | -1.0 dB |
+| Breakpoint alcanzado | `breakpoint.wav` | Proyector de diapositivas: «ka-chunk», el carro avanza y la diapositiva cae en su sitio. | 0.60 s | -1.0 dB |
+| Commit de Git | `commit.wav` | Máquina de escribir y timbre del carro: tres teclas y la campanilla de fin de línea. | 1.15 s | -1.0 dB |
+| Escribir en el editor | `typing.wav` | Tecla de la máquina de escribir de la Agencia: clic metálico y golpe seco del tipo contra el rodillo (variante 1). | 0.08 s | -5.7 dB |
+| Escribir en el editor | `typing-2.wav` | Tecla de la máquina de escribir de la Agencia: clic metálico y golpe seco del tipo contra el rodillo (variante 2). | 0.08 s | -4.8 dB |
+| Escribir en el editor | `typing-3.wav` | Tecla de la máquina de escribir de la Agencia: clic metálico y golpe seco del tipo contra el rodillo (variante 3). | 0.08 s | -5.3 dB |
 
 ## Pack Resonant — Patterned Manhattan
 
@@ -36,17 +39,20 @@ Sintético y «cósmico»: tonos de cristal (FM), caídas de tono por gravedad y
 
 | Evento | Archivo | Sonido | Duración | Pico |
 |---|---|---|---|---|
-| Arranque de VS Code | `startup.wav` | Manhattan a lo lejos, deformado: rumor de ciudad, un acorde que se hunde por la gravedad y un motivo de cristal que se repite. | 4.08 s | -5.0 dB |
-| Activar un tema CONTROL | `theme.wav` | Pulso de la Hedron: dos tonos de cristal puros que se repiten tres veces, cada vez más lejos. | 1.97 s | -6.0 dB |
-| Guardar (manual) | `save.wav` | Clic metálico: un «tic» sintético y breve. Muy discreto. | 0.06 s | -12.0 dB |
-| Errores nuevos | `error.wav` | El Hiss invade la ciudad: un susurro que se repite en ecos cada vez más graves y un tono distorsionado. | 2.17 s | -4.0 dB |
-| Todos los errores corregidos | `clear.wav` | Resonant derrotado: un impacto profundo, un acorde que se eleva y un brillo que se desvanece. | 2.21 s | -4.0 dB |
-| Tarea terminada con éxito | `build-ok.wav` | Arpegio ascendente de cristal (mi–sol#–si) con un eco que lo repite más lejos. | 1.95 s | -5.0 dB |
-| Tarea fallida | `build-fail.wav` | Distorsión gravitatoria: un tono que se desploma dos octavas mientras se rompe digitalmente, con un golpe sub. | 1.62 s | -5.0 dB |
-| Comando de terminal fallido | `terminal-fail.wav` | Estática con «glitch»: un fragmento de interferencia que se repite cuatro veces, como un patrón atascado. | 0.48 s | -8.0 dB |
-| Inicio de depuración | `debug.wav` | El Aberrant cambia de forma: tres transformaciones sintéticas que suben de tono, cada una con su clic, y un cierre. | 1.64 s | -4.0 dB |
-| Breakpoint alcanzado | `breakpoint.wav` | Shift: un desplazamiento rápido que cae y vuelve a subir, como cambiar de gravedad. | 0.85 s | -10.0 dB |
-| Commit de Git | `commit.wav` | Golpe metálico con eco: una pieza de hierro golpeada cuyo sonido se repite en patrón. | 1.16 s | -6.0 dB |
+| Arranque de VS Code | `startup.wav` | Manhattan a lo lejos, deformado: rumor de ciudad, un acorde que se hunde por la gravedad y un motivo de cristal que se repite. | 4.28 s | -1.0 dB |
+| Activar un tema CONTROL | `theme.wav` | Pulso de la Hedron: dos tonos de cristal puros que se repiten tres veces, cada vez más lejos. | 2.11 s | -1.4 dB |
+| Guardar (manual) | `save.wav` | Clic metálico: un «tic» sintético y breve. Muy discreto. | 0.08 s | -1.0 dB |
+| Errores nuevos | `error.wav` | El Hiss invade la ciudad: un susurro que se repite en ecos cada vez más graves y un tono distorsionado. | 2.20 s | -1.4 dB |
+| Todos los errores corregidos | `clear.wav` | Resonant derrotado: un impacto profundo, un acorde que se eleva y un brillo que se desvanece. | 2.37 s | -1.0 dB |
+| Tarea terminada con éxito | `build-ok.wav` | Arpegio ascendente de cristal (mi–sol#–si) con un eco que lo repite más lejos. | 2.27 s | -1.0 dB |
+| Tarea fallida | `build-fail.wav` | Distorsión gravitatoria: un tono que se desploma dos octavas mientras se rompe digitalmente, con un golpe sub. | 1.77 s | -1.0 dB |
+| Comando de terminal fallido | `terminal-fail.wav` | Estática con «glitch»: un fragmento de interferencia que se repite cuatro veces, como un patrón atascado. | 0.48 s | -1.0 dB |
+| Inicio de depuración | `debug.wav` | El Aberrant cambia de forma: tres transformaciones sintéticas que suben de tono, cada una con su clic, y un cierre. | 1.79 s | -1.0 dB |
+| Breakpoint alcanzado | `breakpoint.wav` | Shift: un desplazamiento rápido que cae y vuelve a subir, como cambiar de gravedad. | 1.03 s | -1.6 dB |
+| Commit de Git | `commit.wav` | Golpe metálico con eco: una pieza de hierro golpeada cuyo sonido se repite en patrón. | 1.46 s | -1.0 dB |
+| Escribir en el editor | `typing.wav` | Tic de resonancia: un golpe de cristal muy corto, como una tecla en el Manhattan alterado (variante 1). | 0.12 s | -6.6 dB |
+| Escribir en el editor | `typing-2.wav` | Tic de resonancia: un golpe de cristal muy corto, como una tecla en el Manhattan alterado (variante 2). | 0.12 s | -6.5 dB |
+| Escribir en el editor | `typing-3.wav` | Tic de resonancia: un golpe de cristal muy corto, como una tecla en el Manhattan alterado (variante 3). | 0.12 s | -6.1 dB |
 
 ## Cambiar o añadir sonidos
 

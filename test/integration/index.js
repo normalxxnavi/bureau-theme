@@ -20,7 +20,7 @@ const { FONT_SETS } = require('../../src/extension/fontsets');
 const { installFonts, userFontsDir } = require('../../src/extension/font-installer');
 
 const EXTENSION_ID = 'Normalxxnavi.bureau-theme';
-const FILES = ['startup', 'theme', 'save', 'error', 'clear', 'build-ok', 'build-fail', 'terminal-fail', 'debug', 'breakpoint', 'commit'];
+const FILES = ['startup', 'theme', 'save', 'typing', 'typing-2', 'typing-3', 'error', 'clear', 'build-ok', 'build-fail', 'terminal-fail', 'debug', 'breakpoint', 'commit'];
 
 const sleep = (/** @type {number} */ ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -269,6 +269,22 @@ async function run() {
     integration.executeCommand('node -e "process.exit(4)"');
     await waitFor(() => played('terminalFail', ''), 'terminalFail', 20000);
     terminal.dispose();
+  });
+
+  await step('escribir en el editor → teclas, en el editor activo y sin saturar', async () => {
+    await sleep(400);
+    // Texto plano: un documento TypeScript a medio escribir dejaría errores que estorban a los pasos siguientes.
+    const scratch = await vscode.workspace.openTextDocument({ language: 'plaintext', content: '' });
+    const editor = await vscode.window.showTextDocument(scratch);
+    const before = history().filter((h) => h.event === 'typing').length;
+    for (const ch of 'const hotline = 1;') {
+      await editor.edit((b) => b.insert(editor.selection.active, ch));
+      await sleep(70);
+    }
+    await waitFor(() => history().filter((h) => h.event === 'typing').length - before >= 5, 'sonidos de teclas');
+    const typed = history().filter((h) => h.event === 'typing').length - before;
+    assert.ok(typed <= 18, `no más de una tecla por carácter (${typed})`);
+    await vscode.commands.executeCommand('workbench.action.revertAndCloseActiveEditor');
   });
 
   await step('con un tema que no es CONTROL no suena nada', async () => {

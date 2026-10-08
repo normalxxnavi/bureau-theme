@@ -35,14 +35,23 @@ test('la carpeta personalizada solo se puede fijar en los ajustes de usuario', (
   assert.equal(properties[`${SECTION}.customFolder`].scope, 'application');
 });
 
-test('cada pack tiene todos los sonidos y son WAV PCM válidos', () => {
+test('cada pack tiene todos los sonidos (y sus variantes), son WAV PCM válidos y se oyen', () => {
   for (const pack of PACKS) {
-    for (const { file } of Object.values(SOUNDS)) {
-      const p = path.join(ROOT, 'sounds', pack, file);
-      assert.ok(fs.existsSync(p), `falta sounds/${pack}/${file}`);
-      const info = parseWav(fs.readFileSync(p));
-      assert.equal(info.format, 1, `${pack}/${file}: PCM`);
-      assert.equal(info.bitsPerSample, 16, `${pack}/${file}: 16 bits`);
+    for (const { file, variants = 1 } of Object.values(SOUNDS)) {
+      for (let n = 1; n <= variants; n++) {
+        const name = n === 1 ? file : file.replace('.wav', `-${n}.wav`);
+        const p = path.join(ROOT, 'sounds', pack, name);
+        assert.ok(fs.existsSync(p), `falta sounds/${pack}/${name}`);
+        const buf = fs.readFileSync(p);
+        const info = parseWav(buf);
+        assert.equal(info.format, 1, `${pack}/${name}: PCM`);
+        assert.equal(info.bitsPerSample, 16, `${pack}/${name}: 16 bits`);
+        // Nivel medio suficiente para oírse con música de fondo (antes había sonidos a -27 dBFS).
+        let sum = 0;
+        for (let i = info.dataOffset; i < info.dataOffset + info.dataLength; i += 2) sum += (buf.readInt16LE(i) / 32768) ** 2;
+        const rmsDb = 10 * Math.log10(sum / (info.dataLength / 2));
+        assert.ok(rmsDb > -20.5, `${pack}/${name}: demasiado bajo (${rmsDb.toFixed(1)} dBFS RMS)`);
+      }
     }
   }
 });
@@ -135,7 +144,7 @@ function woffTables(/** @type {Buffer} */ woff) {
 }
 
 test('los dos temas de iconos internos (product icons) apuntan a fuentes válidas y a glifos existentes', () => {
-  const { GLYPHS, MAPPING } = require('../scripts/product-icons');
+  const { GLYPHS, MAPPING, CONTRIBUTED } = require('../scripts/product-icons');
   const codes = new Set(Object.keys(GLYPHS).map((_, i) => (0xe001 + i).toString(16).toUpperCase()));
   assert.deepEqual(
     pkg.contributes.productIconThemes.map((/** @type {any} */ t) => t.id),
@@ -148,7 +157,7 @@ test('los dos temas de iconos internos (product icons) apuntan a fuentes válida
     assert.equal(fs.readFileSync(woff).toString('latin1', 0, 4), 'wOFF');
     for (const [id, def] of Object.entries(theme.iconDefinitions)) {
       assert.ok(codes.has(/** @type {any} */ (def).fontCharacter.slice(1)), `${id}: glifo inexistente`);
-      assert.ok(id in MAPPING, id);
+      assert.ok(id in MAPPING || id in CONTRIBUTED, id);
     }
     // La barra de actividad y la rama de Git están cubiertas.
     for (const id of ['explorer-view-icon', 'search-view-icon', 'source-control-view-icon', 'run-view-icon', 'extensions-view-icon', 'git-branch', 'copilot']) {

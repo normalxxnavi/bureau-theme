@@ -2,7 +2,7 @@
   "name": "bureau-theme",
   "displayName": "%displayName%",
   "description": "%description%",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "publisher": "Normalxxnavi",
   "author": {
     "name": "Normalxxnavi"
@@ -202,7 +202,7 @@
           },
           "bureauTheme.sounds.volume": {
             "type": "number",
-            "default": 50,
+            "default": 70,
             "minimum": 0,
             "maximum": 100,
             "order": 2,
@@ -273,52 +273,58 @@
             "order": 2,
             "description": "%config.events.save%"
           },
-          "bureauTheme.sounds.events.newError": {
+          "bureauTheme.sounds.events.typing": {
             "type": "boolean",
             "default": true,
             "order": 3,
+            "description": "%config.events.typing%"
+          },
+          "bureauTheme.sounds.events.newError": {
+            "type": "boolean",
+            "default": true,
+            "order": 4,
             "description": "%config.events.newError%"
           },
           "bureauTheme.sounds.events.allClear": {
             "type": "boolean",
             "default": true,
-            "order": 4,
+            "order": 5,
             "description": "%config.events.allClear%"
           },
           "bureauTheme.sounds.events.buildSuccess": {
             "type": "boolean",
             "default": true,
-            "order": 5,
+            "order": 6,
             "description": "%config.events.buildSuccess%"
           },
           "bureauTheme.sounds.events.buildFail": {
             "type": "boolean",
             "default": true,
-            "order": 6,
+            "order": 7,
             "description": "%config.events.buildFail%"
           },
           "bureauTheme.sounds.events.terminalFail": {
             "type": "boolean",
             "default": false,
-            "order": 7,
+            "order": 8,
             "description": "%config.events.terminalFail%"
           },
           "bureauTheme.sounds.events.debugStart": {
             "type": "boolean",
             "default": true,
-            "order": 8,
+            "order": 9,
             "description": "%config.events.debugStart%"
           },
           "bureauTheme.sounds.events.breakpoint": {
             "type": "boolean",
             "default": true,
-            "order": 9,
+            "order": 10,
             "description": "%config.events.breakpoint%"
           },
           "bureauTheme.sounds.events.gitCommit": {
             "type": "boolean",
             "default": true,
-            "order": 10,
+            "order": 11,
             "description": "%config.events.gitCommit%"
           }
         }
@@ -329,28 +335,28 @@
         "description": "CONTROL: sounds on (Resonance)",
         "default": {
           "fontPath": "./product-icons/bureau-product-icons.woff",
-          "fontCharacter": "\\E01E"
+          "fontCharacter": "\\E025"
         }
       },
       "bureau-resonance-off": {
         "description": "CONTROL: sounds off",
         "default": {
           "fontPath": "./product-icons/bureau-product-icons.woff",
-          "fontCharacter": "\\E01F"
+          "fontCharacter": "\\E026"
         }
       },
       "bureau-jukebox": {
         "description": "CONTROL: sound pack (Songmaster Jukebox)",
         "default": {
           "fontPath": "./product-icons/bureau-product-icons.woff",
-          "fontCharacter": "\\E020"
+          "fontCharacter": "\\E027"
         }
       },
       "bureau-cassette": {
         "description": "CONTROL: preview sounds (Ahti's tape)",
         "default": {
           "fontPath": "./product-icons/bureau-product-icons.woff",
-          "fontCharacter": "\\E015"
+          "fontCharacter": "\\E01C"
         }
       },
       "bureau-hotline": {
@@ -378,7 +384,7 @@
         "description": "CONTROL: only with CONTROL themes",
         "default": {
           "fontPath": "./product-icons/bureau-product-icons.woff",
-          "fontCharacter": "\\E018"
+          "fontCharacter": "\\E01F"
         }
       },
       "bureau-polaris": {

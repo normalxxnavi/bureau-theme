@@ -682,3 +682,13 @@ Peticiones: (1) nombre fácil de buscar que haga referencia a CONTROL; (2) descr
 | **Chapas** (shields.io con glifos propios) repartidas por las descripciones y tablas, tabla «Objetos de Poder en tu barra de herramientas»; generadas por script como referencias al final del README | `scripts/badges.js`, `README.md` | Se ven en la página de detalles local |
 | **Arranque**: el código se divide en tres archivos (`extension.js` 14 KB al arrancar, `controller.js` solo con sonidos y `sound-menu.js` al abrir la consola). Trabajo propio al arrancar: 2,6 ms | `scripts/bundle.js`, `src/extension/extension.js` | Mediana de 7 arranques con `vscode` simulado |
 | El test de integración vuelve a instalar las fuentes que el usuario ya tenía (antes las desregistraba) | `test/integration/index.js` | Registro de Windows tras el test |
+
+### Versión 0.10.1: icono de Copilot y sonidos que no se oían
+
+| Qué | Dónde | Verificado |
+|---|---|---|
+| Los estados de Copilot (`copilot-not-connected`, `-unavailable`, `-warning`, `-error`, `-snooze`, `-in-progress`, `-success`…), los agentes y `bell-slash` usaban el dibujo de VS Code: ahora Polaris y la Hotline con una marca por estado. Se cubren además las variantes de tamaño (`-compact`, `-small`, `-large`): 350 iconos con 118 glifos | `scripts/product-icons.js` | Captura de la barra de estado con la IA activada |
+| Los sonidos sí sonaban (sesión de audio de PowerShell activa, sin silenciar, `PlaySync` dura lo que el WAV) pero estaban masterizados a -20/-27 dBFS RMS y la música (Spotify) los tapaba. Nuevo masterizado con limitador: -13/-19 dBFS RMS, picos a -1 dBFS; volumen por defecto 70 | `scripts/sounds/dsp.js`, `generate.js` | Test de nivel mínimo en cada WAV |
+| Sonido al escribir (3 variantes por pack): solo en el editor activo, ≥ 45 ms entre teclas, nunca interrumpe a otro sonido (se respeta la duración del sonido en curso) | `src/extension/controller.js`, `catalog.js` | Test de integración |
+| Los fallos del reproductor de PowerShell se avisan en el log en lugar de quedarse en debug | `src/extension/player/windows.js` | — |
+| Los iconos propios de la extensión también se definen en los temas de iconos de producto (a color en la versión Color) | `scripts/product-icons.js` | Captura |

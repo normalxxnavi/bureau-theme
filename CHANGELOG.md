@@ -3,6 +3,18 @@
 All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [0.10.1] — 2026-10-08
+
+### Fixed
+
+- **Copilot icon**: its states (working, warning, error, done, unavailable, not connected, snoozed) and the agent icons fell back to VS Code's drawing; they now use Polaris with a mark for each state. Notifications in *Do Not Disturb* mode show the Hotline crossed out. 166 more icon variants are now covered (350 in total), and the product icon sheet in the README is updated.
+- **Sounds you could not hear**: they were mastered at a low level (around -20 to -27 dBFS) and disappeared under background music. They are now mastered to a consistent loudness with a limiter (around -13 to -19 dBFS, peaks at -1 dBFS), and the default volume is 70.
+- Audio player failures (PowerShell not starting or closing) are now reported as warnings in the *CONTROL Theme* log instead of failing silently.
+
+### Added
+
+- **Typing sound**: every key you type in the editor plays a soft Bureau typewriter key (*Control* pack) or a resonance tick (*Resonant* pack), with three variations. It never interrupts another sound and can be turned off in the sound console.
+
 ## [0.10.0] — 2026-10-08
 
 ### Added
