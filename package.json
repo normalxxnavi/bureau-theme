@@ -2,7 +2,7 @@
   "name": "bureau-theme",
   "displayName": "%displayName%",
   "description": "%description%",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "publisher": "Normalxxnavi",
   "author": {
     "name": "Normalxxnavi"
@@ -47,7 +47,12 @@
     "material",
     "bureau",
     "oldest house",
-    "hiss"
+    "hiss",
+    "control theme",
+    "fbc",
+    "federal bureau of control",
+    "fan theme",
+    "color icons"
   ],
   "main": "./dist/extension.js",
   "activationEvents": [
@@ -120,6 +125,17 @@
       {
         "command": "bureauTheme.openSoundSettings",
         "title": "%command.openSoundSettings%",
+        "category": "CONTROL"
+      },
+      {
+        "command": "bureauTheme.soundMenu",
+        "title": "%command.soundMenu%",
+        "category": "CONTROL",
+        "icon": "$(bureau-resonance)"
+      },
+      {
+        "command": "bureauTheme.toggleSoundStatusBar",
+        "title": "%command.toggleSoundStatusBar%",
         "category": "CONTROL"
       },
       {
@@ -226,6 +242,12 @@
             "scope": "application",
             "order": 6,
             "markdownDescription": "%config.sounds.customFolder%"
+          },
+          "bureauTheme.sounds.statusBarItem": {
+            "type": "boolean",
+            "default": true,
+            "markdownDescription": "%config.sounds.statusBarItem%",
+            "order": 7
           }
         }
       },
@@ -301,7 +323,72 @@
           }
         }
       }
-    ]
+    ],
+    "icons": {
+      "bureau-resonance": {
+        "description": "CONTROL: sounds on (Resonance)",
+        "default": {
+          "fontPath": "./product-icons/bureau-product-icons.woff",
+          "fontCharacter": "\\E01E"
+        }
+      },
+      "bureau-resonance-off": {
+        "description": "CONTROL: sounds off",
+        "default": {
+          "fontPath": "./product-icons/bureau-product-icons.woff",
+          "fontCharacter": "\\E01F"
+        }
+      },
+      "bureau-jukebox": {
+        "description": "CONTROL: sound pack (Songmaster Jukebox)",
+        "default": {
+          "fontPath": "./product-icons/bureau-product-icons.woff",
+          "fontCharacter": "\\E020"
+        }
+      },
+      "bureau-cassette": {
+        "description": "CONTROL: preview sounds (Ahti's tape)",
+        "default": {
+          "fontPath": "./product-icons/bureau-product-icons.woff",
+          "fontCharacter": "\\E015"
+        }
+      },
+      "bureau-hotline": {
+        "description": "CONTROL: sound events (the Hotline)",
+        "default": {
+          "fontPath": "./product-icons/bureau-product-icons.woff",
+          "fontCharacter": "\\E00E"
+        }
+      },
+      "bureau-dossier": {
+        "description": "CONTROL: custom sounds folder",
+        "default": {
+          "fontPath": "./product-icons/bureau-product-icons.woff",
+          "fontCharacter": "\\E001"
+        }
+      },
+      "bureau-hexnut": {
+        "description": "CONTROL: sound settings",
+        "default": {
+          "fontPath": "./product-icons/bureau-product-icons.woff",
+          "fontCharacter": "\\E00D"
+        }
+      },
+      "bureau-safe": {
+        "description": "CONTROL: only with CONTROL themes",
+        "default": {
+          "fontPath": "./product-icons/bureau-product-icons.woff",
+          "fontCharacter": "\\E018"
+        }
+      },
+      "bureau-polaris": {
+        "description": "CONTROL: Polaris",
+        "default": {
+          "fontPath": "./product-icons/bureau-product-icons.woff",
+          "fontCharacter": "\\E011"
+        }
+      }
+    }
   },
   "scripts": {
     "build": "node src/theme/build.js && node scripts/bundle.js",

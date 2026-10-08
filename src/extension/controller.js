@@ -16,6 +16,7 @@ const rules = require('./rules');
 // El motor de sonido (soundbank, volume, player) se carga con `require` dentro
 // de las funciones que lo usan: con los sonidos desactivados no se evalúa.
 const { readActiveThemeLabel, THEME_SETTING_KEYS } = require('./theme-state');
+const { eventLabel } = require('./labels');
 
 /** Espera tras el último cambio de diagnósticos antes de contar errores. */
 const ERROR_SETTLE_MS = 1200;
@@ -28,22 +29,6 @@ const STARTUP_DELAY_MS = 1500;
 /** Documentos cuyas ediciones cuentan como «el usuario está escribiendo código». */
 const EDITABLE_SCHEMES = new Set(['file', 'untitled', 'vscode-remote', 'vscode-vfs']);
 
-/** @param {import('./catalog').SoundEvent} event */
-function eventLabel(event) {
-  switch (event) {
-    case 'startup': return vscode.l10n.t('VS Code starts');
-    case 'themeActivated': return vscode.l10n.t('CONTROL theme activated');
-    case 'save': return vscode.l10n.t('File saved');
-    case 'newError': return vscode.l10n.t('New errors');
-    case 'allClear': return vscode.l10n.t('All errors fixed');
-    case 'buildSuccess': return vscode.l10n.t('Task succeeded');
-    case 'buildFail': return vscode.l10n.t('Task failed');
-    case 'terminalFail': return vscode.l10n.t('Terminal command failed');
-    case 'debugStart': return vscode.l10n.t('Debugging started');
-    case 'breakpoint': return vscode.l10n.t('Breakpoint hit');
-    case 'gitCommit': return vscode.l10n.t('Git commit');
-  }
-}
 
 function countErrors() {
   let n = 0;

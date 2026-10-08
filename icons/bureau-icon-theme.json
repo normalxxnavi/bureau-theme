@@ -223,8 +223,8 @@
     "f_label_md_bone": {
       "iconPath": "./svg/f_label_md_bone.svg"
     },
-    "f_picto_board_red": {
-      "iconPath": "./svg/f_picto_board_red.svg"
+    "f_picto_polaris_amber": {
+      "iconPath": "./svg/f_picto_polaris_amber.svg"
     },
     "f_label_mx_amber": {
       "iconPath": "./svg/f_label_mx_amber.svg"
@@ -970,8 +970,8 @@
     "f_label_md_bone_light": {
       "iconPath": "./svg/f_label_md_bone_light.svg"
     },
-    "f_picto_board_red_light": {
-      "iconPath": "./svg/f_picto_board_red_light.svg"
+    "f_picto_polaris_amber_light": {
+      "iconPath": "./svg/f_picto_polaris_amber_light.svg"
     },
     "f_label_mx_amber_light": {
       "iconPath": "./svg/f_label_mx_amber_light.svg"
@@ -1658,7 +1658,7 @@
     "j2": "f_label_jn_red",
     "md": "f_label_md_bone",
     "markdown": "f_label_md_bone",
-    "mdc": "f_picto_board_red",
+    "mdc": "f_picto_polaris_amber",
     "mdx": "f_label_mx_amber",
     "rst": "f_label_rt_bone",
     "adoc": "f_label_ad_red",
@@ -1837,11 +1837,11 @@
     "test.cs": "f_picto_test_cyan",
     "spec.rb": "f_picto_test_cyan",
     "test.py": "f_picto_test_cyan",
-    "prompt.md": "f_picto_board_red",
-    "instructions.md": "f_picto_board_red",
-    "agent.md": "f_picto_board_red",
-    "chatmode.md": "f_picto_board_red",
-    "prompt.yml": "f_picto_board_red"
+    "prompt.md": "f_picto_polaris_amber",
+    "instructions.md": "f_picto_polaris_amber",
+    "agent.md": "f_picto_polaris_amber",
+    "chatmode.md": "f_picto_polaris_amber",
+    "prompt.yml": "f_picto_polaris_amber"
   },
   "fileNames": {
     "package.json": "f_picto_cube_red",
@@ -1887,13 +1887,13 @@
     "security.md": "f_picto_shield_red",
     "todo.md": "f_picto_changelog_amber",
     "todo": "f_picto_changelog_amber",
-    "claude.md": "f_picto_board_red",
-    "agents.md": "f_picto_board_red",
-    "gemini.md": "f_picto_board_red",
-    ".cursorrules": "f_picto_board_red",
-    ".windsurfrules": "f_picto_board_red",
-    "copilot-instructions.md": "f_picto_board_red",
-    "llms.txt": "f_picto_board_red",
+    "claude.md": "f_picto_polaris_amber",
+    "agents.md": "f_picto_polaris_amber",
+    "gemini.md": "f_picto_polaris_amber",
+    ".cursorrules": "f_picto_polaris_amber",
+    ".windsurfrules": "f_picto_polaris_amber",
+    "copilot-instructions.md": "f_picto_polaris_amber",
+    "llms.txt": "f_picto_polaris_amber",
     ".gitignore": "f_picto_git_orange",
     ".gitattributes": "f_picto_git_orange",
     ".gitmodules": "f_picto_git_orange",
@@ -2211,9 +2211,9 @@
     "jupyter": "f_label_nb_amber",
     "csv": "f_picto_grid_green",
     "tsv": "f_picto_grid_green",
-    "prompt": "f_picto_board_red",
-    "instructions": "f_picto_board_red",
-    "chatagent": "f_picto_board_red"
+    "prompt": "f_picto_polaris_amber",
+    "instructions": "f_picto_polaris_amber",
+    "chatagent": "f_picto_polaris_amber"
   },
   "folderNames": {
     "src": "folder_source",
@@ -2938,7 +2938,7 @@
       "j2": "f_label_jn_red_light",
       "md": "f_label_md_bone_light",
       "markdown": "f_label_md_bone_light",
-      "mdc": "f_picto_board_red_light",
+      "mdc": "f_picto_polaris_amber_light",
       "mdx": "f_label_mx_amber_light",
       "rst": "f_label_rt_bone_light",
       "adoc": "f_label_ad_red_light",
@@ -3117,11 +3117,11 @@
       "test.cs": "f_picto_test_cyan_light",
       "spec.rb": "f_picto_test_cyan_light",
       "test.py": "f_picto_test_cyan_light",
-      "prompt.md": "f_picto_board_red_light",
-      "instructions.md": "f_picto_board_red_light",
-      "agent.md": "f_picto_board_red_light",
-      "chatmode.md": "f_picto_board_red_light",
-      "prompt.yml": "f_picto_board_red_light"
+      "prompt.md": "f_picto_polaris_amber_light",
+      "instructions.md": "f_picto_polaris_amber_light",
+      "agent.md": "f_picto_polaris_amber_light",
+      "chatmode.md": "f_picto_polaris_amber_light",
+      "prompt.yml": "f_picto_polaris_amber_light"
     },
     "fileNames": {
       "package.json": "f_picto_cube_red_light",
@@ -3167,13 +3167,13 @@
       "security.md": "f_picto_shield_red_light",
       "todo.md": "f_picto_changelog_amber_light",
       "todo": "f_picto_changelog_amber_light",
-      "claude.md": "f_picto_board_red_light",
-      "agents.md": "f_picto_board_red_light",
-      "gemini.md": "f_picto_board_red_light",
-      ".cursorrules": "f_picto_board_red_light",
-      ".windsurfrules": "f_picto_board_red_light",
-      "copilot-instructions.md": "f_picto_board_red_light",
-      "llms.txt": "f_picto_board_red_light",
+      "claude.md": "f_picto_polaris_amber_light",
+      "agents.md": "f_picto_polaris_amber_light",
+      "gemini.md": "f_picto_polaris_amber_light",
+      ".cursorrules": "f_picto_polaris_amber_light",
+      ".windsurfrules": "f_picto_polaris_amber_light",
+      "copilot-instructions.md": "f_picto_polaris_amber_light",
+      "llms.txt": "f_picto_polaris_amber_light",
       ".gitignore": "f_picto_git_orange_light",
       ".gitattributes": "f_picto_git_orange_light",
       ".gitmodules": "f_picto_git_orange_light",
@@ -3491,9 +3491,9 @@
       "jupyter": "f_label_nb_amber_light",
       "csv": "f_picto_grid_green_light",
       "tsv": "f_picto_grid_green_light",
-      "prompt": "f_picto_board_red_light",
-      "instructions": "f_picto_board_red_light",
-      "chatagent": "f_picto_board_red_light"
+      "prompt": "f_picto_polaris_amber_light",
+      "instructions": "f_picto_polaris_amber_light",
+      "chatagent": "f_picto_polaris_amber_light"
     },
     "folderNames": {
       "src": "folder_source_light",
@@ -4219,7 +4219,7 @@
       "j2": "f_label_jn_red",
       "md": "f_label_md_bone",
       "markdown": "f_label_md_bone",
-      "mdc": "f_picto_board_red",
+      "mdc": "f_picto_polaris_amber",
       "mdx": "f_label_mx_amber",
       "rst": "f_label_rt_bone",
       "adoc": "f_label_ad_red",
@@ -4398,11 +4398,11 @@
       "test.cs": "f_picto_test_cyan",
       "spec.rb": "f_picto_test_cyan",
       "test.py": "f_picto_test_cyan",
-      "prompt.md": "f_picto_board_red",
-      "instructions.md": "f_picto_board_red",
-      "agent.md": "f_picto_board_red",
-      "chatmode.md": "f_picto_board_red",
-      "prompt.yml": "f_picto_board_red"
+      "prompt.md": "f_picto_polaris_amber",
+      "instructions.md": "f_picto_polaris_amber",
+      "agent.md": "f_picto_polaris_amber",
+      "chatmode.md": "f_picto_polaris_amber",
+      "prompt.yml": "f_picto_polaris_amber"
     },
     "fileNames": {
       "package.json": "f_picto_cube_red",
@@ -4448,13 +4448,13 @@
       "security.md": "f_picto_shield_red",
       "todo.md": "f_picto_changelog_amber",
       "todo": "f_picto_changelog_amber",
-      "claude.md": "f_picto_board_red",
-      "agents.md": "f_picto_board_red",
-      "gemini.md": "f_picto_board_red",
-      ".cursorrules": "f_picto_board_red",
-      ".windsurfrules": "f_picto_board_red",
-      "copilot-instructions.md": "f_picto_board_red",
-      "llms.txt": "f_picto_board_red",
+      "claude.md": "f_picto_polaris_amber",
+      "agents.md": "f_picto_polaris_amber",
+      "gemini.md": "f_picto_polaris_amber",
+      ".cursorrules": "f_picto_polaris_amber",
+      ".windsurfrules": "f_picto_polaris_amber",
+      "copilot-instructions.md": "f_picto_polaris_amber",
+      "llms.txt": "f_picto_polaris_amber",
       ".gitignore": "f_picto_git_orange",
       ".gitattributes": "f_picto_git_orange",
       ".gitmodules": "f_picto_git_orange",
@@ -4772,9 +4772,9 @@
       "jupyter": "f_label_nb_amber",
       "csv": "f_picto_grid_green",
       "tsv": "f_picto_grid_green",
-      "prompt": "f_picto_board_red",
-      "instructions": "f_picto_board_red",
-      "chatagent": "f_picto_board_red"
+      "prompt": "f_picto_polaris_amber",
+      "instructions": "f_picto_polaris_amber",
+      "chatagent": "f_picto_polaris_amber"
     },
     "folderNames": {
       "src": "folder_source",

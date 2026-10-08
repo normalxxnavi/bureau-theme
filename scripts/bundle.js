@@ -18,22 +18,34 @@ const esbuild = require('esbuild');
 
 const ROOT = path.resolve(__dirname, '..');
 
-esbuild
-  .build({
-    entryPoints: [path.join(ROOT, 'src', 'extension', 'extension.js')],
-    outfile: path.join(ROOT, 'dist', 'extension.js'),
+// Tres archivos: lo que se carga al arrancar, el motor de sonido (solo con los
+// sonidos activados) y la consola de sonido (solo al abrirla). Cada uno lleva
+// sus módulos pequeños compartidos (config, catálogo…): se duplican unos pocos
+// cientos de bytes a cambio de no leer ni compilar código que no se usa.
+const CHUNKS = ['controller', 'sound-menu'];
+
+/** @param {string} name @param {string[]} external */
+const build = (name, external) =>
+  esbuild.build({
+    entryPoints: [path.join(ROOT, 'src', 'extension', `${name}.js`)],
+    outfile: path.join(ROOT, 'dist', `${name}.js`),
     bundle: true,
     platform: 'node',
     format: 'cjs',
     target: 'node20',
-    external: ['vscode'],
+    external: ['vscode', ...external],
     minify: true,
     legalComments: 'none',
     metafile: true,
     logLevel: 'warning',
-  })
-  .then((r) => {
-    const out = Object.values(r.metafile.outputs)[0];
-    console.log(`✔ dist/extension.js (${Object.keys(r.metafile.inputs).length} módulos, ${(out.bytes / 1024).toFixed(1)} KB)`);
+  });
+
+Promise.all([build('extension', CHUNKS.map((c) => `./${c}`)), ...CHUNKS.map((c) => build(c, []))])
+  .then((results) => {
+    const sizes = results.map((r) => {
+      const [file, out] = Object.entries(r.metafile.outputs)[0];
+      return `${path.basename(file)} ${(out.bytes / 1024).toFixed(1)} KB`;
+    });
+    console.log(`✔ dist/ (${sizes.join(' · ')})`);
   })
   .catch(() => process.exit(1));

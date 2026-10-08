@@ -3,6 +3,21 @@
 All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [0.10.0] — 2026-10-08
+
+### Added
+
+- **Sound console**: a discreet *resonance* icon in the status bar opens a menu to turn sounds on, pick the pack, set the volume (with a sample), choose the events, preview sounds and set the advanced options — no `settings.json` needed. It can be hidden from the console, with **CONTROL: Show/Hide Sound Icon in Status Bar**, from the status bar context menu or with `bureauTheme.sounds.statusBarItem`.
+- **New lore icons** (16 original glyphs): Polaris (Copilot and chat), the Ashtray Maze (Source Control), the teleporting rubber duck (Run and Debug), the floppy disk (Save), Ahti's tape (Timeline), the Benicoff TV (Debug Console), the slide projector (Output), the home safe (workspace trust), Ahti's mop (Clear all), the Oceanview Motel key (keys), the Oldest House (Home), the Threshold (Remote), the Aberrant from *CONTROL Resonant* (Tools), the Songmaster Jukebox (music) and the resonance (sound). 184 VS Code icons are now replaced.
+- The extension registers its own icons, so the status bar and the console look the same with any product icon theme.
+
+### Changed
+
+- New name: **Bureau — CONTROL Fan Theme**, with a new description.
+- **Bureau Product Icons (Color)** colours **every** icon: objects in their real colours and the interface in the Bureau's steel blue, with green, amber and red for go, caution and stop.
+- The pyramid is no longer everywhere: it stays on the Git branch (and the Board on licences). The root folder is the Oldest House, `.git` carries the Ashtray Maze and AI files carry Polaris.
+- The details page spreads the icons through the descriptions as small chips (they load over https), with a new *Objects of Power in your toolbar* table, instead of a block of badges at the top.
+
 ## [0.9.0] — 2026-10-08
 
 ### Added

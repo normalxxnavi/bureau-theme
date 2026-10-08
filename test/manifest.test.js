@@ -181,16 +181,42 @@ test('la versión a color lleva tablas COLR/CPAL coherentes (capas y colores exi
     const n = colr.readUInt16BE(baseAt + i * 6 + 4);
     assert.ok(n > 0 && first + n <= numLayers);
   }
+  // TODOS los glifos tienen color y ninguna capa se queda con el color del tema (0xFFFF).
+  assert.equal(numBase, Object.keys(GLYPHS).length, 'hay glifos sin color');
   for (let i = 0; i < numLayers; i++) {
     assert.ok(colr.readUInt16BE(layerAt + i * 4) < numGlyphs, 'capa con un glifo inexistente');
     const palette = colr.readUInt16BE(layerAt + i * 4 + 2);
-    assert.ok(palette === 0xffff || palette < entries, 'capa con un color inexistente');
+    assert.ok(palette < entries, 'capa sin color real (sigue al tema) o con un color inexistente');
   }
   // El teléfono de la Hotline tiene color (es un glifo base de COLR).
   const gid = cmapLookup(/** @type {Buffer} */ (tables.get('cmap')));
   const hotline = gid(0xe001 + Object.keys(GLYPHS).indexOf('hotline'));
   const bases = Array.from({ length: numBase }, (_, i) => colr.readUInt16BE(baseAt + i * 6));
   assert.ok(bases.includes(hotline));
+});
+
+test('los iconos propios (barra de estado, consola de sonido) apuntan a glifos de la fuente', () => {
+  const { GLYPHS, CONTRIBUTED } = require('../scripts/product-icons');
+  const names = Object.keys(GLYPHS);
+  const icons = pkg.contributes.icons;
+  assert.deepEqual(Object.keys(icons).sort(), Object.keys(CONTRIBUTED).sort());
+  for (const [id, [glyph]] of Object.entries(CONTRIBUTED)) {
+    const def = icons[id].default;
+    assert.ok(fs.existsSync(path.join(ROOT, def.fontPath)), `${id}: falta la fuente`);
+    assert.equal(def.fontCharacter, `\\${(0xe001 + names.indexOf(glyph)).toString(16).toUpperCase()}`, `${id}: punto de código desfasado`);
+  }
+  // Los iconos que usa el código existen.
+  const used = new Set();
+  for (const f of ['sound-status.js', 'sound-menu.js']) {
+    for (const m of fs.readFileSync(path.join(ROOT, 'src', 'extension', f), 'utf8').matchAll(/\$\((bureau-[a-z-]+)\)/g)) used.add(m[1]);
+  }
+  for (const id of used) assert.ok(id in icons, `icono sin registrar: ${id}`);
+});
+
+test('el icono de sonido de la barra de estado se puede ocultar y está activado por defecto', () => {
+  const item = properties['bureauTheme.sounds.statusBarItem'];
+  assert.equal(item.type, 'boolean');
+  assert.equal(item.default, true);
 });
 
 test('la tipografía es opcional y solo se configura en los ajustes de usuario', () => {

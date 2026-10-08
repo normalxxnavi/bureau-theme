@@ -206,12 +206,99 @@ const GLYPHS = {
   ],
   // Cubo de un Objeto de Poder (paquetes).
   cube: () => [...frameRegular(12, 12, 10.6, 6, 2.2), bar(12, 12, 12, 22, 2.2), bar(12, 12, 3.6, 7.2, 2.2), bar(12, 12, 20.4, 7.2, 2.2)],
+  // Polaris, la luz que guía a Jesse: los asistentes de IA (Copilot, chat).
+  polaris: () => {
+    /** @type {Poly} */
+    const p = [];
+    for (let i = 0; i < 16; i++) {
+      const r = i % 2 ? 3.1 : i % 4 === 0 ? 11.2 : 7;
+      const a = ((-90 + 22.5 * i) * Math.PI) / 180;
+      p.push([12 + r * Math.cos(a), 12 + r * Math.sin(a)]);
+    }
+    return [solid(p)];
+  },
+  // El Laberinto del Cenicero (Ashtray Maze): control de código fuente, caminos que se bifurcan.
+  maze: () => polyline([[3, 21], [3, 3], [21, 3], [21, 21], [8, 21], [8, 8], [16, 8], [16, 16], [12, 16], [12, 12.4]], 2.3),
+  // El patito de goma que se teletransporta (Objeto Alterado): depurar, «rubber duck debugging».
+  duck: () => [
+    solid([[1.5, 9.5], [5.5, 13], [16, 13], [18.5, 11], [22.5, 12], [22, 16.5], [18, 21.5], [6, 21.5], [2.5, 17.5]]),
+    regular(9.8, 8, 5.2, 8, 22.5),
+    hole(rect(9.8, 5.5, 1.9, 1.9)),
+    solid([[14.4, 7], [19.8, 8.4], [14.4, 10.6]]),
+  ],
+  // Disquete de 8 pulgadas (Objeto de Poder): guardar.
+  floppy: () => [
+    solid([[2.5, 2.5], [18, 2.5], [21.5, 6], [21.5, 21.5], [2.5, 21.5]]),
+    hole(rect(7, 4.5, 10, 5.2)),
+    hole(rect(5.6, 12.4, 12.8, 7.2)),
+    rect(13, 5.4, 2.4, 3.4),
+    rect(7.4, 14, 9.2, 4),
+  ],
+  // La cinta de Ahti (la puerta trasera del Laberinto): la línea de tiempo.
+  cassette: () => [
+    rect(1.5, 4.5, 21, 15.5),
+    hole(rect(4.6, 7.4, 14.8, 6.6)),
+    hole(solid([[6.4, 16.2], [17.6, 16.2], [16.4, 20], [7.6, 20]])),
+    regular(8.8, 10.7, 2.3, 8, 22.5),
+    regular(15.2, 10.7, 2.3, 8, 22.5),
+  ],
+  // La televisión Benicoff (Objeto de Poder): la consola de depuración.
+  tv: () => [...polyline([[7, 1.8], [12, 6.6], [17, 1.8]], 2), rect(1.5, 6.6, 21, 15.4), hole(rect(3.8, 8.9, 12.6, 10.8)), hole(rect(18.3, 10, 2.4, 2.4)), hole(rect(18.3, 14.4, 2.4, 2.4))],
+  // El proyector de diapositivas (Objeto de Poder): la salida.
+  projector: () => [
+    regular(5.6, 6.2, 3.2, 8, 22.5),
+    regular(12, 6.2, 3.2, 8, 22.5),
+    rect(1.5, 9, 14, 10),
+    hole(regular(8.5, 14, 2.6, 8, 22.5)),
+    rect(3, 19, 2.4, 2.6),
+    rect(11.1, 19, 2.4, 2.6),
+    solid([[16.5, 11.2], [22.8, 7.6], [22.8, 20.4], [16.5, 16.8]]),
+  ],
+  // La caja fuerte (Objeto de Poder del Escudo): confianza del espacio de trabajo, archivar.
+  safe: () => [...frameRect(2.5, 2.5, 19, 16.5, 2.2), ...frameOct(12, 10.75, 4.6, 2), rect(11.1, 9.85, 1.8, 1.8), rect(4.5, 19, 3.6, 2.8), rect(15.9, 19, 3.6, 2.8)],
+  // El cubo y la fregona de Ahti, el conserje: limpiar todo.
+  mop: () => [
+    solid([[7, 11.5], [21.5, 11.5], [19.5, 22], [9, 22]]),
+    hole(rect(9.2, 14.6, 10.4, 1.8)),
+    bar(3, 1.8, 13.6, 13.8, 2.4),
+    ...polyline([[8.6, 11.5], [14.25, 7.4], [19.9, 11.5]], 1.8),
+  ],
+  // La llave del Motel Oceanview con su llavero de rombo: claves y atajos de teclado.
+  key: () => [solid([[7, 1], [13, 7], [7, 13], [1, 7]]), hole(regular(7, 7, 1.8, 4, 0)), bar(10.5, 10.5, 21, 21, 2.6), bar(15, 15, 17.6, 12.4, 2.2), bar(18.4, 18.4, 21, 15.8, 2.2)],
+  // La Casa Inmemorial: torre brutalista con su remate volado (inicio).
+  oldestHouse: () => [
+    solid([[1.5, 2.5], [22.5, 2.5], [22.5, 8], [18.5, 8], [18.5, 20], [5.5, 20], [5.5, 8], [1.5, 8]]),
+    hole(rect(3.6, 4.6, 16.8, 1.4)),
+    hole(rect(8.4, 10.4, 2.2, 7.6)),
+    hole(rect(13.4, 10.4, 2.2, 7.6)),
+    rect(1, 20, 22, 2.2),
+  ],
+  // El Umbral (Threshold): la puerta entre mundos, conexiones remotas.
+  threshold: () => [...frameRect(5, 1.5, 14, 19.5, 2.2), solid([[7.2, 3.7], [14, 5.8], [14, 21], [7.2, 18.8]]), rect(1.5, 21, 21, 1.8)],
+  // El Aberrante, el arma que cambia de forma de Dylan (Control Resonant): herramientas.
+  hammer: () => [
+    solid([[2, 3], [16, 3], [19, 6], [19, 8.5], [16, 11], [2, 11]]),
+    hole(rect(4.4, 6, 9, 2)),
+    rect(9.6, 11, 3, 11.5),
+    solid([[19, 6], [22.5, 4], [22.5, 10.5], [19, 8.5]]),
+  ],
+  // Resonancia: el sonido de la extensión (icono de la barra de estado).
+  resonance: () => [
+    solid([[2, 8.8], [6.6, 8.8], [12, 3.8], [12, 20.2], [6.6, 15.2], [2, 15.2]]),
+    ...polyline(octPoints(12, 12, 5, [-45, 0, 45]), 2.2),
+    ...polyline(octPoints(12, 12, 9.4, [-55, -27.5, 0, 27.5, 55]), 2.2),
+  ],
+  resonanceOff: () => [solid([[2, 8.8], [6.6, 8.8], [12, 3.8], [12, 20.2], [6.6, 15.2], [2, 15.2]]), bar(15, 8.6, 21.8, 15.4, 2.4), bar(21.8, 8.6, 15, 15.4, 2.4)],
+  // La gramola Songmaster (Objeto de Poder): música y packs de sonido.
+  jukebox: () => [
+    solid([[3.5, 8.5], [7, 2.5], [17, 2.5], [20.5, 8.5], [20.5, 22], [3.5, 22]]),
+    hole(solid([[6.2, 8.8], [8.6, 5], [15.4, 5], [17.8, 8.8], [17.8, 12.4], [6.2, 12.4]])),
+    hole(rect(6.2, 14.8, 11.6, 1.6)),
+    hole(rect(6.2, 18, 11.6, 1.6)),
+  ],
 
-  // ── Terminal, salida, consola ───────────────────────────────────────────────
+  // ── Terminal, puertos ─────────────────────────────────────────────────────────
   prompt: () => [...polyline([[4, 6], [10.5, 12], [4, 18]], 2.8), rect(12.5, 17, 8.5, 2.8)],
-  output: () => [...frameRect(3, 3, 18, 18, 2.2), rect(6.5, 7, 11, 2), rect(6.5, 11, 11, 2), rect(6.5, 15, 7, 2)],
-  debugConsole: () => [...frameRect(2, 3, 20, 18, 2.2), ...polyline([[6, 8], [9.5, 11.5], [6, 15]], 2.2), rect(11.5, 14, 6.5, 2.2)],
-  tools: () => [bar(4, 20, 14, 10, 3.4), ...framePoly([[16.5, 1.5], [22.5, 7.5], [16.5, 13.5], [10.5, 7.5]], [[16.5, 4.8], [19.2, 7.5], [16.5, 10.2], [13.8, 7.5]])],
   plug: () => [rect(6.5, 8, 11, 8.5), rect(8.5, 2.5, 2.4, 5.5), rect(13.1, 2.5, 2.4, 5.5), bar(12, 16.5, 12, 22.5, W)],
 
   // ── Navegación ──────────────────────────────────────────────────────────────
@@ -225,8 +312,6 @@ const GLYPHS = {
   arrowDown: () => [bar(12, 4, 12, 18, 2.6), ...polyline([[6, 12.5], [12, 18.5], [18, 12.5]], 2.6)],
   triangleRight: () => [solid([[8.5, 5.5], [16.5, 12], [8.5, 18.5]])],
   triangleDown: () => [solid([[5.5, 8.5], [18.5, 8.5], [12, 16.5]])],
-  remote: () => [...polyline([[3.5, 6], [9.5, 12], [3.5, 18]], 2.6), ...polyline([[20.5, 6], [14.5, 12], [20.5, 18]], 2.6)],
-  home: () => [...framePoly([[12, 2], [22, 11], [19.5, 11], [19.5, 21.5], [4.5, 21.5], [4.5, 11], [2, 11]], [[12, 5.1], [17.3, 9.8], [17.3, 19.3], [6.7, 19.3], [6.7, 9.8]]), rect(10.2, 13.5, 3.6, 6)],
 
   // ── Acciones ────────────────────────────────────────────────────────────────
   close: () => [bar(5.5, 5.5, 18.5, 18.5, 2.6), bar(18.5, 5.5, 5.5, 18.5, 2.6)],
@@ -240,7 +325,6 @@ const GLYPHS = {
   trash: () => [rect(3.5, 4.8, 17, 2.2), rect(9, 2, 6, 2.8), ...framePoly([[5.8, 8.5], [18.2, 8.5], [17.2, 22], [6.8, 22]], [[8, 10.7], [16, 10.7], [15.2, 19.8], [8.8, 19.8]]), rect(11, 12, 2, 6)],
   edit: () => [bar(5.5, 18.5, 17.5, 6.5, 3.4), solid([[2.5, 21.5], [3.3, 16.9], [7.1, 20.7]]), bar(17.2, 2.6, 21.4, 6.8, 3.4)],
   filter: () => [solid([[2.5, 4], [21.5, 4], [14, 12.5], [14, 20.5], [10, 18.3], [10, 12.5]])],
-  clearAll: () => [rect(2.5, 5, 13, 2.2), rect(2.5, 10, 13, 2.2), rect(2.5, 15, 7.5, 2.2), bar(13.2, 13.2, 20.8, 20.8, 2.2), bar(20.8, 13.2, 13.2, 20.8, 2.2)],
   collapseAll: () => [rect(2, 2, 13, 2.2), rect(2, 2, 2.2, 13), ...frameRect(6.5, 6.5, 15, 15, 2.2), rect(9.8, 12.9, 8.4, 2.2)],
   expandAll: () => [rect(2, 2, 13, 2.2), rect(2, 2, 2.2, 13), ...frameRect(6.5, 6.5, 15, 15, 2.2), rect(9.8, 12.9, 8.4, 2.2), rect(12.9, 9.8, 2.2, 8.4)],
   newFile: () => [...docWithBadge(), ...badgePlus()],
@@ -317,41 +401,43 @@ const MAPPING = {
   // Barra de actividad
   'explorer-view-icon': 'dossier', files: 'dossier', book: 'dossier',
   'search-view-icon': 'lens', search: 'lens', 'search-large': 'lens',
-  'source-control-view-icon': 'pyramid', 'source-control': 'pyramid', 'git-branch': 'pyramid', repo: 'pyramid',
+  'source-control-view-icon': 'maze', 'source-control': 'maze', repo: 'maze', 'git-merge': 'maze', 'git-branch': 'pyramid',
   'git-branch-compact': 'pyramid', 'git-branch-changes': 'pyramidDot', 'git-branch-staged-changes': 'pyramidPlus',
   'git-branch-conflicts': 'pyramidAlert', 'git-branch-create': 'pyramidPlus', 'git-branch-delete': 'pyramidMinus',
-  'run-view-icon': 'hedronPlay', 'debug-alt': 'hedronPlay', 'debug-alt-small': 'hedronPlay', debug: 'hedronPlay',
+  'run-view-icon': 'duck', 'debug-alt': 'duck', 'debug-alt-small': 'duck', debug: 'duck', bug: 'duck',
   'extensions-view-icon': 'blocks', extensions: 'blocks',
   'test-view-icon': 'hedronCheck', beaker: 'hedronCheck', pass: 'hedronCheck', 'pass-filled': 'hedronCheck',
   'accounts-view-bar-icon': 'badge', account: 'badge', person: 'badge',
   'settings-view-bar-icon': 'hexNut', 'settings-gear': 'hexNut', manage: 'hexNut', gear: 'hexNut', settings: 'hexNut',
-  'chat-view-icon': 'board', 'chat-sparkle': 'board', copilot: 'board', 'copilot-logo': 'board', sparkle: 'board', 'sparkle-filled': 'board',
+  'chat-view-icon': 'polaris', 'chat-sparkle': 'polaris', copilot: 'polaris', 'copilot-logo': 'polaris', sparkle: 'polaris', 'sparkle-filled': 'polaris',
+  law: 'board',
   bell: 'hotline', 'bell-dot': 'hotlineDot',
-  package: 'cube',
-  'remote-explorer-view-icon': 'remote', 'remote-explorer': 'remote', remote: 'remote',
+  package: 'cube', home: 'oldestHouse', save: 'floppy', 'save-all': 'floppy', 'save-as': 'floppy',
+  shield: 'safe', 'workspace-trusted': 'safe', 'workspace-untrusted': 'safe', 'workspace-unknown': 'safe', archive: 'safe',
+  key: 'key', keyboard: 'key', 'record-keys': 'key', music: 'jukebox', unmute: 'resonance', mute: 'resonanceOff',
+  'remote-explorer-view-icon': 'threshold', 'remote-explorer': 'threshold', remote: 'threshold',
   // Terminal, salida, consola, puertos, tareas
   'terminal-view-icon': 'prompt', terminal: 'prompt', 'terminal-powershell': 'prompt', 'terminal-cmd': 'prompt', 'terminal-bash': 'prompt',
   'terminal-linux': 'prompt', 'terminal-ubuntu': 'prompt', 'terminal-debian': 'prompt', 'terminal-git-bash': 'prompt', 'terminal-tmux': 'prompt',
-  'output-view-icon': 'output', output: 'output',
-  'debug-console-view-icon': 'debugConsole', 'debug-console': 'debugConsole',
+  'output-view-icon': 'projector', output: 'projector',
+  'debug-console-view-icon': 'tv', 'debug-console': 'tv',
   'ports-view-icon': 'plug', plug: 'plug',
-  tools: 'tools',
+  tools: 'hammer',
   // Navegación y árboles
   'chevron-right': 'chevronRight', 'chevron-left': 'chevronLeft', 'chevron-down': 'chevronDown', 'chevron-up': 'chevronUp',
   'tree-item-expanded': 'chevronDown',
   'arrow-left': 'arrowLeft', 'arrow-right': 'arrowRight', 'arrow-up': 'arrowUp', 'arrow-down': 'arrowDown',
   'triangle-right': 'triangleRight', 'triangle-down': 'triangleDown',
-  home: 'home',
   // Acciones
   close: 'close', 'close-all': 'close', x: 'close', add: 'add', plus: 'add', remove: 'remove', dash: 'remove',
   check: 'check', 'check-all': 'checkAll',
   ellipsis: 'ellipsis', more: 'ellipsis', 'toolbar-more': 'ellipsis', 'kebab-horizontal': 'ellipsis', 'kebab-vertical': 'kebab', menu: 'menu',
-  trash: 'trash', edit: 'edit', pencil: 'edit', filter: 'filter', 'filter-filled': 'filter', 'clear-all': 'clearAll',
+  trash: 'trash', edit: 'edit', pencil: 'edit', filter: 'filter', 'filter-filled': 'filter', 'clear-all': 'mop',
   'collapse-all': 'collapseAll', 'expand-all': 'expandAll', 'new-file': 'newFile', 'new-folder': 'newFolder',
   file: 'file', 'go-to-file': 'file', folder: 'folder', 'folder-opened': 'folderOpened', 'folder-active': 'folderOpened',
   copy: 'copy', pin: 'pin', pinned: 'pin', lock: 'lock', unlock: 'unlock', 'lock-small': 'lock',
   eye: 'eye', 'eye-closed': 'eyeClosed', lightbulb: 'lightbulb', 'lightbulb-autofix': 'lightbulb', 'lightbulb-sparkle': 'lightbulb',
-  zap: 'zap', comment: 'comment', 'comment-discussion': 'comment', feedback: 'comment', history: 'history', 'timeline-view-icon': 'history',
+  zap: 'zap', comment: 'comment', 'comment-discussion': 'comment', feedback: 'comment', history: 'cassette', 'timeline-view-icon': 'cassette', watch: 'history',
   star: 'starEmpty', 'star-empty': 'starEmpty', 'star-full': 'starFull', 'circle-filled': 'circleFilled', loading: 'loading',
   // Estado y diagnósticos
   error: 'error', warning: 'warning', info: 'info',
@@ -359,7 +445,7 @@ const MAPPING = {
   'git-commit': 'gitCommit', 'git-pull-request': 'gitPullRequest', sync: 'sync', refresh: 'refresh',
   'cloud-upload': 'cloudUpload', 'cloud-download': 'cloudDownload', discard: 'discard', 'list-flat': 'listFlat', 'list-tree': 'listTree',
   // Depuración y ejecución
-  play: 'play', run: 'play', 'run-all': 'play', 'debug-start': 'play', 'debug-continue': 'debugContinue', 'debug-pause': 'debugPause',
+  play: 'play', run: 'play', 'run-all': 'play', 'debug-start': 'hedronPlay', 'debug-continue': 'debugContinue', 'debug-pause': 'debugPause',
   'debug-stop': 'debugStop', 'debug-disconnect': 'debugDisconnect', 'debug-restart': 'refresh', 'debug-step-over': 'debugStepOver',
   'debug-step-into': 'debugStepInto', 'debug-step-out': 'debugStepOut',
   // Ventana y distribución
@@ -372,44 +458,186 @@ const MAPPING = {
 // --- Versión a color -------------------------------------------------------------
 
 /**
- * Colores reales de los objetos del juego para «Bureau Product Icons (Color)».
- * Tonos medios: tienen que leerse sobre el monolito oscuro y sobre CONTROL Astral.
+ * Colores reales de «Bureau Product Icons (Color)». Tonos medios: tienen que
+ * leerse sobre el monolito oscuro y sobre CONTROL Astral (fondo claro).
  */
 const REAL = {
   red: '#E0352B', // la Hotline (el teléfono rojo), el Hiss, el rojo del FBC
-  amber: '#C98A1E',
-  green: '#4FA05A',
-  cyan: '#2FA7B8', // la Hedron
+  orange: '#E07A2B', // Git, la gramola Songmaster, el pico del patito
+  amber: '#C98A1E', // avisos, el Laberinto del Cenicero, la cinta de Ahti
+  yellow: '#D9B02A', // Polaris, la luz del proyector, el patito de goma
+  green: '#4FA05A', // ejecutar, añadir, correcto
+  teal: '#2E9C8E',
+  cyan: '#2FA7B8', // la Hedron, el Umbral, el Aberrante (Control Resonant)
   blue: '#4A8CD0',
+  steel: '#6F93B8', // la interfaz de la Agencia: flechas, ventanas, menús
+  violet: '#8C6BC8', // lo paranatural: el Consejo, los Objetos de Poder
   paper: '#C9A15C', // los expedientes de la Agencia
-  brass: '#C2953F', // la placa del FBC
+  brass: '#C2953F', // la placa del FBC, cerraduras, la televisión Benicoff
+};
+
+/** @typedef {Array<[string, Poly[]]>} Layers */
+/** Todo el glifo de un color. */
+const one = (/** @type {string} */ c) => (/** @type {Poly[]} */ p) => /** @type {Layers} */ ([[c, p]]);
+/** Las primeras `n` formas (o todas menos las últimas `-n`) de un color y el resto de otro. */
+const two = (/** @type {number} */ n, /** @type {string} */ a, /** @type {string} */ b) => (/** @type {Poly[]} */ p) =>
+  /** @type {Layers} */ ([[a, p.slice(0, n)], [b, p.slice(n)]]);
+/** Tramos de formas: [[color, hasta], …]; el último llega al final. Los huecos van con su forma. */
+const spans = (/** @type {Array<[string, number?]>} */ parts) => (/** @type {Poly[]} */ p) => {
+  /** @type {Layers} */
+  const out = [];
+  let from = 0;
+  for (const [color, to] of parts) {
+    out.push([color, p.slice(from, to ?? p.length)]);
+    from = to ?? p.length;
+  }
+  return out;
+};
+
+const R = REAL;
+
+/**
+ * Capas de color de TODOS los glifos (el test comprueba que no falta ninguno y
+ * que ninguna capa se queda con el color del tema).
+ * @type {Record<string, (p: Poly[]) => Layers>}
+ */
+const COLOR = {
+  // Lore
+  dossier: two(-1, R.paper, R.red),
+  lens: two(2, R.steel, R.brass),
+  pyramid: one(R.orange),
+  pyramidDot: two(-1, R.orange, R.amber),
+  pyramidPlus: two(-2, R.orange, R.green),
+  pyramidMinus: two(-1, R.orange, R.red),
+  pyramidAlert: two(-1, R.orange, R.red),
+  board: two(1, R.red, R.violet),
+  hedronPlay: one(R.cyan),
+  hedronCheck: two(2, R.cyan, R.green),
+  blocks: spans([[R.blue, 1], [R.teal, 2], [R.steel, 3], [R.red]]),
+  badge: spans([[R.brass, -3], [R.red, -2], [R.brass]]),
+  hexNut: two(2, R.steel, R.brass),
+  hotline: one(R.red),
+  hotlineDot: two(-1, R.red, R.amber),
+  cube: one(R.violet),
+  polaris: one(R.yellow),
+  maze: one(R.amber),
+  duck: two(-1, R.yellow, R.orange),
+  floppy: spans([[R.blue, 3], [R.steel, 4], [R.paper]]),
+  cassette: two(3, R.amber, R.steel),
+  tv: two(3, R.steel, R.brass),
+  projector: two(-1, R.steel, R.yellow),
+  safe: spans([[R.steel, 2], [R.brass, 5], [R.steel]]),
+  mop: spans([[R.blue, 2], [R.paper, 3], [R.steel]]),
+  key: two(2, R.red, R.brass),
+  oldestHouse: two(-1, R.steel, R.red),
+  threshold: spans([[R.steel, 2], [R.cyan, 3], [R.steel]]),
+  hammer: spans([[R.cyan, 2], [R.steel, 3], [R.cyan]]),
+  resonance: one(R.cyan),
+  resonanceOff: two(1, R.steel, R.red),
+  jukebox: one(R.orange),
+  // Terminal y puertos
+  prompt: one(R.green),
+  plug: one(R.teal),
+  // Navegación
+  chevronRight: one(R.steel),
+  chevronLeft: one(R.steel),
+  chevronDown: one(R.steel),
+  chevronUp: one(R.steel),
+  arrowLeft: one(R.steel),
+  arrowRight: one(R.steel),
+  arrowUp: one(R.steel),
+  arrowDown: one(R.steel),
+  triangleRight: one(R.steel),
+  triangleDown: one(R.steel),
+  // Acciones
+  close: one(R.red),
+  add: one(R.green),
+  remove: one(R.red),
+  check: one(R.green),
+  checkAll: one(R.green),
+  ellipsis: one(R.steel),
+  kebab: one(R.steel),
+  menu: one(R.steel),
+  trash: one(R.red),
+  edit: spans([[R.amber, 1], [R.steel, 2], [R.red]]),
+  filter: one(R.teal),
+  collapseAll: two(-1, R.steel, R.blue),
+  expandAll: two(-2, R.steel, R.blue),
+  newFile: two(-2, R.paper, R.green),
+  newFolder: two(-2, R.amber, R.green),
+  file: one(R.paper),
+  folder: one(R.amber),
+  folderOpened: one(R.amber),
+  copy: one(R.blue),
+  pin: one(R.red),
+  lock: one(R.brass),
+  unlock: one(R.brass),
+  eye: two(2, R.blue, R.cyan),
+  eyeClosed: one(R.steel),
+  lightbulb: two(2, R.yellow, R.steel),
+  zap: one(R.yellow),
+  comment: one(R.blue),
+  history: two(2, R.steel, R.red),
+  starFull: one(R.yellow),
+  starEmpty: one(R.yellow),
+  circleFilled: one(R.amber),
+  loading: one(R.cyan),
+  // Estado
+  error: one(R.red),
+  warning: one(R.amber),
+  info: one(R.blue),
+  // Control de código fuente
+  gitCommit: one(R.orange),
+  gitPullRequest: one(R.green),
+  sync: one(R.teal),
+  refresh: one(R.teal),
+  cloudUpload: one(R.blue),
+  cloudDownload: one(R.blue),
+  discard: one(R.amber),
+  listFlat: one(R.steel),
+  listTree: one(R.steel),
+  // Depuración
+  play: one(R.green),
+  debugContinue: one(R.green),
+  debugPause: one(R.amber),
+  debugStop: one(R.red),
+  debugDisconnect: one(R.red),
+  debugStepOver: two(-1, R.blue, R.amber),
+  debugStepInto: two(-1, R.blue, R.amber),
+  debugStepOut: two(-1, R.blue, R.amber),
+  // Ventana
+  screenFull: one(R.steel),
+  screenNormal: one(R.steel),
+  chromeMinimize: one(R.steel),
+  chromeMaximize: one(R.steel),
+  chromeRestore: one(R.steel),
+  chromeClose: one(R.red),
+  layoutSidebarLeft: two(2, R.steel, R.blue),
+  layoutSidebarLeftOff: two(2, R.steel, R.blue),
+  layoutSidebarRight: two(2, R.steel, R.blue),
+  layoutSidebarRightOff: two(2, R.steel, R.blue),
+  layoutPanel: two(2, R.steel, R.blue),
+  layoutPanelOff: two(2, R.steel, R.blue),
+  layout: two(2, R.steel, R.blue),
+  splitHorizontal: two(2, R.steel, R.blue),
+  splitVertical: two(2, R.steel, R.blue),
 };
 
 /**
- * Capas de color de cada glifo: [color, formas]. `null` es el color del tema,
- * como en la versión en negro. Los glifos que no aparecen siguen al tema.
- * @type {Record<string, (p: Poly[]) => Array<[string | null, Poly[]]>>}
+ * Iconos propios que la extensión registra (`contributes.icons`) para la barra
+ * de estado y la consola de sonido. Salen de la fuente monocroma, así que
+ * funcionan con cualquier tema de iconos de producto.
  */
-const COLOR = {
-  hotline: (p) => [[REAL.red, p]],
-  hotlineDot: (p) => [[REAL.red, p.slice(0, -1)], [null, p.slice(-1)]],
-  board: (p) => [[REAL.red, p.slice(0, 1)], [null, p.slice(1)]],
-  pyramidDot: (p) => [[null, p.slice(0, -1)], [REAL.amber, p.slice(-1)]],
-  pyramidPlus: (p) => [[null, p.slice(0, -2)], [REAL.green, p.slice(-2)]],
-  pyramidMinus: (p) => [[null, p.slice(0, -1)], [REAL.red, p.slice(-1)]],
-  pyramidAlert: (p) => [[null, p.slice(0, -1)], [REAL.red, p.slice(-1)]],
-  hedronPlay: (p) => [[REAL.cyan, p]],
-  hedronCheck: (p) => [[REAL.cyan, p]],
-  dossier: (p) => [[REAL.paper, p]],
-  badge: (p) => [[REAL.brass, p.slice(0, -3)], [REAL.red, p.slice(-3, -2)], [REAL.brass, p.slice(-2)]],
-  blocks: (p) => [[null, p.slice(0, 3)], [REAL.red, p.slice(3)]],
-  prompt: (p) => [[REAL.green, p]],
-  error: (p) => [[REAL.red, p]],
-  warning: (p) => [[REAL.amber, p]],
-  info: (p) => [[REAL.blue, p]],
-  lightbulb: (p) => [[REAL.amber, p]],
-  starFull: (p) => [[REAL.amber, p]],
-  zap: (p) => [[REAL.amber, p]],
+const CONTRIBUTED = {
+  'bureau-resonance': ['resonance', 'CONTROL: sounds on (Resonance)'],
+  'bureau-resonance-off': ['resonanceOff', 'CONTROL: sounds off'],
+  'bureau-jukebox': ['jukebox', 'CONTROL: sound pack (Songmaster Jukebox)'],
+  'bureau-cassette': ['cassette', "CONTROL: preview sounds (Ahti's tape)"],
+  'bureau-hotline': ['hotline', 'CONTROL: sound events (the Hotline)'],
+  'bureau-dossier': ['dossier', 'CONTROL: custom sounds folder'],
+  'bureau-hexnut': ['hexNut', 'CONTROL: sound settings'],
+  'bureau-safe': ['safe', 'CONTROL: only with CONTROL themes'],
+  'bureau-polaris': ['polaris', 'CONTROL: Polaris'],
 };
 
 // --- Generación ----------------------------------------------------------------
@@ -482,10 +710,12 @@ async function main() {
   const layerGlyphs = [];
   /** @type {import('./lib/colr').ColorGlyph[]} */
   const colorGlyphs = [];
+  for (const name of names) if (!(name in COLOR)) throw new Error(`COLOR: falta el color de ${name}`);
   for (const [name, layersOf] of Object.entries(COLOR)) {
     if (!(name in GLYPHS)) throw new Error(`COLOR: glifo inexistente ${name}`);
     const layers = layersOf(GLYPHS[name]()).map(([color, polys], i) => {
       if (polys.length === 0) throw new Error(`COLOR: capa vacía en ${name}`);
+      if (!color) throw new Error(`COLOR: capa sin color en ${name}`);
       const code = 0xe800 + layerGlyphs.length;
       layerGlyphs.push({ name: `${name}-${i}`, svg: toSvg(polys), code });
       return { code, color };
@@ -494,6 +724,18 @@ async function main() {
   }
   const color = toWoff(addColorTables(await buildTtf([...glyphs, ...layerGlyphs]), colorGlyphs));
   writeTheme(`${FONT_NAME}-color`, 'bureau-product-icon-theme-color.json', color, codeOf);
+
+  // Iconos propios de la extensión (barra de estado, consola de sonido): sus
+  // puntos de código cambian si cambian los glifos, así que se escriben aquí.
+  const pkgFile = path.join(ROOT, 'package.json');
+  const pkg = JSON.parse(fs.readFileSync(pkgFile, 'utf8'));
+  pkg.contributes.icons = Object.fromEntries(
+    Object.entries(CONTRIBUTED).map(([id, [glyph, description]]) => [
+      id,
+      { description, default: { fontPath: `./product-icons/${FONT_NAME}.woff`, fontCharacter: `\\${codeOf[glyph].toString(16).toUpperCase()}` } },
+    ])
+  );
+  fs.writeFileSync(pkgFile, JSON.stringify(pkg, null, 2) + '\n');
 
   console.log(
     `✔ product-icons/ (${names.length} glifos, ${Object.keys(MAPPING).length} iconos de VS Code sustituidos, ${(mono.length / 1024).toFixed(1)} KB; ` +
@@ -508,4 +750,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { GLYPHS, MAPPING, COLOR, REAL, toSvg, area };
+module.exports = { GLYPHS, MAPPING, COLOR, REAL, CONTRIBUTED, toSvg, area };

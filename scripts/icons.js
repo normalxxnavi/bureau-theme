@@ -11,11 +11,11 @@
  *     {}…) o un pictograma en el color del lenguaje, sobre la franja de
  *     clasificación con su muesca. Sin hoja de fondo, para que a 16 px se lea.
  *   - CARPETAS: carpeta sólida del color de su categoría con un EMBLEMA (</> en
- *     src, check en test, montaña en images, onda en sounds, pirámide en .git…).
- *   - Carpeta raíz: la pirámide invertida del Consejo (Plano Astral).
+ *     src, check en test, montaña en images, onda en sounds, laberinto en .git…).
+ *   - Carpeta raíz: la Casa Inmemorial (torre brutalista).
  * Guiños de lore: los .env son un documento clasificado (tachado), los tests
  * llevan el hexágono de la Hedron y los archivos de IA (CLAUDE.md, AGENTS.md,
- * *.prompt.md…) llevan al Consejo.
+ * *.prompt.md…) llevan a Polaris, la luz que guía a Jesse.
  *
  * Cada icono tiene dos variantes: temas oscuros y temas claros (CONTROL Astral).
  * Todo es original: no se usan logos de terceros.
@@ -49,6 +49,20 @@ const C = {
 
 /** Color «recortado» encima de las placas de color. */
 const KNOCK = ['#121315', '#FFFFFF'];
+/** Ventanas de la Casa Inmemorial: luz astral sobre el hormigón oscuro. */
+const WINDOWS = ['#F2EFE8', '#FAF9F6'];
+
+/** Estrella de Polaris (ocho rayos) como path SVG. */
+function polarisPath(/** @type {number} */ cx, /** @type {number} */ cy, /** @type {number} */ r) {
+  const pts = [];
+  for (let i = 0; i < 16; i++) {
+    const rr = i % 2 ? r * 0.28 : i % 4 === 0 ? r : r * 0.62;
+    const a = ((-90 + 22.5 * i) * Math.PI) / 180;
+    pts.push(`${(cx + rr * Math.cos(a)).toFixed(2)} ${(cy + rr * Math.sin(a)).toFixed(2)}`);
+  }
+  return `M${pts.join('L')}Z`;
+}
+
 const BOARD = { fill: ['#0D0E0F', '#151517'], stroke: ['#F2EFE8', '#151517'], line: ['#E0352B', '#C8261C'] };
 const FONT = "font-family='Segoe UI, -apple-system, Helvetica Neue, Arial, sans-serif' font-weight='700' text-anchor='middle'";
 
@@ -75,7 +89,7 @@ const PICTO = {
   video: (k) => `<path d="M5.4 4.8v7.4l6.2-3.7z" fill="${k}"/>`,
   database: (k, c) => `<path d="M3.6 5.2C3.6 4 5.6 3.4 7.8 3.4s4.2.6 4.2 1.8v6.6c0 1.2-2 1.8-4.2 1.8s-4.2-.6-4.2-1.8z" fill="${k}"/><path d="M3.6 8.4c0 1.1 2 1.7 4.2 1.7s4.2-.6 4.2-1.7" ${stroke(c, 0.9)}/>`,
   lock: (k) => `<rect x="4.2" y="7.4" width="7.4" height="5.4" fill="${k}"/><path d="M5.8 7.4V5.6a2.1 2.1 0 0 1 4.2 0v1.8" ${stroke(k, 1.3)}/>`,
-  git: (k) => `<path d="M3.4 4h8.8L7.8 12.6z" fill="${k}"/>`,
+  git: (k) => `<path d="M4.2 12.6V4h8v8.6H7.4V7.2h1.8" ${stroke(k, 1.4)}/>`,
   config: (k) => `<path d="M3.4 5h8.8M3.4 8.4h8.8M3.4 11.8h8.8" ${stroke(k, 1)} stroke-opacity=".55"/><rect x="9" y="3.8" width="2.4" height="2.4" fill="${k}"/><rect x="4.4" y="7.2" width="2.4" height="2.4" fill="${k}"/><rect x="7.4" y="10.6" width="2.4" height="2.4" fill="${k}"/>`,
   archive: (k, c) => `<rect x="3.4" y="4.2" width="8.8" height="8.4" fill="${k}"/><rect x="3.4" y="6.4" width="8.8" height="1" fill="${c}"/><rect x="7" y="6.4" width="1.6" height="2.4" fill="${c}"/>`,
   text: (k) => `<path d="M3.6 4.4h8M3.6 6.9h6M3.6 9.4h8M3.6 11.9h4.6" ${stroke(k, 1.2)}/>`,
@@ -89,7 +103,7 @@ const PICTO = {
   cube: (k) => `<path d="M7.8 3.2l4.2 2.4v4.8l-4.2 2.4-4.2-2.4V5.6zM3.6 5.6l4.2 2.4 4.2-2.4M7.8 8v4.8" ${stroke(k, 1.1)}/>`,
   key: (k) => `<rect x="3.2" y="4.2" width="4.6" height="4.6" fill="${k}"/><path d="M7.4 8.2l4.6 4.6M10.2 11l1.4-1.4" ${stroke(k, 1.4)}/>`,
   docker: (k) => `<rect x="3.2" y="8" width="2.6" height="2.4" fill="${k}"/><rect x="6.4" y="8" width="2.6" height="2.4" fill="${k}"/><rect x="9.6" y="8" width="2.6" height="2.4" fill="${k}"/><rect x="6.4" y="5" width="2.6" height="2.4" fill="${k}"/><path d="M3 11.4h9.6l-1 1.4H4z" fill="${k}"/>`,
-  board: (k) => `<rect x="4.4" y="3.6" width="6.8" height="1.4" fill="${k}"/><path d="M3.4 6.2h8.8l-4.4 6.6z" fill="${k}"/>`,
+  polaris: (k) => `<path d="${polarisPath(7.85, 8.1, 5.2)}" fill="${k}"/>`,
   terminal: (k) => `<path d="M3.8 5l2.8 2.6-2.8 2.6" ${stroke(k, 1.4)}/><rect x="7.6" y="10.4" width="4.6" height="1.5" fill="${k}"/>`,
   gear: (k, c) => `<path d="M7.8 3.4l4 2.3v4.6l-4 2.3-4-2.3V5.7z" fill="${k}"/><path d="M7.8 6.6l1.4.8v1.6l-1.4.8-1.4-.8V7.4z" fill="${c}"/>`,
   globe: (k) => `<path d="M5.8 3.4h4l2.8 2.8v4l-2.8 2.8h-4l-2.8-2.8v-4zM3 8.2h9.6M7.8 3.4v9.6" ${stroke(k, 1)}/>`,
@@ -107,7 +121,7 @@ const EMBLEM = {
   image: (k) => `<path d="M8.4 13l2.2-3.2 1.5 1.8 1-1.2 1.6 2.6z" fill="${k}"/><rect x="12.4" y="7.9" width="1.5" height="1.5" fill="${k}"/>`,
   wave: (k) => [2.4, 5, 3.6, 1.8].map((h, i) => `<rect x="${8.6 + i * 1.5}" y="${10.6 - h / 2}" width="1" height="${h}" fill="${k}"/>`).join(''),
   play: (k) => `<path d="M9.8 8.2v5l4-2.5z" fill="${k}"/>`,
-  pyramid: (k) => `<path d="M8.4 8.2h6l-3 5z" fill="${k}"/>`,
+  maze: (k) => `<path d="M8.8 13.3V8.1h5.2v5.2h-2.9v-2.7" ${stroke(k, 1)}/>`,
   gear: (k, c) => `<path d="M11.4 7.7l2.7 1.5v3l-2.7 1.5-2.7-1.5v-3z" fill="${k}"/><path d="M11.4 9.9l.8.5v.9l-.8.5-.8-.5v-.9z" fill="${c}"/>`,
   cube: (k) => `<path d="M11.4 7.9l2.7 1.5v3l-2.7 1.5-2.7-1.5v-3zM8.7 9.4l2.7 1.5 2.7-1.5M11.4 10.9v2.9" ${stroke(k, 0.9)}/>`,
   box: (k, c) => `<rect x="8.6" y="8.4" width="5.8" height="4.8" fill="${k}"/><rect x="8.6" y="9.7" width="5.8" height=".8" fill="${c}"/>`,
@@ -125,7 +139,7 @@ const EMBLEM = {
   diamond: (k) => `<path d="M11.4 7.8l2.8 2.8-2.8 2.8-2.8-2.8z" ${stroke(k, 1.1)}/>`,
   clock: (k) => `<path d="M10.2 8h2.4l1.7 1.7v2.4l-1.7 1.7h-2.4l-1.7-1.7V9.7zM11.4 9.2v1.8h1.3" ${stroke(k, 0.9)}/>`,
   flask: (k) => `<path d="M10.4 7.8h2v2l1.8 3.4H8.6l1.8-3.4z" fill="${k}"/>`,
-  board: (k) => `<rect x="9.2" y="7.7" width="4.4" height="1" fill="${k}"/><path d="M8.5 9.4h5.8l-2.9 4.2z" fill="${k}"/>`,
+  polaris: (k) => `<path d="${polarisPath(11.4, 10.6, 3.3)}" fill="${k}"/>`,
   loop: (k) => `<path d="M9 12.8V9h4.4M13.8 9.4v3.8H9.4" ${stroke(k, 1.1)}/><path d="M12.6 7.6l1.6 1.4-1.6 1.4zM10.2 14.6l-1.6-1.4 1.6-1.4z" fill="${k}"/>`,
   phone: (k) => `<path d="M9.6 7.8h3.6v5.6H9.6z" ${stroke(k, 1)}/><rect x="10.9" y="11.6" width="1" height="1" fill="${k}"/>`,
   font: (k) => `<path d="M8.8 13.4l2.6-5.6 2.6 5.6M9.8 11.6h3.2" ${stroke(k, 1.1)}/>`,
@@ -169,12 +183,12 @@ function folderIcon(/** @type {ColorName} */ color, /** @type {string | null} */
   return svg(s);
 }
 
-/** Carpeta raíz: la pirámide invertida del Consejo, flotando en el Plano Astral. */
-function board(/** @type {boolean} */ open, /** @type {number} */ v) {
-  const tri = `<path d="M1.8 2.6h12.4L8 13.6z" fill="${BOARD.fill[v]}" stroke="${BOARD.stroke[v]}" stroke-linejoin="round"/>`;
-  const line = `<path d="M3.6 4.4h8.8" stroke="${BOARD.line[v]}" stroke-width="1.2"/>`;
-  const glow = open ? `<path d="M6 6.8h4L8 10.4z" fill="${BOARD.stroke[v]}" fill-opacity=".85"/>` : '';
-  return svg(`${tri}${line}${glow}`);
+/** Carpeta raíz: la Casa Inmemorial, torre brutalista con su remate volado y la línea roja del FBC. */
+function oldestHouse(/** @type {boolean} */ open, /** @type {number} */ v) {
+  const tower = `<path d="M1.5 2h13v3.4h-2.6v8H4.1v-8H1.5z" fill="${BOARD.fill[v]}" stroke="${BOARD.stroke[v]}" stroke-width=".8" stroke-linejoin="miter"/>`;
+  const windows = `<path d="M6.3 7v4.4M9.7 7v4.4" stroke="${WINDOWS[v]}" stroke-width="1.3" stroke-opacity="${open ? 1 : 0.45}"/>`;
+  const ground = `<rect x="1" y="13.6" width="14" height="1.4" fill="${BOARD.line[v]}"/>`;
+  return svg(`${tower}${windows}${ground}`);
 }
 
 // --- Catálogo -------------------------------------------------------------------------------
@@ -207,7 +221,7 @@ const S = {
   binary: L('01', 'dim'), nupkg: P('archive', 'violet'), vsix: P('archive', 'red'), whl: P('archive', 'ice'), key: P('key', 'amber'), signature: P('key', 'green'),
   lock: P('lock', 'dim'), diff: P('diff', 'green'), db: P('database', 'paper'), env: P('classified', 'amber'), license: P('license', 'amber'),
   readme: P('readme', 'steel'), changelog: P('changelog', 'teal'), contributing: P('changelog', 'green'), conduct: P('changelog', 'violet'),
-  security: P('shield', 'red'), todo: P('changelog', 'amber'), test: P('test', 'cyan'), ai: P('board', 'red'), docker: P('docker', 'ice'),
+  security: P('shield', 'red'), todo: P('changelog', 'amber'), test: P('test', 'cyan'), ai: P('polaris', 'amber'), docker: P('docker', 'ice'),
   git: P('git', 'orange'), npm: P('cube', 'red'), project: P('cube', 'violet'), dotnetConfig: P('config', 'violet'), npmConfig: P('config', 'red'),
   tsconfig: P('config', 'steel'), jsconfig: P('config', 'amber'), vite: L('VT', 'violet'), webpack: L('WP', 'ice'), rollup: L('RL', 'red'),
   babel: L('BB', 'amber'), eslint: L('ES', 'violet'), prettier: L('PR', 'teal'), stylelint: L('SL', 'bone'), jest: L('JE', 'red'),
@@ -325,11 +339,11 @@ const LANGUAGE_IDS = {
 /** @type {Record<string, [ColorName, keyof typeof EMBLEM]>} */
 const FOLDER_KINDS = {
   source: ['red', 'code'], test: ['cyan', 'check'], docs: ['bone', 'docs'], images: ['green', 'image'], assets: ['green', 'star'],
-  audio: ['rose', 'wave'], video: ['rose', 'play'], git: ['orange', 'pyramid'], ci: ['orange', 'loop'], vscode: ['steel', 'gear'],
+  audio: ['rose', 'wave'], video: ['rose', 'play'], git: ['orange', 'maze'], ci: ['orange', 'loop'], vscode: ['steel', 'gear'],
   ide: ['violet', 'gear'], packages: ['violet', 'cube'], modules: ['dim', 'cube'], build: ['dim', 'box'], components: ['steel', 'blocks'],
   config: ['concrete', 'sliders'], i18n: ['teal', 'globe'], data: ['paper', 'database'], api: ['orange', 'plug'], utils: ['concrete', 'wrench'],
   hooks: ['amber', 'bolt'], security: ['red', 'shield'], users: ['ice', 'person'], views: ['ice', 'window'], types: ['violet', 'diamond'],
-  temp: ['dim', 'clock'], logs: ['paper', 'docs'], mocks: ['teal', 'flask'], ai: ['red', 'board'], mobile: ['green', 'phone'], fonts: ['bone', 'font'],
+  temp: ['dim', 'clock'], logs: ['paper', 'docs'], mocks: ['teal', 'flask'], ai: ['amber', 'polaris'], mobile: ['green', 'phone'], fonts: ['bone', 'font'],
   migrations: ['paper', 'arrow'], middleware: ['teal', 'layers'], services: ['violet', 'layers'], coverage: ['green', 'target'],
   secrets: ['amber', 'key'], styles: ['rose', 'palette'], scripts: ['amber', 'terminal'], infra: ['ice', 'container'], store: ['paper', 'database'],
 };
@@ -406,8 +420,8 @@ function main() {
     for (const [id, s] of specs) write(`${id}${suffix}`, fileIcon(s, v));
     write(`folder${suffix}`, folderIcon('concrete', null, false, v));
     write(`folder_open${suffix}`, folderIcon('concrete', null, true, v));
-    write(`root${suffix}`, board(false, v));
-    write(`root_open${suffix}`, board(true, v));
+    write(`root${suffix}`, oldestHouse(false, v));
+    write(`root_open${suffix}`, oldestHouse(true, v));
     for (const [kind, [color, emblem]] of Object.entries(FOLDER_KINDS)) {
       write(`folder_${kind}${suffix}`, folderIcon(color, emblem, false, v));
       write(`folder_${kind}_open${suffix}`, folderIcon(color, emblem, true, v));
