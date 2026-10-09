@@ -71,7 +71,7 @@ const CHIPS = {
   oled: ['screenFull', 'True black for OLED', 'Negro puro para OLED', '2A2B2F'],
   manhattan: ['blocks', 'Patterned Manhattan', 'Manhattan alterado', '8AA8E8'],
   aberrant: ['hammer', 'The Aberrant', 'El Aberrante', hex(REAL.cyan)],
-  hiss: ['error', 'Red belongs to the Hiss', 'El rojo es del Hiss', RED],
+  hiss: ['error', 'Red belongs to the Hiss', 'El rojo es del Siseo', RED],
   'astral-plane': ['board', 'The Astral Plane', 'El Plano Astral', 'F2EFE8'],
   'wcag-aaa': ['hedronCheck', 'Text WCAG AAA', 'Texto WCAG AAA', hex(REAL.blue)],
   wcag: ['hedronCheck', 'WCAG contrast checked', 'Contraste WCAG verificado', hex(REAL.blue)],

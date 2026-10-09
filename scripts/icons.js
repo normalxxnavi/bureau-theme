@@ -441,8 +441,28 @@ function main() {
     folderNamesExpanded: Object.fromEntries(Object.entries(FOLDER_NAMES).map(([n, k]) => [n, `folder_${k}_open${suffix}`])),
   });
 
-  const theme = { hidesExplorerArrows: false, iconDefinitions: defs, ...mapping(''), light: mapping('_light'), highContrast: mapping('') };
-  fs.writeFileSync(path.join(OUT, 'bureau-icon-theme.json'), JSON.stringify(theme, null, 2) + '\n');
+  // VS Code lee este JSON al arrancar para pintar el explorador: se escribe
+  // compacto y con identificadores cortos (192 KB → ~84 KB). Sin sección
+  // `highContrast`: era una copia de la principal, que es la que VS Code usa
+  // cuando no existe. Los nombres descriptivos siguen en los archivos SVG.
+  const short = new Map(Object.keys(defs).map((id, i) => [id, i.toString(36)]));
+  /** @param {Record<string, any>} m @returns {Record<string, any>} */
+  const shorten = (m) =>
+    Object.fromEntries(
+      Object.entries(m).map(([k, v]) => {
+        if (typeof v !== 'string') return [k, shorten(v)];
+        const id = short.get(v);
+        if (!id) throw new Error(`Icono sin definir: ${v}`);
+        return [k, id];
+      })
+    );
+  const theme = {
+    hidesExplorerArrows: false,
+    iconDefinitions: Object.fromEntries(Object.entries(defs).map(([id, d]) => [short.get(id), d])),
+    ...shorten(mapping('')),
+    light: shorten(mapping('_light')),
+  };
+  fs.writeFileSync(path.join(OUT, 'bureau-icon-theme.json'), JSON.stringify(theme));
   console.log(
     `✔ icons/bureau-icon-theme.json (${Object.keys(defs).length} SVG · ${Object.keys(EXTENSIONS).length} extensiones · ${Object.keys(FILE_NAMES).length} nombres de archivo · ${Object.keys(LANGUAGE_IDS).length} lenguajes · ${Object.keys(FOLDER_NAMES).length} carpetas)`
   );

@@ -17,10 +17,8 @@ const { FONT_SETS, FONT_SETTINGS, settingsFor, resolveFontSet } = require('./fon
 // El instalador (child_process, registro de Windows) se carga solo al instalar o quitar.
 const { readActiveThemeLabel, THEME_SETTING_KEYS } = require('./theme-state');
 
-const SETTING = 'bureauTheme.font';
+const { FONT_SETTING: SETTING, FONT_APPLIED_KEY: APPLIED_KEY, FONT_OFFER_KEY: OFFER_KEY } = require('./config');
 const BACKUP_KEY = 'fontBackup';
-const APPLIED_KEY = 'fontApplied';
-const OFFER_KEY = 'fontOfferShown';
 const MODES = ['none', 'bureau', 'resonant', 'auto'];
 
 class FontController {

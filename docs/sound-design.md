@@ -21,7 +21,7 @@ Analógico e institucional: timbres, teléfonos, máquinas de escribir, alarmas 
 | Arranque de VS Code | `startup.wav` | Zumbido grave de la Oldest House: un drone de hormigón que respira, con una resonancia lejana. | 3.63 s | -4.8 dB |
 | Activar un tema CONTROL | `theme.wav` | La Hotline: el timbre de un teléfono antiguo (dos campanillas golpeadas por un badajo) en una sala de hormigón. | 1.51 s | -1.0 dB |
 | Guardar (manual) | `save.wav` | Sello de archivo: un golpe seco de goma sobre papel. Muy discreto. | 0.17 s | -3.7 dB |
-| Errores nuevos | `error.wav` | Susurro del Hiss: murmullos de ruido filtrado y un tono grave disonante (segunda menor) que crece. | 2.16 s | -1.0 dB |
+| Errores nuevos | `error.wav` | Susurro del Siseo (el Hiss): murmullos de ruido filtrado y un tono grave disonante (segunda menor) que crece. | 2.16 s | -1.0 dB |
 | Todos los errores corregidos | `clear.wav` | Control Point purificado: un barrido de aire que sube y un acorde mayor que se abre, con una campanilla. | 2.42 s | -1.0 dB |
 | Tarea terminada con éxito | `build-ok.wav` | Campana de ascensor: dos notas ascendentes (sol–do), limpias y breves. | 1.87 s | -1.0 dB |
 | Tarea fallida | `build-fail.wav` | Alerta del Bureau: dos toques graves de sirena filtrada que resuenan en un pasillo de hormigón. | 2.08 s | -1.0 dB |
@@ -42,7 +42,7 @@ Sintético y «cósmico»: tonos de cristal (FM), caídas de tono por gravedad y
 | Arranque de VS Code | `startup.wav` | Manhattan a lo lejos, deformado: rumor de ciudad, un acorde que se hunde por la gravedad y un motivo de cristal que se repite. | 4.28 s | -1.0 dB |
 | Activar un tema CONTROL | `theme.wav` | Pulso de la Hedron: dos tonos de cristal puros que se repiten tres veces, cada vez más lejos. | 2.11 s | -1.4 dB |
 | Guardar (manual) | `save.wav` | Clic metálico: un «tic» sintético y breve. Muy discreto. | 0.08 s | -1.0 dB |
-| Errores nuevos | `error.wav` | El Hiss invade la ciudad: un susurro que se repite en ecos cada vez más graves y un tono distorsionado. | 2.20 s | -1.4 dB |
+| Errores nuevos | `error.wav` | El Siseo invade la ciudad: un susurro que se repite en ecos cada vez más graves y un tono distorsionado. | 2.20 s | -1.4 dB |
 | Todos los errores corregidos | `clear.wav` | Resonant derrotado: un impacto profundo, un acorde que se eleva y un brillo que se desvanece. | 2.37 s | -1.0 dB |
 | Tarea terminada con éxito | `build-ok.wav` | Arpegio ascendente de cristal (mi–sol#–si) con un eco que lo repite más lejos. | 2.27 s | -1.0 dB |
 | Tarea fallida | `build-fail.wav` | Distorsión gravitatoria: un tono que se desploma dos octavas mientras se rompe digitalmente, con un golpe sub. | 1.77 s | -1.0 dB |

@@ -18,11 +18,12 @@ const esbuild = require('esbuild');
 
 const ROOT = path.resolve(__dirname, '..');
 
-// Tres archivos: lo que se carga al arrancar, el motor de sonido (solo con los
-// sonidos activados) y la consola de sonido (solo al abrirla). Cada uno lleva
-// sus módulos pequeños compartidos (config, catálogo…): se duplican unos pocos
-// cientos de bytes a cambio de no leer ni compilar código que no se usa.
-const CHUNKS = ['controller', 'sound-menu'];
+// Cuatro archivos: lo que se carga al arrancar, el motor de sonido (solo con los
+// sonidos activados), la consola de sonido (solo al abrirla) y las tipografías
+// (solo si hay algo pendiente). Cada uno lleva sus módulos pequeños compartidos
+// (config, catálogo…): se duplican unos pocos cientos de bytes a cambio de no
+// leer ni compilar código que no se usa.
+const CHUNKS = ['controller', 'sound-menu', 'fonts'];
 
 /** @param {string} name @param {string[]} external */
 const build = (name, external) =>

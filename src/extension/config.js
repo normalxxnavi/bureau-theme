@@ -44,4 +44,13 @@ function normalizeConfig(get) {
   };
 }
 
-module.exports = { SECTION, normalizeConfig };
+/**
+ * Tipografía: ajuste y claves de estado (globalState). Están aquí y no en
+ * fonts.js para que extension.js pueda decidir al arrancar si hace falta cargar
+ * el módulo de tipografías sin cargarlo.
+ */
+const FONT_SETTING = 'bureauTheme.font';
+const FONT_APPLIED_KEY = 'fontApplied';
+const FONT_OFFER_KEY = 'fontOfferShown';
+
+module.exports = { SECTION, normalizeConfig, FONT_SETTING, FONT_APPLIED_KEY, FONT_OFFER_KEY };

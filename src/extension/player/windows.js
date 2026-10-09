@@ -7,8 +7,10 @@
  *
  * Lanzar PowerShell para cada sonido tarda unos 300 ms; manteniéndolo abierto
  * el sonido sale al instante. Usa System.Media.SoundPlayer (WAV), que viene con
- * Windows. Las rutas viajan en Base64 para que ningún carácter especial pueda
- * interpretarse como código.
+ * Windows, y guarda cada sonido ya cargado en memoria (hasta 64): las teclas,
+ * que suenan muchas veces por segundo, no vuelven a leer el disco. Las rutas
+ * viajan en Base64 para que ningún carácter especial pueda interpretarse como
+ * código.
  */
 
 const { spawn } = require('node:child_process');
@@ -18,16 +20,22 @@ const SCRIPT = `
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 [Console]::OutputEncoding = [Text.Encoding]::UTF8
-$player = New-Object System.Media.SoundPlayer
+$players = @{}
 [Console]::Out.WriteLine('ready')
 while ($true) {
   $line = [Console]::In.ReadLine()
   if ($null -eq $line) { break }
   try {
     $file = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($line))
-    $player.Stop()
-    $player.SoundLocation = $file
-    $player.Load()
+    $player = $players[$file]
+    if ($null -eq $player) {
+      if ($players.Count -ge 64) { $players.Clear() }
+      $player = New-Object System.Media.SoundPlayer $file
+      $player.Load()
+      $players[$file] = $player
+    }
+    # Sin Stop(): Play() ya sustituye al sonido en curso, y Stop() esperaba a que
+    # Windows cerrase el dispositivo (unos 140 ms por sonido; las teclas se encolaban).
     $player.Play()
     [Console]::Out.WriteLine('ok')
   } catch {
