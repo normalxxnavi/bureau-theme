@@ -2,7 +2,8 @@
   "name": "bureau-theme",
   "displayName": "%displayName%",
   "description": "%description%",
-  "version": "0.10.1",
+  "version": "0.4.0",
+  "preview": true,
   "publisher": "Normalxxnavi",
   "author": {
     "name": "Normalxxnavi"

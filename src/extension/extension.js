@@ -11,13 +11,13 @@
  * Arranque mínimo: `activate` solo registra comandos y listeners y vuelve
  * enseguida. El motor de sonido (`./controller`) se carga cuando los sonidos
  * están activados o se usa un comando de sonido, la consola (`./sound-menu`)
- * cuando se abre, y el canal de log la primera vez que se escribe en él.
+ * cuando se abre, las tipografías (`./fonts`) solo si hay algo que hacer y el
+ * canal de log la primera vez que se escribe en él.
  * En el paquete son archivos separados (scripts/bundle.js).
  */
 
 const vscode = require('vscode');
-const { SECTION } = require('./config');
-const { FontController } = require('./fonts');
+const { SECTION, FONT_SETTING, FONT_APPLIED_KEY, FONT_OFFER_KEY } = require('./config');
 const { SoundStatus } = require('./sound-status');
 
 /**
@@ -46,11 +46,35 @@ function lazyLog(context) {
   });
 }
 
+/**
+ * ¿Hay que cargar las tipografías al arrancar? No, si la tipografía elegida ya
+ * está aplicada (o no hay ninguna) y la oferta de la primera vez ya se hizo.
+ * @param {vscode.ExtensionContext} context
+ */
+function typographyPending(context) {
+  const mode = vscode.workspace.getConfiguration().get(FONT_SETTING);
+  const applied = context.globalState.get(FONT_APPLIED_KEY);
+  if (!context.globalState.get(FONT_OFFER_KEY) || mode === 'auto') return true;
+  if (mode === 'bureau' || mode === 'resonant') return applied !== mode;
+  return applied !== undefined; // «none» con una tipografía aplicada: hay que restaurar la anterior
+}
+
 /** @param {vscode.ExtensionContext} context */
 function activate(context) {
   const log = lazyLog(context);
-  const fonts = new FontController(context, log);
   const status = new SoundStatus(context);
+
+  /** @type {import('./fonts').FontController | undefined} */
+  let fonts;
+  /** Las tipografías, cargadas la primera vez que hacen falta. */
+  const typography = () => {
+    if (!fonts) {
+      const { FontController } = require('./fonts');
+      fonts = new FontController(context, log);
+      fonts.init();
+    }
+    return fonts;
+  };
 
   /** @type {import('./controller').SoundController | undefined} */
   let controller;
@@ -70,8 +94,8 @@ function activate(context) {
     vscode.commands.registerCommand('bureauTheme.openSoundSettings', () => sounds().openSettings()),
     vscode.commands.registerCommand('bureauTheme.soundMenu', () => require('./sound-menu').openSoundMenu(sounds(), status)),
     vscode.commands.registerCommand('bureauTheme.toggleSoundStatusBar', () => status.setVisible(!status.visible())),
-    vscode.commands.registerCommand('bureauTheme.chooseFont', () => fonts.choose()),
-    vscode.commands.registerCommand('bureauTheme.removeFonts', () => fonts.removeFonts())
+    vscode.commands.registerCommand('bureauTheme.chooseFont', () => typography().choose()),
+    vscode.commands.registerCommand('bureauTheme.removeFonts', () => typography().removeFonts())
   );
 
   // Con los sonidos desactivados (lo normal) solo se vigila el interruptor.
@@ -87,7 +111,18 @@ function activate(context) {
     context.subscriptions.push(watch);
   }
 
-  fonts.init();
+  // Igual con la tipografía: si no hay nada pendiente, solo se vigila su ajuste.
+  if (typographyPending(context)) typography();
+  else {
+    const watchFont = vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration(FONT_SETTING)) {
+        watchFont.dispose();
+        typography();
+      }
+    });
+    context.subscriptions.push(watchFont);
+  }
+
   status.init();
 
   // API interna para el test de integración (test/integration). No es pública.
@@ -100,7 +135,7 @@ function activate(context) {
     },
     /** Espera a que termine la sincronización de tipografías en curso. */
     fontsIdle() {
-      return fonts.queue;
+      return fonts?.queue ?? Promise.resolve();
     },
     /** Texto del icono de sonido de la barra de estado (undefined si está oculto). */
     get soundStatusText() {

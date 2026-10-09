@@ -88,7 +88,7 @@ function main() {
   checkSameRoles();
   fs.mkdirSync(THEMES_DIR, { recursive: true });
   for (const p of palettes) {
-    const json = JSON.stringify(buildTheme(p), null, 2) + '\n';
+    const json = JSON.stringify(buildTheme(p)); // compacto: VS Code lo lee al arrancar
     const file = themeFile(p);
     const previous = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
     if (previous !== json) fs.writeFileSync(file, json);

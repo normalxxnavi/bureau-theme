@@ -1,9 +1,25 @@
 # Changelog
 
 All notable changes to this project are documented in this file.
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [0.10.1] — 2026-10-08
+**Beta.** During the beta the version is **0.*day*.*build***: the minor number is the day of development (day 1 = 2026-10-06) and the patch number counts the builds of that day. Version 1.0.0 will be the first stable release. (The earliest builds were numbered 0.5.0–0.10.1; they are listed here with their new numbers.)
+
+## [0.4.0] — 2026-10-09
+
+### Changed
+
+- **Versioning by day during the beta**: 0.*day*.*build* (day 1 = 2026-10-06). The earlier builds are renumbered (0.5.0–0.10.1 → 0.1.0–0.3.2). The extension is marked as *Preview* until 1.0.0.
+- Spanish texts use **Siseo**, the official Spanish name of the Hiss.
+
+### Performance
+
+- **Sounds play in about 2 ms instead of 140 ms**: the Windows player no longer calls `Stop()` before each sound (it waited for the audio device to close), and it keeps every sound loaded in memory. Fast typing no longer queues key sounds.
+- Typing sounds no longer touch the disk on each key: file paths, scaled volume and the active theme pack are cached until the settings or the theme change.
+- The start-up bundle drops from 14 KB to 5 KB: the typography module is now a separate file that only loads when there is something to do (first-run offer, *follow the theme* mode or a pending change).
+- Lighter files that VS Code reads to draw the window: the file icon theme goes from 192 KB to 65 KB (compact JSON, short internal ids and no duplicated high-contrast section), the colour themes from 52 KB to 42 KB and the product icon themes from 22 KB to 15 KB.
+
+## [0.3.2] — 2026-10-08
 
 ### Fixed
 
@@ -15,7 +31,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 - **Typing sound**: every key you type in the editor plays a soft Bureau typewriter key (*Control* pack) or a resonance tick (*Resonant* pack), with three variations. It never interrupts another sound and can be turned off in the sound console.
 
-## [0.10.0] — 2026-10-08
+## [0.3.1] — 2026-10-08
 
 ### Added
 
@@ -30,7 +46,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 - The pyramid is no longer everywhere: it stays on the Git branch (and the Board on licences). The root folder is the Oldest House, `.git` carries the Ashtray Maze and AI files carry Polaris.
 - The details page spreads the icons through the descriptions as small chips (they load over https), with a new *Objects of Power in your toolbar* table, instead of a block of badges at the top.
 
-## [0.9.0] — 2026-10-08
+## [0.3.0] — 2026-10-08
 
 ### Added
 
@@ -40,12 +56,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ### Changed
 
-- **Bureau Icons**: files go back to the 0.7 look — the label or pictogram in the colour of the language over the classification band, without the solid sheet — larger and aligned to whole pixels, so they stay sharp at 16 px. Folders keep their 0.8 design and all 340 extensions are still covered.
+- **Bureau Icons**: files go back to the 0.2.0 look — the label or pictogram in the colour of the language over the classification band, without the solid sheet — larger and aligned to whole pixels, so they stay sharp at 16 px. Folders keep their 0.2.1 design and all 340 extensions are still covered.
 - **CONTROL Astral**: livelier code colours (keywords, types, strings, numbers, attributes…), clearly different from the black text. Code is now checked at WCAG AA (≥ 4.5:1); body text stays AAA (16.8:1).
 - **Faster start-up**: the extension code is bundled with esbuild into a single 26 KB file; the sound engine, the font installer and the log channel are only loaded when needed, and the initial work runs after activation. Its own work at start-up went from 17 ms to 3 ms.
 - The disclaimer uses the exact wording of Remedy's rules for fan content.
 
-## [0.8.1] — 2026-10-07
+## [0.2.2] — 2026-10-07
 
 ### Changed
 
@@ -54,7 +70,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 - The details page is now bilingual — a complete English section and a complete Spanish section — with new professional screenshots: the four themes, Bureau Icons, Bureau Product Icons and the typography.
 - The Git branch in the status bar keeps the inverted pyramid when the branch has uncommitted changes, staged changes or conflicts (with a small mark), and when creating or deleting branches.
 
-## [0.8.0] — 2026-10-07
+## [0.2.1] — 2026-10-07
 
 ### Added
 
@@ -67,7 +83,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 - New title and description; the author and publisher is **Normalxxnavi**.
 - README rewritten as a complete details page.
 
-## [0.7.0] — 2026-10-07
+## [0.2.0] — 2026-10-07
 
 ### Added
 
@@ -84,13 +100,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 - The status bar location indicator (`▼ THE OLDEST HOUSE`…) and its setting.
 
-## [0.6.0] — 2026-10-06
+## [0.1.1] — 2026-10-06
 
 ### Added
 
 - **CONTROL Astral**, a light theme inspired by the Astral Plane: a white void framed by black geometry, with red only for details.
 - **Bureau Icons** file icon theme: dossier-style labels and pictograms with a classification band, concrete folders with coloured tabs, dark and light variants. Lore details: redacted `.env` files, Hedron hexagon for tests, the Board's pyramid as root folder.
-- Status bar **location** indicator (removed in 0.7.0).
+- Status bar **location** indicator (removed in 0.2.0).
 
 ### Changed
 
@@ -98,7 +114,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 - Chat panels: elevated request bubbles, accent-framed code blocks, monolith avatars and themed session indicators.
 - Floating widgets (Command Palette, notifications) get a thin accent frame.
 
-## [0.5.0] — 2026-10-06
+## [0.1.0] — 2026-10-06
 
 First functional version (still in development: pending several days of real use before 1.0.0).
 

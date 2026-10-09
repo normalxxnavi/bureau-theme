@@ -66,7 +66,7 @@ function thump(/** @type {Float32Array} */ out, /** @type {number} */ start, { f
 
 /**
  * Susurro: ruido filtrado por dos «formantes» con sílabas irregulares.
- * Evoca el murmullo del Hiss sin usar voces.
+ * Evoca el murmullo del Siseo (el Hiss) sin usar voces.
  */
 function whisper(/** @type {Float32Array} */ out, /** @type {number} */ start, /** @type {Array<[number, number]>} */ syllables, { center = 2600, gain = 1, seed = 7, rise = 1.15 } = {}) {
   const n = D.noise('white', seed);
@@ -153,7 +153,7 @@ const control = {
   },
 
   'error.wav': {
-    describe: 'Susurro del Hiss: murmullos de ruido filtrado y un tono grave disonante (segunda menor) que crece.',
+    describe: 'Susurro del Siseo (el Hiss): murmullos de ruido filtrado y un tono grave disonante (segunda menor) que crece.',
     rmsDb: -14,
     render() {
       const b = D.buffer(1.5);
@@ -335,7 +335,7 @@ const resonant = {
   },
 
   'error.wav': {
-    describe: 'El Hiss invade la ciudad: un susurro que se repite en ecos cada vez más graves y un tono distorsionado.',
+    describe: 'El Siseo invade la ciudad: un susurro que se repite en ecos cada vez más graves y un tono distorsionado.',
     rmsDb: -14,
     render() {
       const b = D.buffer(1.5);

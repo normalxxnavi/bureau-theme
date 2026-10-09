@@ -6,7 +6,9 @@
 
 ---
 
-## Estado de la implementación (2026-10-06, versión 0.5.0)
+## Estado de la implementación (2026-10-06, versión 0.1.0)
+
+> **Versionado de la beta:** 0.*día*.*compilación* (día 1 = 2026-10-06). Las primeras compilaciones se numeraron 0.5.0–0.10.1 y aquí aparecen con su número nuevo. La 1.0.0 será la primera versión estable.
 
 | Fase | Estado | Cómo se ha verificado |
 |---|---|---|
@@ -43,7 +45,7 @@
 | `npm run package` | Generar el `.vsix` |
 | `npm run install:local` | Empaquetar e instalar en tu VS Code (sin publicar) |
 
-### Versión 0.6.0: el Plano Astral y los laterales
+### Versión 0.1.1: el Plano Astral y los laterales
 
 Pedido: «meter cosas del lore del Plano Astral y darle más diseño a los laterales, que no solo se reflejen los colores».
 
@@ -58,7 +60,7 @@ Pedido: «meter cosas del lore del Plano Astral y darle más diseño a los later
 
 Nota: los paneles de otras extensiones (como el de Claude Code) son *webviews*: usan los colores del tema que ellas deciden, así que el tema no puede cambiar su maquetación, solo los colores que comparten.
 
-### Versión 0.7.0: iconos internos, tipografía y detalles
+### Versión 0.2.0: iconos internos, tipografía y detalles
 
 Peticiones: (1) cambiar los iconos internos de VS Code (Copilot, rama de Git → pirámide invertida); (2) opción de usar la tipografía de los juegos al instalar; (3) Astral se lee mal; (4) quitar el indicador de lugar de la barra de estado y cambiar los iconos de la barra lateral, adaptados a sus posiciones; (5) más detalles visuales en cada tema.
 
@@ -630,7 +632,7 @@ Cada una es una paleta nueva más, opcionalmente, un pack de sonido:
 
 Si estás de acuerdo con el plan, empezamos por la **Fase 0**: inicializo git y creo el esqueleto con el generador y las **tres** paletas v0. Así, en esa misma sesión, pulsas F5 y ves los tres temas funcionando.
 
-### Versión 0.8.0: más iconos internos, iconos de archivo rediseñados e identidad
+### Versión 0.2.1: más iconos internos, iconos de archivo rediseñados e identidad
 
 Peticiones: (1) quedaban iconos internos sin cambiar (nube de publicar, errores y avisos, `><` remoto, barra del panel, cubo, flechas de navegación); (2) los iconos de carpetas eran pobres y había que cubrir todas las extensiones conocidas; (3) actualizar imagen, título, descripción, detalles y autor (**Normalxxnavi**, no JaviHexer).
 
@@ -640,7 +642,7 @@ Peticiones: (1) quedaban iconos internos sin cambiar (nube de publicar, errores 
 | **Bureau Icons** rediseñado: archivos como expedientes sólidos con código o pictograma; carpetas sólidas por categoría con **emblema** (41 categorías). 498 SVG: 340 extensiones, 284 nombres de archivo, 84 lenguajes, 278 carpetas | `scripts/icons.js` | Explorador simulado en oscuro y claro; test de validez de cada SVG |
 | **Identidad**: autor y publisher **Normalxxnavi**, licencia, repositorio, nuevo icono (pirámide del Consejo), título y descripción en inglés y español, README reescrito | `package.json`, `package.nls*.json`, `LICENSE`, `scripts/icon.js`, `README.md` | Instalación limpia del `.vsix` con el nuevo ID |
 
-### Versión 0.8.1: Theme CONTROL, capturas profesionales y detalles bilingües
+### Versión 0.2.2: Theme CONTROL, capturas profesionales y detalles bilingües
 
 Peticiones: título **Theme CONTROL**; descripción más corta y profesional; capturas profesionales de los temas con los iconos de archivo y de producto; detalles con una sección en inglés y otra en español.
 
@@ -653,14 +655,14 @@ Peticiones: título **Theme CONTROL**; descripción más corta y profesional; ca
 | Rama de Git con cambios, preparada o con conflictos: la pirámide con una marca (4 glifos nuevos, 166 iconos) | `scripts/product-icons.js` | Barra de estado con `main*` en las capturas |
 | La página de detalles de VS Code solo carga imágenes `https:` (quita las rutas relativas y `data:`): en una instalación local las capturas se verán cuando el repositorio sea público, porque vsce reescribe los enlaces a GitHub | `README.md` | Página de detalles en un perfil aislado |
 
-### Versión 0.9.0: iconos a color, archivos nítidos, Astral más vivo, arranque rápido
+### Versión 0.3.0: iconos a color, archivos nítidos, Astral más vivo, arranque rápido
 
 Peticiones: (1) insignias de «cómo está hecho» y emblemas fan en los detalles; (2) volver al diseño antiguo de los iconos de archivo, que el nuevo se pixela; (3) una versión a color de los iconos de producto (el teléfono rojo…); (4) arranque más rápido; (5) colores del código de CONTROL Astral más vivos; (6) investigar si es legal.
 
 | Qué | Dónde | Verificado |
 |---|---|---|
 | **Insignias** (shields.io, por https: se ven en la página de detalles) con emblemas fan hechos con glifos propios y las herramientas del proyecto; sección **How it's made / Cómo está hecho** | `scripts/badges.js`, `README.md` | Renderizadas en Edge; la URL más larga, 731 caracteres |
-| **Bureau Icons**: archivos con el estilo 0.7 (etiqueta o pictograma de color sobre la franja de clasificación), más grandes y en píxeles enteros; pictogramas como máscara para que sus huecos sean transparentes. Carpetas y cobertura de la 0.8 sin cambios | `scripts/icons.js` | Comparativa 0.7 / 0.8 / 0.9 a 16 px y ampliada, en oscuro y claro |
+| **Bureau Icons**: archivos con el estilo de la 0.2.0 (etiqueta o pictograma de color sobre la franja de clasificación), más grandes y en píxeles enteros; pictogramas como máscara para que sus huecos sean transparentes. Carpetas y cobertura de la 0.2.1 sin cambios | `scripts/icons.js` | Comparativa 0.2.0 / 0.2.1 / 0.3.0 a 16 px y ampliada, en oscuro y claro |
 | **Bureau Product Icons (Color)**: segunda fuente con tablas COLR/CPAL escritas a mano (`scripts/lib/colr.js`); 19 glifos con color real, el resto sigue al tema (0xFFFF) | `scripts/product-icons.js`, `package.json` | Hoja en Edge (Chromium) sobre fondo oscuro y claro; test de coherencia de COLR/CPAL |
 | **Arranque**: bundle con esbuild (`dist/extension.js`, 26 KB); motor de sonido, instalador de fuentes y canal de log perezosos; trabajo inicial en el siguiente turno | `scripts/bundle.js`, `src/extension/*` | Carga + activate: 17,1 → 3,1 ms (mediana de 7); 14 → 1 archivos; «Running Extensions» con un host ocupado: fuera del top 7 (< 14 ms) |
 | **CONTROL Astral**: colores del código más vivos, código en AA (≥ 4,5:1) y texto en AAA | `src/theme/palettes/astral.js`, `scripts/contrast.js` | `npm run contrast` |
@@ -668,7 +670,7 @@ Peticiones: (1) insignias de «cómo está hecho» y emblemas fan en los detalle
 
 El 1560 ms que veía Javier en su VS Code incluye esperas del propio VS Code (traducciones, almacenamiento de la extensión) mientras C# Dev Kit, Docker y otras extensiones arrancan a la vez; el trabajo propio de la extensión es ahora de unos 3 ms.
 
-### Versión 0.10.0: Bureau — CONTROL Fan Theme, consola de sonido y lore
+### Versión 0.3.1: Bureau — CONTROL Fan Theme, consola de sonido y lore
 
 Peticiones: (1) nombre fácil de buscar que haga referencia a CONTROL; (2) descripción más profesional; (3) color en **todos** los iconos de producto (versión Color); (4) consola de sonido para quien no sabe tocar `settings.json`, con un icono que se pueda ocultar; (5) menos pirámides y más iconos del lore; (6) iconos repartidos por las descripciones en lugar de un bloque de insignias; todo optimizado.
 
@@ -683,7 +685,7 @@ Peticiones: (1) nombre fácil de buscar que haga referencia a CONTROL; (2) descr
 | **Arranque**: el código se divide en tres archivos (`extension.js` 14 KB al arrancar, `controller.js` solo con sonidos y `sound-menu.js` al abrir la consola). Trabajo propio al arrancar: 2,6 ms | `scripts/bundle.js`, `src/extension/extension.js` | Mediana de 7 arranques con `vscode` simulado |
 | El test de integración vuelve a instalar las fuentes que el usuario ya tenía (antes las desregistraba) | `test/integration/index.js` | Registro de Windows tras el test |
 
-### Versión 0.10.1: icono de Copilot y sonidos que no se oían
+### Versión 0.3.2: icono de Copilot y sonidos que no se oían
 
 | Qué | Dónde | Verificado |
 |---|---|---|
@@ -692,3 +694,14 @@ Peticiones: (1) nombre fácil de buscar que haga referencia a CONTROL; (2) descr
 | Sonido al escribir (3 variantes por pack): solo en el editor activo, ≥ 45 ms entre teclas, nunca interrumpe a otro sonido (se respeta la duración del sonido en curso) | `src/extension/controller.js`, `catalog.js` | Test de integración |
 | Los fallos del reproductor de PowerShell se avisan en el log en lugar de quedarse en debug | `src/extension/player/windows.js` | — |
 | Los iconos propios de la extensión también se definen en los temas de iconos de producto (a color en la versión Color) | `scripts/product-icons.js` | Captura |
+
+### Versión 0.4.0 (día 4): versionado por días, Siseo y optimización
+
+| Qué | Dónde | Verificado |
+|---|---|---|
+| Versionado de la beta 0.*día*.*compilación* y renumeración (0.5.0–0.10.1 → 0.1.0–0.3.2); `"preview": true` hasta la 1.0.0 | `package.json`, `CHANGELOG.md`, este plan | Instalada la 0.4.0 sobre la antigua 0.10.1 |
+| «Hiss» → **Siseo** en los textos en español | `README.md`, `scripts/badges.js`, `scripts/sounds/generate.js` | — |
+| Reproductor de Windows: sin `Stop()` antes de cada sonido (esperaba al dispositivo) y con los sonidos en memoria: 141 → 2,5 ms por sonido | `src/extension/player/windows.js` | Banco de 40 sonidos seguidos |
+| Teclas sin tocar el disco (rutas, volumen escalado y pack del tema en caché) | `src/extension/controller.js` | Test de integración |
+| Tipografías en un archivo aparte que solo se carga si hay algo pendiente: el arranque pasa de 14 KB a 5 KB | `src/extension/extension.js`, `scripts/bundle.js` | Mediana de 7 arranques: 2,9 ms |
+| JSON más ligeros: iconos de archivo 192 → 65 KB (compacto, ids cortos, sin la copia de alto contraste), temas 52 → 42 KB, iconos de producto 22 → 15 KB | `scripts/icons.js`, `src/theme/build.js`, `scripts/product-icons.js` | Tests |

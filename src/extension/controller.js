@@ -73,6 +73,10 @@ class SoundController {
     this.lastTypingVariant = 0;
     /** @type {Map<string, number>} duración en ms de cada archivo ya reproducido */
     this.durations = new Map();
+    /** @type {import('./catalog').Pack | null | undefined} caché de activeThemePack() */
+    this.packCache = undefined;
+    /** @type {Map<number, {file: string, pack: import('./catalog').Pack, source: 'custom' | 'pack'}>} archivo ya escalado de cada variante de tecla */
+    this.typingFiles = new Map();
     this.lastThemeLabel = this.activeThemeLabel();
     this.playerWarned = false;
     /**
@@ -180,6 +184,8 @@ class SoundController {
 
     const previous = this.config;
     this.config = this.readConfig();
+    this.typingFiles.clear(); // pack, volumen o carpeta propia pueden haber cambiado
+    this.packCache = undefined;
     if (previous.volume !== this.config.volume) {
       try {
         require('./volume').pruneCache(this.cacheDir, this.config.volume);
@@ -200,12 +206,18 @@ class SoundController {
   }
 
   /** @returns {import('./catalog').Pack | null} */
+  /** Pack del tema activo (se recalcula solo cuando cambia el tema o los ajustes). */
   activeThemePack() {
-    const label = this.activeThemeLabel();
-    return label ? this.themePacks.get(label) ?? null : null;
+    if (this.packCache === undefined) {
+      const label = this.activeThemeLabel();
+      this.packCache = label ? this.themePacks.get(label) ?? null : null;
+    }
+    return this.packCache;
   }
 
   onThemeChanged() {
+    this.packCache = undefined;
+    this.typingFiles.clear();
     const label = this.activeThemeLabel();
     if (label === this.lastThemeLabel) return;
     this.lastThemeLabel = label;
@@ -285,15 +297,19 @@ class SoundController {
     let n = 1 + Math.floor(Math.random() * variants);
     if (n === this.lastTypingVariant) n = (n % variants) + 1;
     this.lastTypingVariant = n;
-    const name = n === 1 ? SOUNDS.typing.file : SOUNDS.typing.file.replace('.wav', `-${n}.wav`);
-    const pack = rules.resolvePack(cfg.pack, this.activeThemePack());
     try {
-      const resolved = require('./soundbank').resolveSoundFile({ extensionPath: this.context.extensionPath, pack, customFolder: cfg.customFolder, file: name });
-      const file = require('./volume').getScaledFile(resolved.path, Math.round(cfg.volume * TYPING_VOLUME), this.cacheDir);
+      let key = this.typingFiles.get(n);
+      if (!key) {
+        const name = n === 1 ? SOUNDS.typing.file : SOUNDS.typing.file.replace('.wav', `-${n}.wav`);
+        const pack = rules.resolvePack(cfg.pack, this.activeThemePack());
+        const resolved = require('./soundbank').resolveSoundFile({ extensionPath: this.context.extensionPath, pack, customFolder: cfg.customFolder, file: name });
+        key = { file: require('./volume').getScaledFile(resolved.path, Math.round(cfg.volume * TYPING_VOLUME), this.cacheDir), pack, source: resolved.source };
+        this.typingFiles.set(n, key);
+      }
       const player = this.ensurePlayer();
       if (!player.available) return;
-      player.play(file);
-      this.history.push({ event: 'typing', pack, source: resolved.source, at: now });
+      player.play(key.file);
+      this.history.push({ event: 'typing', pack: key.pack, source: key.source, at: now });
       if (this.history.length > 100) this.history.shift();
     } catch (err) {
       this.log.debug(`typing: ${/** @type {Error} */ (err).message}`);

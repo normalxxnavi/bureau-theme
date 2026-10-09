@@ -12,7 +12,7 @@ const ROOT = path.resolve(__dirname, '..');
 
 test('los JSON de themes/ están actualizados (npm run build)', () => {
   for (const p of palettes) {
-    const expected = JSON.stringify(buildTheme(p), null, 2) + '\n';
+    const expected = JSON.stringify(buildTheme(p));
     assert.equal(fs.readFileSync(themeFile(p), 'utf8'), expected, `${p.id}: ejecuta npm run build`);
   }
 });

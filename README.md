@@ -7,7 +7,7 @@
 **Clearance granted. Turn VS Code into the Federal Bureau of Control.**<br>
 **Acceso autorizado. Convierte VS Code en la Agencia Federal de Control.**
 
-*By **Normalxxnavi** · This is unofficial fan work not approved or endorsed by Remedy Entertainment Plc or its affiliates.*
+*Beta · By **Normalxxnavi** · This is unofficial fan work not approved or endorsed by Remedy Entertainment Plc or its affiliates.*
 
 ---
 
@@ -247,7 +247,7 @@ C#, Razor, JavaScript, TypeScript, JSON, HTML, CSS, SCSS, SQL, Markdown, XML, YA
 - Panels from other extensions (for example AI chat panels) are web views and only follow the theme colours they choose to use.
 - On Linux, sounds need `paplay`, `pw-play` or `aplay`; the *terminal command failed* sound requires shell integration.
 
-See the [CHANGELOG](CHANGELOG.md) for the release history.
+The extension is in **beta**: versions are numbered 0.*day*.*build* until the first stable release, 1.0.0. See the [CHANGELOG](CHANGELOG.md) for the release history.
 
 ## Credits and disclaimer
 
@@ -299,11 +299,11 @@ Negro puro para pantallas OLED. Las líneas de señalética, el cursor y los bri
 
 ### CONTROL Resonant — El Manhattan alterado
 
-![Manhattan alterado][manhattan-es] ![El Aberrante][aberrant-es] ![El rojo es del Hiss][hiss-es]
+![Manhattan alterado][manhattan-es] ![El Aberrante][aberrant-es] ![El rojo es del Siseo][hiss-es]
 
 ![CONTROL Resonant](images/screenshots/theme-resonant.png)
 
-Inspirado en *Control Resonant* (2026), donde Dylan Faden recorre un Manhattan de edificios que flotan girados: grises fríos de asfalto mojado, azul acero y el **cian de resonancia** pálido. Siguiendo la dirección de arte del juego, **el rojo pertenece al Hiss**: solo aparece en errores y eliminaciones, así que cuando ves rojo, algo va mal de verdad. Combina con la tipografía *Resonant* (Space Mono y Space Grotesk).
+Inspirado en *Control Resonant* (2026), donde Dylan Faden recorre un Manhattan de edificios que flotan girados: grises fríos de asfalto mojado, azul acero y el **cian de resonancia** pálido. Siguiendo la dirección de arte del juego, **el rojo pertenece al Siseo**: solo aparece en errores y eliminaciones, así que cuando ves rojo, algo va mal de verdad. Combina con la tipografía *Resonant* (Space Mono y Space Grotesk).
 
 ### CONTROL Astral — El Plano Astral
 
@@ -423,7 +423,7 @@ Si ya te manejas bien, puedes ocultar el icono desde la propia consola, con **CO
 | Cambiar a un tema CONTROL | sí | Timbre del viejo teléfono rojo | Pulso del Hedrón |
 | Guardado manual (se ignora el guardado automático) | no | Sello de goma | Tic metálico |
 | Escribir en el editor | sí | Una tecla de la máquina de escribir de la Agencia (3 variaciones) | Un tic de resonancia (3 variaciones) |
-| Nuevos errores | sí | Susurro del Hiss | Susurro con ecos alterados |
+| Nuevos errores | sí | Susurro del Siseo | Susurro con ecos alterados |
 | Último error corregido | sí | Punto de Control purificado | Resonante derrotado |
 | Tarea o compilación correcta | sí | Campanilla del ascensor | Arpegio de cristal ascendente |
 | Tarea o compilación fallida | sí | Alerta de la Agencia | Distorsión gravitatoria |
@@ -497,7 +497,7 @@ C#, Razor, JavaScript, TypeScript, JSON, HTML, CSS, SCSS, SQL, Markdown, XML, YA
 - Los paneles de otras extensiones (por ejemplo, los chats de IA) son vistas web y solo siguen los colores del tema que ellas decidan usar.
 - En Linux, los sonidos necesitan `paplay`, `pw-play` o `aplay`; el sonido de *falla un comando de la terminal* necesita la integración del shell.
 
-Consulta el [CHANGELOG](CHANGELOG.md) para ver el historial de versiones.
+La extensión está en **beta**: las versiones se numeran 0.*día*.*compilación* hasta la primera versión estable, la 1.0.0. Consulta el [CHANGELOG](CHANGELOG.md) para ver el historial de versiones.
 
 ## Créditos y aviso legal
 
@@ -527,7 +527,7 @@ Hecho por **Normalxxnavi**. Fuentes: Overpass, Overpass Mono, Space Mono y Space
 [aberrant]: https://img.shields.io/badge/The%20Aberrant-2FA7B8?style=flat-square&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSIjRjJFRkU4IiBkPSJNMiAzTDE2IDNMMTkgNkwxOSA4LjVMMTYgMTFMMiAxMVpNNC40IDhMMTMuNCA4TDEzLjQgNkw0LjQgNlpNOS42IDExTDEyLjYgMTFMMTIuNiAyMi41TDkuNiAyMi41Wk0xOSA2TDIyLjUgNEwyMi41IDEwLjVMMTkgOC41WiIvPjwvc3ZnPg%3D%3D
 [aberrant-es]: https://img.shields.io/badge/El%20Aberrante-2FA7B8?style=flat-square&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSIjRjJFRkU4IiBkPSJNMiAzTDE2IDNMMTkgNkwxOSA4LjVMMTYgMTFMMiAxMVpNNC40IDhMMTMuNCA4TDEzLjQgNkw0LjQgNlpNOS42IDExTDEyLjYgMTFMMTIuNiAyMi41TDkuNiAyMi41Wk0xOSA2TDIyLjUgNEwyMi41IDEwLjVMMTkgOC41WiIvPjwvc3ZnPg%3D%3D
 [hiss]: https://img.shields.io/badge/Red%20belongs%20to%20the%20Hiss-E0352B?style=flat-square&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSIjRjJFRkU4IiBkPSJNMjEuNzkzIDE2LjA1NkwxNi4wNTYgMjEuNzkzTDcuOTQ0IDIxLjc5M0wyLjIwNyAxNi4wNTZMMi4yMDcgNy45NDRMNy45NDQgMi4yMDdMMTYuMDU2IDIuMjA3TDIxLjc5MyA3Ljk0NFpNMTkuNTkzIDguODU1TDE1LjE0NSA0LjQwN0w4Ljg1NSA0LjQwN0w0LjQwNyA4Ljg1NUw0LjQwNyAxNS4xNDVMOC44NTUgMTkuNTkzTDE1LjE0NSAxOS41OTNMMTkuNTkzIDE1LjE0NVpNOS4yNDkgNy41NTFMMTYuNDQ5IDE0Ljc1MUwxNC43NTEgMTYuNDQ5TDcuNTUxIDkuMjQ5Wk0xNi40NDkgOS4yNDlMOS4yNDkgMTYuNDQ5TDcuNTUxIDE0Ljc1MUwxNC43NTEgNy41NTFaIi8%2BPC9zdmc%2B
-[hiss-es]: https://img.shields.io/badge/El%20rojo%20es%20del%20Hiss-E0352B?style=flat-square&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSIjRjJFRkU4IiBkPSJNMjEuNzkzIDE2LjA1NkwxNi4wNTYgMjEuNzkzTDcuOTQ0IDIxLjc5M0wyLjIwNyAxNi4wNTZMMi4yMDcgNy45NDRMNy45NDQgMi4yMDdMMTYuMDU2IDIuMjA3TDIxLjc5MyA3Ljk0NFpNMTkuNTkzIDguODU1TDE1LjE0NSA0LjQwN0w4Ljg1NSA0LjQwN0w0LjQwNyA4Ljg1NUw0LjQwNyAxNS4xNDVMOC44NTUgMTkuNTkzTDE1LjE0NSAxOS41OTNMMTkuNTkzIDE1LjE0NVpNOS4yNDkgNy41NTFMMTYuNDQ5IDE0Ljc1MUwxNC43NTEgMTYuNDQ5TDcuNTUxIDkuMjQ5Wk0xNi40NDkgOS4yNDlMOS4yNDkgMTYuNDQ5TDcuNTUxIDE0Ljc1MUwxNC43NTEgNy41NTFaIi8%2BPC9zdmc%2B
+[hiss-es]: https://img.shields.io/badge/El%20rojo%20es%20del%20Siseo-E0352B?style=flat-square&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSIjRjJFRkU4IiBkPSJNMjEuNzkzIDE2LjA1NkwxNi4wNTYgMjEuNzkzTDcuOTQ0IDIxLjc5M0wyLjIwNyAxNi4wNTZMMi4yMDcgNy45NDRMNy45NDQgMi4yMDdMMTYuMDU2IDIuMjA3TDIxLjc5MyA3Ljk0NFpNMTkuNTkzIDguODU1TDE1LjE0NSA0LjQwN0w4Ljg1NSA0LjQwN0w0LjQwNyA4Ljg1NUw0LjQwNyAxNS4xNDVMOC44NTUgMTkuNTkzTDE1LjE0NSAxOS41OTNMMTkuNTkzIDE1LjE0NVpNOS4yNDkgNy41NTFMMTYuNDQ5IDE0Ljc1MUwxNC43NTEgMTYuNDQ5TDcuNTUxIDkuMjQ5Wk0xNi40NDkgOS4yNDlMOS4yNDkgMTYuNDQ5TDcuNTUxIDE0Ljc1MUwxNC43NTEgNy41NTFaIi8%2BPC9zdmc%2B
 [astral-plane]: https://img.shields.io/badge/The%20Astral%20Plane-F2EFE8?style=flat-square&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSIjMTExMTEzIiBkPSJNNSAyTDE5IDJMMTkgNC40TDUgNC40Wk0yLjUgNy41TDIxLjUgNy41TDEyIDIyLjVaTTguNCAxMi40TDE1LjYgMTIuNEwxNS42IDEwLjZMOC40IDEwLjZaIi8%2BPC9zdmc%2B
 [astral-plane-es]: https://img.shields.io/badge/El%20Plano%20Astral-F2EFE8?style=flat-square&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSIjMTExMTEzIiBkPSJNNSAyTDE5IDJMMTkgNC40TDUgNC40Wk0yLjUgNy41TDIxLjUgNy41TDEyIDIyLjVaTTguNCAxMi40TDE1LjYgMTIuNEwxNS42IDEwLjZMOC40IDEwLjZaIi8%2BPC9zdmc%2B
 [wcag-aaa]: https://img.shields.io/badge/Text%20WCAG%20AAA-4A8CD0?style=flat-square&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSIjRjJFRkU4IiBkPSJNMTIgMS40TDIxLjE4IDYuN0wyMS4xOCAxNy4zTDEyIDIyLjZMMi44MiAxNy4zTDIuODIgNi43Wk01LjAyIDcuOTdMNS4wMiAxNi4wM0wxMiAyMC4wNkwxOC45OCAxNi4wM0wxOC45OCA3Ljk3TDEyIDMuOTRaTTguNTE5IDExLjI4MUwxMS41MTkgMTQuMjgxTDkuNjgxIDE2LjExOUw2LjY4MSAxMy4xMTlaTTkuNjUyIDE0LjMxTDE1Ljg1MiA3LjcxTDE3Ljc0OCA5LjQ5TDExLjU0OCAxNi4wOVpNMTEuOSAxNS43MzhMMTEuMTM4IDE2LjVMMTAuMDYyIDE2LjVMOS4zIDE1LjczOEw5LjMgMTQuNjYyTDEwLjA2MiAxMy45TDExLjEzOCAxMy45TDExLjkgMTQuNjYyWiIvPjwvc3ZnPg%3D%3D

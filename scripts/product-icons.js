@@ -780,7 +780,7 @@ function writeTheme(fontId, json, woff, codeOf) {
       ])
     ),
   };
-  fs.writeFileSync(path.join(OUT, json), JSON.stringify(theme, null, 2) + '\n');
+  fs.writeFileSync(path.join(OUT, json), JSON.stringify(theme)); // compacto: se lee al arrancar
 }
 
 async function main() {
