@@ -5,6 +5,10 @@
  * Reproductor para Windows: UN proceso de PowerShell que se queda abierto y
  * recibe por stdin la ruta del archivo a reproducir.
  *
+ * Sin «-ExecutionPolicy Bypass»: la directiva de ejecución no se aplica a los
+ * comandos en línea (-EncodedCommand) y esa opción es una de las señales que usan
+ * los antivirus para marcar procesos sospechosos.
+ *
  * Lanzar PowerShell para cada sonido tarda unos 300 ms; manteniéndolo abierto
  * el sonido sale al instante. Usa System.Media.SoundPlayer (WAV), que viene con
  * Windows, y guarda cada sonido ya cargado en memoria (hasta 64): las teclas,
@@ -61,7 +65,7 @@ function createWindowsPlayer(log) {
 
   function start() {
     const encoded = Buffer.from(SCRIPT, 'utf16le').toString('base64');
-    const child = spawn(powershellPath(), ['-NoLogo', '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', encoded], {
+    const child = spawn(powershellPath(), ['-NoLogo', '-NoProfile', '-NonInteractive', '-EncodedCommand', encoded], {
       windowsHide: true,
       stdio: ['pipe', 'pipe', 'pipe'],
     });

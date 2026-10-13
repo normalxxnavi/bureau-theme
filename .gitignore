@@ -1,6 +1,5 @@
 node_modules/
 *.vsix
-.vscode-test/
 
 # test-workspace: artefactos de compilación de .NET
 test-workspace/bin/
@@ -14,3 +13,9 @@ references/
 
 # Código empaquetado (npm run bundle)
 dist/
+
+# Notas privadas de desarrollo (no se publican)
+notes/
+
+# VS Code descargado para la CI y las pruebas (npm run download-vscode)
+.vscode-test/

@@ -6,7 +6,8 @@
     "strict": true,
     "lib": ["ES2022"],
     "types": ["node", "vscode"],
-    "maxNodeModuleJsDepth": 0
+    "maxNodeModuleJsDepth": 0,
+    "resolveJsonModule": true
   },
   "include": ["src/**/*.js", "scripts/**/*.js", "scripts/**/*.d.ts", "test/**/*.js"]
 }

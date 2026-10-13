@@ -249,6 +249,10 @@ C#, Razor, JavaScript, TypeScript, JSON, HTML, CSS, SCSS, SQL, Markdown, XML, YA
 
 The extension is in **beta**: versions are numbered 0.*day*.*build* until the first stable release, 1.0.0. See the [CHANGELOG](CHANGELOG.md) for the release history.
 
+## Privacy and security
+
+The extension makes **no network connections and collects no telemetry**. The themes and icons are static files; the optional sounds and typography only use the system audio player and your user fonts folder. [SECURITY.md](SECURITY.md) explains exactly what it does on your computer and how to report a vulnerability privately. It also works in untrusted workspaces.
+
 ## Credits and disclaimer
 
 ![CONTROL · Fan Edition][fan]
@@ -498,6 +502,10 @@ C#, Razor, JavaScript, TypeScript, JSON, HTML, CSS, SCSS, SQL, Markdown, XML, YA
 - En Linux, los sonidos necesitan `paplay`, `pw-play` o `aplay`; el sonido de *falla un comando de la terminal* necesita la integración del shell.
 
 La extensión está en **beta**: las versiones se numeran 0.*día*.*compilación* hasta la primera versión estable, la 1.0.0. Consulta el [CHANGELOG](CHANGELOG.md) para ver el historial de versiones.
+
+## Privacidad y seguridad
+
+La extensión **no se conecta a internet ni recoge telemetría**. Los temas y los iconos son archivos estáticos; los sonidos y la tipografía opcionales solo usan el reproductor de audio del sistema y tu carpeta de fuentes de usuario. [SECURITY.md](SECURITY.md) detalla qué hace exactamente en tu equipo y cómo informar de una vulnerabilidad en privado. También funciona en áreas de trabajo no confiables.
 
 ## Créditos y aviso legal
 

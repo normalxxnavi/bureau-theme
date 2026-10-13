@@ -1,0 +1,11 @@
+{
+  "name": "cmd-probe",
+  "displayName": "command probe",
+  "publisher": "local",
+  "version": "0.0.1",
+  "license": "MIT",
+  "engines": { "vscode": "^1.90.0" },
+  "activationEvents": ["onStartupFinished"],
+  "main": "./extension.js",
+  "contributes": { "configuration": { "properties": { "cmdProbe.command": { "type": "string", "default": "" } } } }
+}

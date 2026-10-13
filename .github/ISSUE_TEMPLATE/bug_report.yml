@@ -1,0 +1,64 @@
+name: Bug report / Informar de un error
+description: Something looks or sounds wrong / Algo se ve o suena mal
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! English or Spanish are both fine. / ¡Gracias! Puedes escribir en inglés o en español.
+        **Security issues:** please do not open a public issue — see [SECURITY.md](../blob/main/SECURITY.md).
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened? / ¿Qué ha pasado?
+      description: A screenshot helps a lot with colours and icons. / Una captura ayuda mucho con colores e iconos.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce / Pasos para reproducirlo
+      placeholder: |
+        1. Open a .ts file
+        2. ...
+  - type: dropdown
+    id: theme
+    attributes:
+      label: Colour theme / Tema de color
+      options: [CONTROL Dark, CONTROL Black, CONTROL Resonant, CONTROL Astral, Another theme / Otro tema]
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area / Parte
+      multiple: true
+      options:
+        - Colours / Colores
+        - Bureau Icons (files / archivos)
+        - Bureau Product Icons
+        - Typography / Tipografía
+        - Sounds / Sonidos
+        - Sound console / Consola de sonido
+        - Other / Otra
+  - type: input
+    id: versions
+    attributes:
+      label: Versions / Versiones
+      description: Extension version and VS Code version (Help → About). / Versión de la extensión y de VS Code (Ayuda → Acerca de).
+      placeholder: 'Bureau 0.8.0 · VS Code 1.141.0'
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system / Sistema operativo
+      options: [Windows, macOS, Linux, Remote / WSL / Codespaces]
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Log (optional) / Log (opcional)
+      description: For sounds or fonts, paste the *CONTROL Theme* output (View → Output). / Para sonidos o tipografías, pega la salida *CONTROL Theme* (Ver → Salida).
+      render: text

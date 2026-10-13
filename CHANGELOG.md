@@ -5,6 +5,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 **Beta.** During the beta the version is **0.*day*.*build***: the minor number is the day of development (day 1 = 2026-10-06) and the patch number counts the builds of that day. Version 1.0.0 will be the first stable release. (The earliest builds were numbered 0.5.0–0.10.1; they are listed here with their new numbers.)
 
+## [Unreleased]
+
+### Security
+
+- The Windows sound player no longer starts PowerShell with `-ExecutionPolicy Bypass`: it only runs an encoded command, which doesn't need it.
+- Sound files larger than 16 MB are rejected before being read.
+- Development tools updated: `@vscode/vsce` 4.0.0 fixes 6 high-severity advisories in its dependencies (`npm audit`: 0 vulnerabilities). None of them ship inside the extension.
+- New [`SECURITY.md`](SECURITY.md): exactly what the extension does on your computer and how to report a vulnerability privately. The README now has a *Privacy and security* section.
+
+### Added
+
+- Continuous integration on Windows, macOS and Linux: build, type check, contrast, key validation, unit tests, generated files up to date and packaging, plus the integration tests against a real VS Code. Releases are created from `vX.Y.Z` tags with their notes taken from this changelog. Dependabot keeps dependencies and actions up to date.
+- [`CONTRIBUTING.md`](CONTRIBUTING.md), issue and pull request templates.
+- `npm run screenshots` regenerates the README images and a GitHub social preview from a clean install; `npm run generate` regenerates every other generated file; `npm run download-vscode` fetches a VS Code for the integration tests.
+
+### Changed
+
+- The whole codebase is type checked (`npm run typecheck`, part of `npm run check`).
+- The product icon fonts are generated deterministically, so regenerating them no longer changes the files.
+
 ## [0.4.0] — 2026-10-09
 
 ### Changed
