@@ -755,7 +755,8 @@ async function buildTtf(/** @type {Array<{name: string, svg: string, code: numbe
     }
     stream.end();
   });
-  return Buffer.from(svg2ttf(svgFont, { description: 'Bureau product icons (original, MIT)', url: 'https://github.com/Normalxxnavi/bureau-theme' }).buffer);
+  // Fecha fija (no la de hoy): así la fuente sale idéntica en cada compilación y la CI puede comprobar que está al día.
+  return Buffer.from(svg2ttf(svgFont, { description: 'Bureau product icons (original, MIT)', url: 'https://github.com/Normalxxnavi/bureau-theme', ts: 1767225600 }).buffer);
 }
 
 const toWoff = (/** @type {Buffer} */ ttf) => Buffer.from(require('ttf2woff')(ttf).buffer);

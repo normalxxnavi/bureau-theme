@@ -3,6 +3,8 @@
 # images/icon.png, README.md, CHANGELOG.md y LICENSE.
 .vscode/**
 .github/**
+.vscode-test/**
+notes/**
 .preview/**
 node_modules/**
 src/**
@@ -19,5 +21,7 @@ jsconfig.json
 package-lock.json
 .gitattributes
 .editorconfig
+CONTRIBUTING.md
+SECURITY.md
 *.vsix
 product-icons/svg/**

@@ -1,0 +1,20 @@
+# Actualizaciones semanales de dependencias (todas son de desarrollo: la
+# extensión no lleva dependencias en tiempo de ejecución) y de las acciones de
+# GitHub. @types/vscode se mantiene en la versión mínima de `engines.vscode`.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      dev-dependencies:
+        dependency-type: development
+    ignore:
+      - dependency-name: '@types/vscode'
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

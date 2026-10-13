@@ -16,6 +16,12 @@ const crypto = require('node:crypto');
 const WAVE_FORMAT_PCM = 1;
 const WAVE_FORMAT_IEEE_FLOAT = 3;
 const WAVE_FORMAT_EXTENSIBLE = 0xfffe;
+/**
+ * Tamaño máximo de un WAV (los incluidos ocupan menos de 300 KB). Un archivo
+ * enorme en la carpeta de sonidos propios se cargaría entero en memoria, aquí y
+ * en el reproductor: se rechaza antes de leerlo.
+ */
+const MAX_WAV_BYTES = 16 * 1024 * 1024;
 
 /**
  * Lee la cabecera de un WAV (RIFF). Lanza un error si no es un WAV válido.
@@ -109,8 +115,9 @@ function scaleWav(buf, gain) {
  * @param {string} source @param {number} volume @param {string} cacheDir
  */
 function getScaledFile(source, volume, cacheDir) {
-  if (volume >= 100) return source;
   const stat = fs.statSync(source);
+  if (stat.size > MAX_WAV_BYTES) throw new Error(`${path.basename(source)} is too large (${Math.round(stat.size / 1048576)} MB; maximum 16 MB)`);
+  if (volume >= 100) return source;
   const key = crypto.createHash('sha1').update(`${path.resolve(source)}|${stat.size}|${stat.mtimeMs}`).digest('hex').slice(0, 16);
   const target = path.join(cacheDir, `${key}-v${volume}.wav`);
   if (!fs.existsSync(target)) {
@@ -138,4 +145,4 @@ function pruneCache(cacheDir, keepVolume) {
   return removed;
 }
 
-module.exports = { parseWav, gainForVolume, scaleWav, getScaledFile, pruneCache };
+module.exports = { parseWav, gainForVolume, scaleWav, getScaledFile, pruneCache, MAX_WAV_BYTES };

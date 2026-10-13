@@ -1,0 +1,20 @@
+name: Idea / Propuesta
+description: Suggest an icon, a colour, a sound or a feature / Propón un icono, un color, un sonido o una función
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea / Tu idea
+      description: What would you like, and where does it come from in the lore? / ¿Qué te gustaría y de dónde sale en el lore?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why? / ¿Por qué?
+      description: What problem does it solve or what would it add? / ¿Qué problema resuelve o qué aporta?
+  - type: markdown
+    attributes:
+      value: |
+        Note: the project only uses original artwork and sounds — no logos, images or audio from the games. / El proyecto solo usa dibujos y sonidos originales: nada de logos, imágenes ni audio de los juegos.

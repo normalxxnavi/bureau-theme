@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { parseWav, gainForVolume, scaleWav, getScaledFile, pruneCache } = require('../src/extension/volume');
+const { parseWav, gainForVolume, scaleWav, getScaledFile, pruneCache, MAX_WAV_BYTES } = require('../src/extension/volume');
 
 /**
  * WAV mínimo con las muestras dadas.
@@ -114,6 +114,20 @@ test('getScaledFile usa la caché y pruneCache borra otros volúmenes', () => {
     assert.equal(pruneCache(cache, 30), 1);
     assert.ok(!fs.existsSync(a));
     assert.ok(fs.existsSync(b));
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('getScaledFile rechaza WAV demasiado grandes antes de leerlos (también a volumen 100)', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bureau-volume-'));
+  try {
+    const big = path.join(dir, 'error.wav');
+    const fd = fs.openSync(big, 'w');
+    fs.writeSync(fd, Buffer.from([0]), 0, 1, MAX_WAV_BYTES); // archivo disperso de 16 MB + 1 byte
+    fs.closeSync(fd);
+    assert.throws(() => getScaledFile(big, 50, path.join(dir, 'cache')), /too large/);
+    assert.throws(() => getScaledFile(big, 100, path.join(dir, 'cache')), /too large/);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }

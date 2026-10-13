@@ -1,0 +1,41 @@
+# Al subir un tag vX.Y.Z: comprueba, empaqueta y crea una release de GitHub
+# (marcada como pre-release mientras la extensión esté en beta, 0.x) con el
+# .vsix adjunto y las notas sacadas del CHANGELOG.
+#
+# La publicación en el Marketplace / Open VSX se añadirá cuando se decida dónde
+# publicar (necesitará los secretos VSCE_PAT / OVSX_PAT).
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # crear la release
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Tag matches package.json
+        run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
+      - run: npm run check
+      - run: npx vsce package --out "bureau-theme-${GITHUB_REF_NAME#v}.vsix"
+      - run: node scripts/release-notes.js "${GITHUB_REF_NAME#v}" > release-notes.md
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          flags=""
+          case "$GITHUB_REF_NAME" in v0.*) flags="--prerelease" ;; esac
+          gh release create "$GITHUB_REF_NAME" bureau-theme-*.vsix --title "$GITHUB_REF_NAME" --notes-file release-notes.md $flags

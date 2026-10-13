@@ -20,8 +20,10 @@ const { findAppRoot } = require('./lib/vscode-install');
 const ROOT = path.resolve(__dirname, '..');
 
 function codeExecutable() {
+  // En la CI se descarga un VS Code limpio (scripts/download-vscode.js).
+  if (process.env.VSCODE_EXECUTABLE) return process.env.VSCODE_EXECUTABLE;
   const appRoot = findAppRoot();
-  if (!appRoot) throw new Error('No se encontró VS Code. Define VSCODE_PATH.');
+  if (!appRoot) throw new Error('No se encontró VS Code. Define VSCODE_PATH o VSCODE_EXECUTABLE (npm run download-vscode).');
   if (process.platform === 'win32') {
     // <instalación>/<hash>/resources/app → <instalación>/Code.exe (o <hash>/Code.exe)
     for (const up of ['../../..', '../..']) {
