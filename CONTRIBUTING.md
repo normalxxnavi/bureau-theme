@@ -49,7 +49,7 @@ The extension code lives in `src/extension/`: `extension.js` only registers comm
 
 ### Versioning (beta)
 
-`0.<day>.<build>` — the minor number is the day of development (day 1 = 2026-10-06) and the patch counts the builds of that day. 1.0.0 will be the first stable release. Releases are created by pushing a `vX.Y.Z` tag (see `.github/workflows/release.yml`).
+`0.<day>.<build>` — the minor number counts the days of development (day 1 = 2026-10-06; only days with changes count) and the patch counts the builds of that day. 1.0.0 will be the first stable release. Releases are created by pushing a `vX.Y.Z` tag (see `.github/workflows/release.yml`).
 
 ---
 
@@ -100,4 +100,4 @@ El código de la extensión está en `src/extension/`: `extension.js` solo regis
 
 ### Versionado (beta)
 
-`0.<día>.<compilación>`: el número menor es el día de desarrollo (día 1 = 2026-10-06) y el de parche cuenta las compilaciones de ese día. La 1.0.0 será la primera versión estable. Las releases se crean subiendo un tag `vX.Y.Z` (ver `.github/workflows/release.yml`).
+`0.<día>.<compilación>`: el número menor cuenta los días de desarrollo (día 1 = 2026-10-06; solo cuentan los días con cambios) y el de parche cuenta las compilaciones de ese día. La 1.0.0 será la primera versión estable. Las releases se crean subiendo un tag `vX.Y.Z` (ver `.github/workflows/release.yml`).
