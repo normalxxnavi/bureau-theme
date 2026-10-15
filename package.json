@@ -2,7 +2,7 @@
   "name": "bureau-theme",
   "displayName": "%displayName%",
   "description": "%description%",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "preview": true,
   "publisher": "Normalxxnavi",
   "author": {
@@ -18,6 +18,10 @@
     "type": "git",
     "url": "https://github.com/Normalxxnavi/bureau-theme"
   },
+  "homepage": "https://github.com/Normalxxnavi/bureau-theme#readme",
+  "bugs": {
+    "url": "https://github.com/Normalxxnavi/bureau-theme/issues"
+  },
   "engines": {
     "vscode": "^1.93.0"
   },
@@ -26,34 +30,32 @@
     "Other"
   ],
   "keywords": [
-    "theme",
-    "dark",
-    "black",
+    "dark theme",
+    "light theme",
+    "black theme",
     "oled",
+    "red",
+    "brutalist",
+    "file icons",
+    "folder icons",
+    "icon theme",
+    "product icons",
+    "color icons",
     "control",
     "control resonant",
     "remedy",
-    "brutalist",
-    "red",
-    "sounds",
-    "light",
-    "icon theme",
-    "file icons",
-    "astral plane",
-    "product icons",
-    "font",
-    "typography",
-    "icons",
-    "folder icons",
-    "material",
-    "bureau",
-    "oldest house",
-    "hiss",
-    "control theme",
-    "fbc",
-    "federal bureau of control",
+    "control game",
+    "game theme",
     "fan theme",
-    "color icons"
+    "federal bureau of control",
+    "oldest house",
+    "astral plane",
+    "bureau",
+    "sound effects",
+    "typography",
+    "font",
+    "wcag",
+    "accessible"
   ],
   "main": "./dist/extension.js",
   "activationEvents": [
@@ -65,7 +67,29 @@
   ],
   "capabilities": {
     "untrustedWorkspaces": {
-      "supported": true
+      "supported": "limited",
+      "description": "%capabilities.untrustedWorkspaces%",
+      "restrictedConfigurations": [
+        "bureauTheme.sounds.enabled",
+        "bureauTheme.sounds.pack",
+        "bureauTheme.sounds.volume",
+        "bureauTheme.sounds.onlyWithControlTheme",
+        "bureauTheme.sounds.errorTrigger",
+        "bureauTheme.sounds.cooldownMs",
+        "bureauTheme.sounds.statusBarItem",
+        "bureauTheme.sounds.events.startup",
+        "bureauTheme.sounds.events.themeActivated",
+        "bureauTheme.sounds.events.save",
+        "bureauTheme.sounds.events.typing",
+        "bureauTheme.sounds.events.newError",
+        "bureauTheme.sounds.events.allClear",
+        "bureauTheme.sounds.events.buildSuccess",
+        "bureauTheme.sounds.events.buildFail",
+        "bureauTheme.sounds.events.terminalFail",
+        "bureauTheme.sounds.events.debugStart",
+        "bureauTheme.sounds.events.breakpoint",
+        "bureauTheme.sounds.events.gitCommit"
+      ]
     },
     "virtualWorkspaces": true
   },
@@ -409,7 +433,6 @@
     "icons": "node scripts/icons.js",
     "product-icons": "node scripts/product-icons.js",
     "icon": "node scripts/icon.js",
-    "badges": "node scripts/badges.js",
     "screenshots": "node scripts/screenshots/index.js",
     "test": "node --test \"test/*.test.js\"",
     "test:integration": "npm run bundle && node scripts/integration.js",
@@ -417,7 +440,7 @@
     "package": "vsce package",
     "install:local": "node scripts/install-local.js",
     "vscode:prepublish": "npm run build && npm run contrast && npm test",
-    "generate": "npm run build && node scripts/icons.js && node scripts/product-icons.js && node scripts/badges.js",
+    "generate": "npm run build && node scripts/icons.js && node scripts/product-icons.js",
     "download-vscode": "node scripts/download-vscode.js"
   },
   "devDependencies": {
@@ -432,9 +455,5 @@
     "typescript": "^5.9.3",
     "vscode-oniguruma": "^2.0.1",
     "vscode-textmate": "^9.2.0"
-  },
-  "bugs": {
-    "url": "https://github.com/Normalxxnavi/bureau-theme/issues"
-  },
-  "homepage": "https://github.com/Normalxxnavi/bureau-theme#readme"
+  }
 }

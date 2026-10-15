@@ -234,3 +234,38 @@ test('la tipografía es opcional y solo se configura en los ajustes de usuario',
   assert.equal(font.scope, 'application');
   assert.deepEqual(font.enum, ['none', 'bureau', 'resonant', 'auto']);
 });
+
+test('en áreas de trabajo no confiables se ignoran los ajustes de sonido del área de trabajo', () => {
+  const untrusted = pkg.capabilities.untrustedWorkspaces;
+  assert.equal(untrusted.supported, 'limited');
+  assert.ok(untrusted.description, 'falta la explicación del modo restringido');
+  // Todo ajuste de sonido que un área de trabajo pueda fijar está en la lista (los de ámbito «application» solo se leen del usuario).
+  const expected = Object.entries(properties)
+    .filter(([key, p]) => key.startsWith('bureauTheme.sounds.') && /** @type {any} */ (p).scope !== 'application')
+    .map(([key]) => key)
+    .sort();
+  assert.deepEqual([...untrusted.restrictedConfigurations].sort(), expected);
+  assert.equal(properties['bureauTheme.sounds.customFolder'].scope, 'application', 'la carpeta de sonidos propios solo en ajustes de usuario');
+});
+
+test('Marketplace: categorías válidas y como mucho 30 etiquetas (palabras clave + las que añade vsce)', () => {
+  // Lista de https://code.visualstudio.com/api/references/extension-manifest (más «AI» y «Chat»).
+  const allowed = ['Programming Languages', 'Snippets', 'Linters', 'Themes', 'Debuggers', 'Formatters', 'Keymaps', 'SCM Providers', 'Other', 'Extension Packs', 'Language Packs', 'Data Science', 'Machine Learning', 'Visualization', 'Notebooks', 'Education', 'Testing', 'AI', 'Chat'];
+  for (const c of pkg.categories) assert.ok(allowed.includes(c), `categoría no válida: ${c}`);
+  assert.ok(pkg.categories.includes('Themes'));
+  const auto = ['theme', 'color-theme', 'icon-theme', 'product-icon-theme'];
+  const tags = new Set([...pkg.keywords, ...auto]);
+  assert.equal(tags.size, pkg.keywords.length + auto.length, 'palabras clave repetidas o iguales a una etiqueta automática');
+  assert.ok(tags.size <= 30, `${tags.size} etiquetas: el Marketplace admite 30`);
+});
+
+test('las imágenes del README existen en el repositorio (la página de detalles las lee de GitHub)', () => {
+  const readme = fs.readFileSync(path.join(ROOT, 'README.md'), 'utf8');
+  const images = [...readme.matchAll(/!\[[^\]]*\]\(([^)]+)\)/g)].map((m) => m[1]);
+  assert.ok(images.length >= 5);
+  for (const img of images) {
+    assert.ok(!/^https?:/.test(img), `${img}: usa una ruta relativa del repositorio`);
+    assert.ok(fs.existsSync(path.join(ROOT, img)), `falta ${img}`);
+    assert.ok(img.endsWith('.png'), `${img}: el Marketplace no admite SVG propios`);
+  }
+});

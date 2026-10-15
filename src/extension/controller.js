@@ -326,10 +326,13 @@ class SoundController {
     let ms = 1500;
     try {
       const fs = require('node:fs');
-      const fd = fs.openSync(file, 'r');
       const head = Buffer.alloc(44);
-      fs.readSync(fd, head, 0, 44, 0);
-      fs.closeSync(fd);
+      const fd = fs.openSync(file, 'r');
+      try {
+        fs.readSync(fd, head, 0, 44, 0);
+      } finally {
+        fs.closeSync(fd);
+      }
       const byteRate = head.readUInt32LE(28);
       if (byteRate > 0) ms = Math.round(((fs.statSync(file).size - 44) / byteRate) * 1000);
     } catch {

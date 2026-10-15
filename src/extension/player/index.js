@@ -23,12 +23,17 @@ const { createProcessPlayer } = require('./process-player');
 
 /**
  * Busca un ejecutable en el PATH y devuelve su ruta absoluta.
+ *
+ * Solo se miran carpetas con ruta absoluta: una entrada relativa del PATH
+ * («.», «node_modules/.bin»…) se resolvería contra la carpeta actual, que puede
+ * ser la del proyecto abierto, y un proyecto malicioso podría colar ahí su
+ * propio «paplay».
  * @param {string} name
  * @param {string} [envPath]
  */
 function which(name, envPath = process.env.PATH || '') {
   for (const dir of envPath.split(path.delimiter)) {
-    if (!dir) continue;
+    if (!dir || !path.isAbsolute(dir)) continue;
     const candidate = path.join(dir, name);
     try {
       fs.accessSync(candidate, fs.constants.X_OK);
@@ -39,6 +44,9 @@ function which(name, envPath = process.env.PATH || '') {
   }
   return null;
 }
+
+/** PATH para los programas del sistema: primero sus carpetas de siempre y después el del usuario. */
+const systemPath = () => ['/usr/bin', '/bin', '/usr/local/bin', process.env.PATH || ''].join(path.delimiter);
 
 /** @type {Player} */
 const UNAVAILABLE = { available: false, play() {}, dispose() {} };
@@ -61,7 +69,7 @@ function createPlayer(log, platform = process.platform) {
     ['aplay', (/** @type {string} */ file) => ['-q', file]],
   ]);
   for (const [name, args] of linuxPlayers) {
-    const bin = which(name);
+    const bin = which(name, systemPath());
     if (bin) {
       log.debug(`Audio player: ${bin}`);
       return createProcessPlayer(bin, args, log);
@@ -70,4 +78,4 @@ function createPlayer(log, platform = process.platform) {
   return UNAVAILABLE;
 }
 
-module.exports = { createPlayer, which };
+module.exports = { createPlayer, which, systemPath };

@@ -87,8 +87,12 @@ test('installFonts en Linux refresca la caché de fuentes', () => {
   /** @type {string[]} */
   const cmds = [];
   try {
-    installFonts(path.join(ROOT, 'fonts'), FONT_SETS.bureau.files, { platform: 'linux', fontsDir: dir, run: (cmd) => (cmds.push(cmd), { status: 0 }) });
-    assert.deepEqual(cmds, ['fc-cache']);
+    const run = (/** @type {string} */ cmd) => (cmds.push(cmd), { status: 0 });
+    installFonts(path.join(ROOT, 'fonts'), FONT_SETS.bureau.files, { platform: 'linux', fontsDir: dir, run, fcCache: '/usr/bin/fc-cache' });
+    assert.deepEqual(cmds, ['/usr/bin/fc-cache'], 'fc-cache se lanza con su ruta absoluta');
+    // Sin fc-cache en el sistema no se lanza nada (ni se busca en la carpeta del proyecto).
+    installFonts(path.join(ROOT, 'fonts'), FONT_SETS.bureau.files, { platform: 'linux', fontsDir: dir, run, fcCache: null });
+    assert.equal(cmds.length, 1);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }

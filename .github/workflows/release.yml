@@ -1,9 +1,24 @@
-# Al subir un tag vX.Y.Z: comprueba, empaqueta y crea una release de GitHub
-# (marcada como pre-release mientras la extensión esté en beta, 0.x) con el
-# .vsix adjunto y las notas sacadas del CHANGELOG.
+# Releases con aprobación manual.
 #
-# La publicación en el Marketplace / Open VSX se añadirá cuando se decida dónde
-# publicar (necesitará los secretos VSCE_PAT / OVSX_PAT).
+# Subir commits a main NUNCA crea una release: solo la CI de comprobaciones.
+# Una release empieza al subir un tag vX.Y.Z y pasa por tres pasos:
+#
+#   1. «build» (automático, solo lectura): comprueba, empaqueta el .vsix y
+#      calcula su SHA-256. No publica nada.
+#   2. «release» espera tu aprobación: va en el entorno «release», que en
+#      GitHub tiene a Normalxxnavi como revisor obligatorio (Settings →
+#      Environments → release → Required reviewers). Hasta que pulses
+#      «Approve and deploy» en Actions no se crea nada; «Reject» lo cancela.
+#   3. Al aprobarlo se crea la release como BORRADOR (draft), con el .vsix, su
+#      SHA-256 y un certificado de procedencia firmado. Nadie la ve hasta que
+#      la publiques tú desde Releases; si hay que echar atrás, borra el
+#      borrador y el tag.
+#
+# El certificado se verifica con
+#   gh attestation verify bureau-theme-X.Y.Z.vsix --repo Normalxxnavi/bureau-theme
+#
+# La publicación en el Marketplace / Open VSX se añadirá cuando se decida
+# (necesitará los secretos VSCE_PAT / OVSX_PAT y también pasará por este entorno).
 name: Release
 
 on:
@@ -14,28 +29,71 @@ permissions:
   contents: read
 
 jobs:
-  release:
+  build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write # crear la release
     steps:
-      - uses: actions/checkout@v4
+      - name: Tag is a plain version (vX.Y.Z)
+        env:
+          TAG: ${{ github.ref_name }}
+        run: '[[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]'
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           cache: npm
       - run: npm ci --ignore-scripts
+      - run: npm audit signatures
       - name: Tag matches package.json
         run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
       - run: npm run check
       - run: npx vsce package --out "bureau-theme-${GITHUB_REF_NAME#v}.vsix"
+      - run: sha256sum bureau-theme-*.vsix > SHA256SUMS.txt
       - run: node scripts/release-notes.js "${GITHUB_REF_NAME#v}" > release-notes.md
-      - name: Create GitHub release
+      - name: Summary
+        run: |
+          {
+            echo "### Release $GITHUB_REF_NAME ready for review"
+            echo
+            echo "Approve the **release** job to create a draft release. Nothing is published until you publish the draft."
+            echo
+            echo '```'
+            cat SHA256SUMS.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release
+          path: |
+            bureau-theme-*.vsix
+            SHA256SUMS.txt
+            release-notes.md
+          retention-days: 7
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    # Revisor obligatorio: el trabajo espera aquí hasta que lo apruebes.
+    environment:
+      name: release
+      url: ${{ github.server_url }}/${{ github.repository }}/releases
+    permissions:
+      contents: write # crear el borrador de la release
+      id-token: write # firmar la procedencia
+      attestations: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: bureau-theme-*.vsix
+      - name: Create draft release
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
-          flags=""
-          case "$GITHUB_REF_NAME" in v0.*) flags="--prerelease" ;; esac
-          gh release create "$GITHUB_REF_NAME" bureau-theme-*.vsix --title "$GITHUB_REF_NAME" --notes-file release-notes.md $flags
+          flags="--draft"
+          case "$GITHUB_REF_NAME" in v0.*) flags="$flags --prerelease" ;; esac
+          gh release create "$GITHUB_REF_NAME" bureau-theme-*.vsix SHA256SUMS.txt --title "$GITHUB_REF_NAME" --notes-file release-notes.md $flags

@@ -5,6 +5,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 **Beta.** During the beta the version is **0.*day*.*build***: the minor number counts the days of development (day 1 = 2026-10-06; only days with changes count) and the patch number counts the builds of that day. Version 1.0.0 will be the first stable release. (The earliest builds, never published, were numbered 0.5.0–0.10.1; they are listed here with their new numbers.)
 
+## [0.6.0] — 2026-10-15
+
+### Changed
+
+- **Sharp icons on displays at 100 % scaling.** Every file icon and product icon has been redrawn on the pixel grid: VS Code draws them at 16 px (24 px in the activity bar), and the old shapes fell between pixels, so they looked blurry or pixelated on large monitors. Horizontal and vertical edges now land on whole pixels (checked by a new test on all 625 icons).
+- **Bureau Icons**: file labels use new 6 × 10 px letters drawn for the theme instead of 8.8 px system text — larger, bolder and identical on every system. Pictograms and folder emblems are redrawn; emblems are real cut-outs (transparent), and the API, AI and CI folders have clearer emblems. `.svg` files get a vector pictogram, LaTeX files read `TE` and Podfiles `PO`.
+- **Bureau Product Icons**: 127 glyphs on a 16 px grid with 2 px strokes, plus their own 24 px drawings for the activity bar (Explorer, Search, Source Control, Run and Debug, Extensions, Testing, Accounts, Manage and Remote). The font is smaller (6 KB).
+- **Details page**: plain screenshots of real VS Code windows — just the editor with the theme, no captions, frames, badges or sample terminal output — under new file names, so the old composed images can never show up from GitHub's cache. Shorter README. The Marketplace description now starts with what people search for (dark, OLED black and light themes, file and product icons) and the keywords were reviewed (26 + the 4 tags VS Code adds, within the Marketplace limit of 30).
+- **Releases need manual approval**: a `vX.Y.Z` tag only builds the `.vsix`; the release job waits for the maintainer's approval and creates a **draft** that must be published by hand. Pushing commits never creates a release.
+
+### Security
+
+- **Restricted Mode**: in untrusted workspaces the sound settings of the workspace are ignored, so a cloned repository cannot turn sounds on through `.vscode/settings.json`.
+- Relative `PATH` entries are ignored when looking for the audio player and `fc-cache`; `fc-cache` is started with its absolute path.
+- Network paths (`\\server\share`) are rejected for the custom sounds folder, and the Windows player only accepts file paths (it would also download URLs); folders, pipes and devices named like a sound are ignored; malformed WAV headers are rejected before reading samples.
+- Supply chain: GitHub Actions pinned to commit SHAs, `npm audit` and `npm audit signatures` in CI, CodeQL scanning, Dependabot waits 7 days before proposing a new version, install scripts disabled locally (`.npmrc`), and releases are built read-only and published with a SHA-256 checksum and a build provenance attestation. See [SECURITY.md](SECURITY.md).
+
+### Fixed
+
+- Updated fonts are copied again when their content changes (before, only the size was compared).
+- An error in the first-run typography offer no longer leaves an unhandled promise; a failed read no longer leaves a sound file open.
+
 ## [0.5.0] — 2026-10-13
 
 ### Security

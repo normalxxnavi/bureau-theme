@@ -39,6 +39,7 @@ function parseWav(buf) {
     const size = buf.readUInt32LE(offset + 4);
     const body = offset + 8;
     if (id === 'fmt ') {
+      if (size < 16 || body + 16 > buf.length) throw new Error('Chunk "fmt " incompleto');
       let format = buf.readUInt16LE(body);
       if (format === WAVE_FORMAT_EXTENSIBLE && size >= 26) format = buf.readUInt16LE(body + 24);
       fmt = {
@@ -47,6 +48,9 @@ function parseWav(buf) {
         sampleRate: buf.readUInt32LE(body + 4),
         bitsPerSample: buf.readUInt16LE(body + 14),
       };
+      if (fmt.channels < 1 || fmt.sampleRate < 1 || ![8, 16, 24, 32].includes(fmt.bitsPerSample)) {
+        throw new Error(`WAV no soportado (${fmt.channels} canales, ${fmt.sampleRate} Hz, ${fmt.bitsPerSample} bits)`);
+      }
     } else if (id === 'data') {
       if (!fmt) throw new Error('Chunk "data" antes de "fmt "');
       return { ...fmt, dataOffset: body, dataLength: Math.min(size, buf.length - body) };
@@ -116,6 +120,7 @@ function scaleWav(buf, gain) {
  */
 function getScaledFile(source, volume, cacheDir) {
   const stat = fs.statSync(source);
+  if (!stat.isFile()) throw new Error(`${path.basename(source)} is not a regular file`);
   if (stat.size > MAX_WAV_BYTES) throw new Error(`${path.basename(source)} is too large (${Math.round(stat.size / 1048576)} MB; maximum 16 MB)`);
   if (volume >= 100) return source;
   const key = crypto.createHash('sha1').update(`${path.resolve(source)}|${stat.size}|${stat.mtimeMs}`).digest('hex').slice(0, 16);

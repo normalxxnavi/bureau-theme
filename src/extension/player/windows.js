@@ -56,6 +56,15 @@ function powershellPath() {
   return path.join(root, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
 }
 
+/**
+ * ¿Se puede pasar esta ruta a SoundPlayer? Solo rutas absolutas de archivo:
+ * SoundPlayer también acepta URL (y descargaría el sonido). Las rutas de red de
+ * la carpeta de sonidos propios ya se rechazan en soundbank.js; aquí se admiten
+ * porque la propia extensión puede estar en un perfil de red.
+ * @param {string} file
+ */
+const isFilePath = (file) => path.win32.isAbsolute(file) && !file.includes('://');
+
 /** @param {import('./index').Log} log @returns {import('./index').Player} */
 function createWindowsPlayer(log) {
   /** @type {import('node:child_process').ChildProcessWithoutNullStreams | null} */
@@ -92,6 +101,10 @@ function createWindowsPlayer(log) {
     available: true,
     play(file) {
       if (disposed) return;
+      if (!isFilePath(file)) {
+        log.warn(`Not a file path, not played: ${file}`);
+        return;
+      }
       if (!proc) {
         if (restarts > MAX_RESTARTS) {
           if (restarts++ === MAX_RESTARTS + 1) log.warn('The PowerShell audio player keeps failing: sounds are paused until VS Code restarts.');
@@ -113,4 +126,4 @@ function createWindowsPlayer(log) {
   };
 }
 
-module.exports = { createWindowsPlayer, SCRIPT, powershellPath };
+module.exports = { createWindowsPlayer, SCRIPT, powershellPath, isFilePath };

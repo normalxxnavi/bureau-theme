@@ -7,12 +7,22 @@ const os = require('node:os');
 const path = require('node:path');
 const { normalizeCustomFolder, resolveSoundFile } = require('../src/extension/soundbank');
 const { which } = require('../src/extension/player');
+const { isFilePath } = require('../src/extension/player/windows');
 
 test('normalizeCustomFolder', () => {
   assert.equal(normalizeCustomFolder(''), null);
   assert.equal(normalizeCustomFolder('relativa/sonidos'), null, 'las rutas relativas no se aceptan');
   assert.equal(normalizeCustomFolder('~/sonidos'), path.join(os.homedir(), 'sonidos'));
   assert.equal(normalizeCustomFolder('${userHome}/sonidos'), path.join(os.homedir(), 'sonidos'));
+  // Rutas de red y de dispositivo: nunca (abrirlas conecta con otro equipo).
+  for (const p of ['\\\\servidor\\sonidos', '//servidor/sonidos', '\\\\?\\C:\\sonidos', '\\\\.\\pipe\\x']) assert.equal(normalizeCustomFolder(p), null, p);
+});
+
+test('el reproductor de Windows solo acepta rutas absolutas de archivo (nunca URL)', () => {
+  assert.ok(isFilePath('C:\\Users\\jesse\\save.wav'));
+  assert.ok(isFilePath('d:/sonidos/save.wav'));
+  assert.ok(isFilePath('\\\\servidor\\perfiles\\jesse\\.vscode\\extensions\\save.wav'), 'la extensión puede estar en un perfil de red');
+  for (const p of ['http://example.com/save.wav', 'file://C:/save.wav', 'save.wav', 'sonidos\\save.wav']) assert.ok(!isFilePath(p), p);
 });
 
 test('resolveSoundFile prefiere la carpeta personalizada y si no, el pack', () => {
@@ -29,6 +39,10 @@ test('resolveSoundFile prefiere la carpeta personalizada y si no, el pack', () =
 
     const none = resolveSoundFile({ extensionPath: ext, pack: 'control', customFolder: '', file: 'save.wav' });
     assert.equal(none.source, 'pack');
+
+    // Una carpeta con el nombre de un sonido no se intenta leer.
+    fs.mkdirSync(path.join(dir, 'commit.wav'));
+    assert.equal(resolveSoundFile({ extensionPath: ext, pack: 'control', customFolder: dir, file: 'commit.wav' }).source, 'pack');
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }
@@ -38,4 +52,8 @@ test('which encuentra ejecutables en el PATH indicado', () => {
   const node = which(path.basename(process.execPath), path.dirname(process.execPath));
   assert.equal(node && path.resolve(node), path.resolve(process.execPath));
   assert.equal(which('programa-que-no-existe-123', path.dirname(process.execPath)), null);
+  // Las entradas relativas del PATH se ignoran: apuntarían a la carpeta del proyecto abierto.
+  const rel = path.relative(process.cwd(), path.dirname(process.execPath));
+  if (rel && !path.isAbsolute(rel)) assert.equal(which(path.basename(process.execPath), rel), null);
+  assert.equal(which(path.basename(process.execPath), '.'), null);
 });

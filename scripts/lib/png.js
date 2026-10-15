@@ -2,8 +2,9 @@
 'use strict';
 
 /**
- * Codificador PNG mínimo (RGBA 8 bits) sin dependencias. Lo usa el generador
- * del icono.
+ * Codificador y decodificador PNG mínimos (RGB/RGBA de 8 bits, sin
+ * entrelazado) sin dependencias. Los usan el generador del icono y las capturas
+ * del README.
  */
 
 const zlib = require('node:zlib');
@@ -58,4 +59,75 @@ function encodePng(width, height, rgba) {
   ]);
 }
 
-module.exports = { encodePng, crc32 };
+/**
+ * Lee un PNG de 8 bits por canal (RGB o RGBA, sin entrelazado), como los que
+ * guardan System.Drawing y Chromium.
+ * @param {Buffer} buf
+ * @returns {{width: number, height: number, rgba: Uint8Array}}
+ */
+function decodePng(buf) {
+  let p = 8;
+  let width = 0;
+  let height = 0;
+  let channels = 0;
+  /** @type {Buffer[]} */
+  const idat = [];
+  while (p < buf.length) {
+    const len = buf.readUInt32BE(p);
+    const type = buf.toString('ascii', p + 4, p + 8);
+    const data = buf.subarray(p + 8, p + 8 + len);
+    if (type === 'IHDR') {
+      width = data.readUInt32BE(0);
+      height = data.readUInt32BE(4);
+      if (data[8] !== 8 || data[12] !== 0 || (data[9] !== 2 && data[9] !== 6)) throw new Error('PNG no soportado (solo RGB/RGBA de 8 bits sin entrelazado)');
+      channels = data[9] === 6 ? 4 : 3;
+    } else if (type === 'IDAT') idat.push(data);
+    p += 12 + len;
+  }
+  const raw = zlib.inflateSync(Buffer.concat(idat));
+  const stride = width * channels;
+  const rgba = new Uint8Array(width * height * 4);
+  let prev = Buffer.alloc(stride);
+  for (let y = 0; y < height; y++) {
+    const filter = raw[y * (stride + 1)];
+    const line = Buffer.from(raw.subarray(y * (stride + 1) + 1, (y + 1) * (stride + 1)));
+    for (let i = 0; i < stride; i++) {
+      const a = i >= channels ? line[i - channels] : 0;
+      const b = prev[i];
+      const c = i >= channels ? prev[i - channels] : 0;
+      let v = line[i];
+      if (filter === 1) v += a;
+      else if (filter === 2) v += b;
+      else if (filter === 3) v += (a + b) >> 1;
+      else if (filter === 4) {
+        const pa = Math.abs(b - c);
+        const pb = Math.abs(a - c);
+        const pc = Math.abs(a + b - 2 * c);
+        v += pa <= pb && pa <= pc ? a : pb <= pc ? b : c;
+      }
+      line[i] = v & 255;
+    }
+    for (let x = 0; x < width; x++) {
+      const o = (y * width + x) * 4;
+      rgba[o] = line[x * channels];
+      rgba[o + 1] = line[x * channels + 1];
+      rgba[o + 2] = line[x * channels + 2];
+      rgba[o + 3] = channels === 4 ? line[x * channels + 3] : 255;
+    }
+    prev = line;
+  }
+  return { width, height, rgba };
+}
+
+/**
+ * Recorta una imagen RGBA.
+ * @param {{width: number, height: number, rgba: Uint8Array}} img
+ * @param {number} x @param {number} y @param {number} w @param {number} h
+ */
+function cropRgba(img, x, y, w, h) {
+  const rgba = new Uint8Array(w * h * 4);
+  for (let j = 0; j < h; j++) rgba.set(img.rgba.subarray(((y + j) * img.width + x) * 4, ((y + j) * img.width + x + w) * 4), j * w * 4);
+  return { width: w, height: h, rgba };
+}
+
+module.exports = { encodePng, decodePng, cropRgba, crc32 };
