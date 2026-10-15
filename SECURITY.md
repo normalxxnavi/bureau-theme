@@ -32,9 +32,9 @@ The colour themes and both icon themes are static files: they run no code. The e
 
 ### Supply chain
 
-- Development dependencies are installed with install scripts disabled (`.npmrc` and `npm ci --ignore-scripts`). CI verifies their registry signatures (`npm audit signatures`) and fails on known vulnerabilities (`npm audit`). Dependabot proposes updates only once a version has been public for 7 days.
-- GitHub Actions are pinned to commit SHAs and run with read-only tokens. CodeQL scans the code on every push and every week.
-- Releases need the maintainer's **manual approval**: pushing commits never creates one, and a `vX.Y.Z` tag on the `release` (production) branch only builds the `.vsix` with a read-only token. The job that creates the release waits for approval in a protected environment and creates a **draft**, with a SHA-256 checksum and a signed **build provenance attestation**; nothing is public until the draft is published.
+- Development dependencies are installed with install scripts disabled (`.npmrc` and `npm ci --ignore-scripts`). Every release verifies their registry signatures (`npm audit signatures`) and fails on known vulnerabilities (`npm audit`).
+- The only GitHub Actions workflow is the release workflow. Its actions are pinned to commit SHAs and it runs with read-only tokens until the publish step.
+- Releases need the maintainer's **manual approval**: pushing commits never publishes anything, and a `vX.Y.Z` tag on the `release` (production) branch only checks and builds the `.vsix` with a read-only token. The publish job waits for approval in a protected environment; only then can it sign in to Microsoft Entra ID with a short-lived token (OIDC; no Marketplace secret is stored anywhere), publish to the Marketplace and create the GitHub release with a SHA-256 checksum and a signed **build provenance attestation**.
 
 ### Verifying a release
 
@@ -49,6 +49,8 @@ Or compare its checksum with `SHA256SUMS.txt` (`sha256sum` on Linux, `Get-FileHa
 ### Last review
 
 2026-10-15 — Reviewed workspace trust, process launching and `PATH` lookup, sound file paths, WAV parsing, font installation, error handling, dependencies and CI. Changes: Restricted Mode ignores workspace sound settings; relative `PATH` entries are ignored; network paths and non-regular files are rejected; malformed WAV headers are rejected; fonts are recopied when their content changes; actions pinned by SHA; `npm audit`, signature checks, CodeQL, Dependabot cooldown and release attestations added.
+
+Later on 2026-10-15, at the maintainer's request, the separate CI, CodeQL and Dependabot were removed: their checks (`npm audit`, signatures, generated files, unit and integration tests) now run in the release workflow, which also publishes to the Marketplace after approval.
 
 2026-10-13 — Removed the unnecessary `-ExecutionPolicy Bypass` flag from the audio player, added the 16 MB limit for WAV files, upgraded `@vscode/vsce` to 4.0.0 and made all CI jobs read-only by default.
 
@@ -84,9 +86,9 @@ Los temas de color y los dos temas de iconos son archivos estáticos: no ejecuta
 
 ### Cadena de suministro
 
-- Las dependencias de desarrollo se instalan con los scripts de instalación desactivados (`.npmrc` y `npm ci --ignore-scripts`). La CI verifica sus firmas del registro (`npm audit signatures`) y falla si tienen vulnerabilidades conocidas (`npm audit`). Dependabot solo propone versiones publicadas hace al menos 7 días.
-- Las GitHub Actions van fijadas por el SHA de su commit y usan tokens de solo lectura. CodeQL analiza el código en cada push y cada semana.
-- Las releases necesitan la **aprobación manual** del mantenedor: subir commits nunca crea una, y un tag `vX.Y.Z` en la rama `release` (producción) solo compila el `.vsix` con un token de solo lectura. El trabajo que crea la release espera la aprobación en un entorno protegido y crea un **borrador**, con su suma SHA-256 y un **certificado de procedencia** firmado (attestation); nada es público hasta que se publica el borrador.
+- Las dependencias de desarrollo se instalan con los scripts de instalación desactivados (`.npmrc` y `npm ci --ignore-scripts`). Cada release verifica sus firmas del registro (`npm audit signatures`) y falla si tienen vulnerabilidades conocidas (`npm audit`).
+- El único workflow de GitHub Actions es el de release. Sus acciones van fijadas por el SHA de su commit y usa tokens de solo lectura hasta el paso de publicación.
+- Las releases necesitan la **aprobación manual** del mantenedor: subir commits nunca publica nada, y un tag `vX.Y.Z` en la rama `release` (producción) solo comprueba y compila el `.vsix` con un token de solo lectura. El trabajo de publicación espera la aprobación en un entorno protegido; solo entonces puede entrar en Microsoft Entra ID con un token de corta duración (OIDC; no se guarda ningún secreto del Marketplace), publicar en el Marketplace y crear la release de GitHub con su suma SHA-256 y un **certificado de procedencia** firmado (attestation).
 
 ### Cómo verificar una release
 
@@ -101,5 +103,7 @@ O compara su suma con `SHA256SUMS.txt` (`sha256sum` en Linux, `Get-FileHash` en 
 ### Última revisión
 
 2026-10-15: revisados la confianza del área de trabajo, el lanzamiento de procesos y la búsqueda en el `PATH`, las rutas de los sonidos, la lectura de WAV, la instalación de fuentes, la gestión de errores, las dependencias y la CI. Cambios: el modo restringido ignora los ajustes de sonido del área de trabajo; se ignoran las entradas relativas del `PATH`; se rechazan las rutas de red y lo que no sea un archivo normal; se rechazan las cabeceras WAV mal formadas; las fuentes se vuelven a copiar si cambia su contenido; acciones fijadas por SHA; `npm audit`, verificación de firmas, CodeQL, espera de Dependabot y certificados de procedencia en las releases.
+
+Más tarde el mismo 2026-10-15, a petición del mantenedor, se quitaron la CI, CodeQL y Dependabot por separado: sus comprobaciones (`npm audit`, firmas, archivos generados, tests unitarios y de integración) pasan al workflow de release, que además publica en el Marketplace tras la aprobación.
 
 2026-10-13: quitada la opción innecesaria `-ExecutionPolicy Bypass` del reproductor, límite de 16 MB para los WAV, `@vscode/vsce` actualizado a 4.0.0 y todos los trabajos de la CI en solo lectura por defecto.

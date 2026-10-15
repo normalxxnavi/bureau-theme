@@ -13,14 +13,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Bureau Icons**: file labels use new 6 × 10 px letters drawn for the theme instead of 8.8 px system text — larger, bolder and identical on every system. Pictograms and folder emblems are redrawn; emblems are real cut-outs (transparent), and the API, AI and CI folders have clearer emblems. `.svg` files get a vector pictogram, LaTeX files read `TE` and Podfiles `PO`.
 - **Bureau Product Icons**: 127 glyphs on a 16 px grid with 2 px strokes, plus their own 24 px drawings for the activity bar (Explorer, Search, Source Control, Run and Debug, Extensions, Testing, Accounts, Manage and Remote). The font is smaller (6 KB).
 - **Details page**: plain screenshots of real VS Code windows — just the editor with the theme, no captions, frames, badges or sample terminal output — under new file names, so the old composed images can never show up from GitHub's cache. Shorter README. The Marketplace description now starts with what people search for (dark, OLED black and light themes, file and product icons) and the keywords were reviewed (26 + the 4 tags VS Code adds, within the Marketplace limit of 30).
-- **Two branches and releases with manual approval**: `develop` for development and `release` for production. A `vX.Y.Z` tag on `release` only builds the `.vsix`; the release job waits for the maintainer's approval and creates a **draft** that must be published by hand. Pushing commits never creates a release.
+- **Two branches and automatic Marketplace publishing after approval**: `develop` for development and `release` for production. Pushing commits runs nothing; a `vX.Y.Z` tag on `release` checks and builds the `.vsix`, waits for the maintainer's approval and then publishes the version on the VS Code Marketplace and creates the GitHub release. A single workflow (*Release*) replaces the separate CI, CodeQL and Dependabot.
 
 ### Security
 
 - **Restricted Mode**: in untrusted workspaces the sound settings of the workspace are ignored, so a cloned repository cannot turn sounds on through `.vscode/settings.json`.
 - Relative `PATH` entries are ignored when looking for the audio player and `fc-cache`; `fc-cache` is started with its absolute path.
 - Network paths (`\\server\share`) are rejected for the custom sounds folder, and the Windows player only accepts file paths (it would also download URLs); folders, pipes and devices named like a sound are ignored; malformed WAV headers are rejected before reading samples.
-- Supply chain: GitHub Actions pinned to commit SHAs, `npm audit` and `npm audit signatures` in CI, CodeQL scanning, Dependabot waits 7 days before proposing a new version, install scripts disabled locally (`.npmrc`), and releases are built read-only and published with a SHA-256 checksum and a build provenance attestation. See [SECURITY.md](SECURITY.md).
+- Supply chain: GitHub Actions pinned to commit SHAs, `npm audit` and `npm audit signatures` on every release, install scripts disabled locally (`.npmrc`), Marketplace publishing with Microsoft Entra ID (OIDC, no stored secrets) only after approval; each version's README images point to its own tag, so later changes can't break published pages, and releases published with a SHA-256 checksum and a build provenance attestation. See [SECURITY.md](SECURITY.md).
 
 ### Fixed
 
