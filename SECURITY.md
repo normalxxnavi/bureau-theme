@@ -25,14 +25,32 @@ The colour themes and both icon themes are static files: they run no code. The e
 
 ### Hardening
 
-- The custom sounds folder can only be set in **user** settings (`application` scope): a workspace cannot point it anywhere. Only `.wav` files with the built-in names are used, and files larger than 16 MB are rejected before being read.
-- The extension supports **untrusted workspaces**: it never runs or reads code from the workspace.
-- No runtime dependencies: everything is bundled from this repository's source. Development dependencies are installed in CI with `npm ci --ignore-scripts`, audited with `npm audit` and kept up to date by Dependabot.
-- GitHub Actions run with read-only tokens; only the release job can create releases.
+- **Untrusted workspaces** (Restricted Mode): the extension never runs or reads code from the workspace, and it ignores the sound settings of the workspace — a repository you clone cannot turn sounds on through its `.vscode/settings.json`. The typography and the custom sounds folder can only be set in **user** settings.
+- **Sound files**: only `.wav` files with the built-in names, only regular files (not folders, pipes or devices), a custom folder that is never a network path (`\\server\share`, which on Windows would send your credentials to that server), and nothing larger than 16 MB. WAV headers are validated before any sample is touched.
+- **Programs**: always started with an absolute path and an argument array, never through a shell. Relative entries of `PATH` (such as `.`) are ignored, so a project cannot plant its own `paplay` or `fc-cache`.
+- **No runtime dependencies**: everything is bundled from this repository's source.
+
+### Supply chain
+
+- Development dependencies are installed with install scripts disabled (`.npmrc` and `npm ci --ignore-scripts`). CI verifies their registry signatures (`npm audit signatures`) and fails on known vulnerabilities (`npm audit`). Dependabot proposes updates only once a version has been public for 7 days.
+- GitHub Actions are pinned to commit SHAs and run with read-only tokens. CodeQL scans the code on every push and every week.
+- Releases need the maintainer's **manual approval**: pushing commits never creates one, and a `vX.Y.Z` tag on the `release` (production) branch only builds the `.vsix` with a read-only token. The job that creates the release waits for approval in a protected environment and creates a **draft**, with a SHA-256 checksum and a signed **build provenance attestation**; nothing is public until the draft is published.
+
+### Verifying a release
+
+Download the `.vsix` from the GitHub release and check that it was built by this repository's workflow from a tagged commit:
+
+```sh
+gh attestation verify bureau-theme-<version>.vsix --repo Normalxxnavi/bureau-theme
+```
+
+Or compare its checksum with `SHA256SUMS.txt` (`sha256sum` on Linux, `Get-FileHash` on Windows, `shasum -a 256` on macOS).
 
 ### Last review
 
-2026-10-13 — Reviewed process launching, file and registry writes, settings, WAV parsing, workspace trust, dependencies and CI. Changes made: removed the unnecessary `-ExecutionPolicy Bypass` flag from the audio player, added the 16 MB limit for WAV files, upgraded `@vscode/vsce` to 4.0.0 (fixes 6 high-severity advisories in development dependencies) and made all CI jobs read-only by default.
+2026-10-15 — Reviewed workspace trust, process launching and `PATH` lookup, sound file paths, WAV parsing, font installation, error handling, dependencies and CI. Changes: Restricted Mode ignores workspace sound settings; relative `PATH` entries are ignored; network paths and non-regular files are rejected; malformed WAV headers are rejected; fonts are recopied when their content changes; actions pinned by SHA; `npm audit`, signature checks, CodeQL, Dependabot cooldown and release attestations added.
+
+2026-10-13 — Removed the unnecessary `-ExecutionPolicy Bypass` flag from the audio player, added the 16 MB limit for WAV files, upgraded `@vscode/vsce` to 4.0.0 and made all CI jobs read-only by default.
 
 ---
 
@@ -59,11 +77,29 @@ Los temas de color y los dos temas de iconos son archivos estáticos: no ejecuta
 
 ### Medidas de protección
 
-- La carpeta de sonidos propios solo se puede fijar en los ajustes de **usuario** (ámbito `application`): un área de trabajo no puede cambiarla. Solo se usan `.wav` con los nombres de los incluidos, y los de más de 16 MB se rechazan antes de leerlos.
-- La extensión admite **áreas de trabajo no confiables**: nunca ejecuta ni lee código del área de trabajo.
-- Sin dependencias en tiempo de ejecución: todo se empaqueta desde el código de este repositorio. Las dependencias de desarrollo se instalan en la CI con `npm ci --ignore-scripts`, se auditan con `npm audit` y Dependabot las mantiene al día.
-- Las GitHub Actions usan tokens de solo lectura; solo el trabajo de release puede crear releases.
+- **Áreas de trabajo no confiables** (modo restringido): la extensión nunca ejecuta ni lee código del área de trabajo e ignora sus ajustes de sonido: un repositorio que clones no puede activar los sonidos desde su `.vscode/settings.json`. La tipografía y la carpeta de sonidos propios solo se pueden fijar en los ajustes de **usuario**.
+- **Archivos de sonido**: solo `.wav` con los nombres de los incluidos, solo archivos normales (no carpetas, tuberías ni dispositivos), una carpeta propia que nunca es una ruta de red (`\\servidor\carpeta`, que en Windows enviarían tus credenciales a ese servidor) y nada de más de 16 MB. La cabecera del WAV se valida antes de tocar ninguna muestra.
+- **Programas**: siempre con ruta absoluta y argumentos como lista, nunca a través de una shell. Las entradas relativas del `PATH` (como `.`) se ignoran, así que un proyecto no puede colar su propio `paplay` o `fc-cache`.
+- **Sin dependencias en tiempo de ejecución**: todo se empaqueta desde el código de este repositorio.
+
+### Cadena de suministro
+
+- Las dependencias de desarrollo se instalan con los scripts de instalación desactivados (`.npmrc` y `npm ci --ignore-scripts`). La CI verifica sus firmas del registro (`npm audit signatures`) y falla si tienen vulnerabilidades conocidas (`npm audit`). Dependabot solo propone versiones publicadas hace al menos 7 días.
+- Las GitHub Actions van fijadas por el SHA de su commit y usan tokens de solo lectura. CodeQL analiza el código en cada push y cada semana.
+- Las releases necesitan la **aprobación manual** del mantenedor: subir commits nunca crea una, y un tag `vX.Y.Z` en la rama `release` (producción) solo compila el `.vsix` con un token de solo lectura. El trabajo que crea la release espera la aprobación en un entorno protegido y crea un **borrador**, con su suma SHA-256 y un **certificado de procedencia** firmado (attestation); nada es público hasta que se publica el borrador.
+
+### Cómo verificar una release
+
+Descarga el `.vsix` de la release de GitHub y comprueba que lo compiló el workflow de este repositorio a partir de un commit etiquetado:
+
+```sh
+gh attestation verify bureau-theme-<versión>.vsix --repo Normalxxnavi/bureau-theme
+```
+
+O compara su suma con `SHA256SUMS.txt` (`sha256sum` en Linux, `Get-FileHash` en Windows, `shasum -a 256` en macOS).
 
 ### Última revisión
 
-2026-10-13: revisados el lanzamiento de procesos, la escritura de archivos y registro, los ajustes, la lectura de WAV, la confianza del área de trabajo, las dependencias y la CI. Cambios: quitada la opción innecesaria `-ExecutionPolicy Bypass` del reproductor, límite de 16 MB para los WAV, `@vscode/vsce` actualizado a 4.0.0 (corrige 6 avisos de gravedad alta en dependencias de desarrollo) y todos los trabajos de la CI en solo lectura por defecto.
+2026-10-15: revisados la confianza del área de trabajo, el lanzamiento de procesos y la búsqueda en el `PATH`, las rutas de los sonidos, la lectura de WAV, la instalación de fuentes, la gestión de errores, las dependencias y la CI. Cambios: el modo restringido ignora los ajustes de sonido del área de trabajo; se ignoran las entradas relativas del `PATH`; se rechazan las rutas de red y lo que no sea un archivo normal; se rechazan las cabeceras WAV mal formadas; las fuentes se vuelven a copiar si cambia su contenido; acciones fijadas por SHA; `npm audit`, verificación de firmas, CodeQL, espera de Dependabot y certificados de procedencia en las releases.
+
+2026-10-13: quitada la opción innecesaria `-ExecutionPolicy Bypass` del reproductor, límite de 16 MB para los WAV, `@vscode/vsce` actualizado a 4.0.0 y todos los trabajos de la CI en solo lectura por defecto.

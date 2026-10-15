@@ -48,7 +48,7 @@ class FontController {
     // siguiente turno: así activate() vuelve en cuanto registra los listeners.
     this.queue = new Promise((resolve) => setTimeout(resolve, 0));
     this.sync({ quiet: true });
-    this.queue.then(() => this.offerOnce());
+    this.queue.then(() => this.offerOnce()).catch((err) => this.log.error(`Fonts: ${err.message}`));
   }
 
   /** @returns {import('./fontsets').FontMode} */

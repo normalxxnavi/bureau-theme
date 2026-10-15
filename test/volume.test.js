@@ -64,6 +64,18 @@ test('parseWav lee la cabecera, salta chunks extra y entiende WAVE_FORMAT_EXTENS
   assert.throws(() => parseWav(Buffer.from('no es un wav')), /RIFF/);
 });
 
+test('parseWav rechaza cabeceras incompletas o con formatos imposibles', () => {
+  // Chunk «fmt » de 4 bytes: antes se leían bytes de fuera del chunk.
+  const short = Buffer.concat([Buffer.from('RIFF'), Buffer.from([20, 0, 0, 0]), Buffer.from('WAVEfmt '), Buffer.from([4, 0, 0, 0, 1, 0, 1, 0])]);
+  assert.throws(() => parseWav(short), /incompleto/);
+  const zeroBits = makeWav({ bits: 16, samples: [1] });
+  zeroBits.writeUInt16LE(0, 34); // bitsPerSample = 0
+  assert.throws(() => parseWav(zeroBits), /no soportado/);
+  const noChannels = makeWav({ bits: 16, samples: [1] });
+  noChannels.writeUInt16LE(0, 22); // canales = 0
+  assert.throws(() => parseWav(noChannels), /no soportado/);
+});
+
 test('gainForVolume usa una curva perceptiva', () => {
   assert.equal(gainForVolume(0), 0);
   assert.equal(gainForVolume(100), 1);

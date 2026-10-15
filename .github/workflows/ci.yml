@@ -1,9 +1,14 @@
-# Comprobaciones en cada push a main y en cada pull request.
+# Comprobaciones en cada push a develop (desarrollo) o release (producción) y en
+# cada pull request.
+#
+# Las acciones van fijadas por el SHA de su commit (el comentario dice la
+# versión): una etiqueta como «v7» se puede mover y colar otro código en la CI;
+# un SHA no. Dependabot las actualiza.
 name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [develop, release]
   pull_request:
   workflow_dispatch:
 
@@ -24,25 +29,30 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           cache: npm
       # Sin scripts de instalación de terceros (esbuild trae su binario como dependencia opcional).
       - run: npm ci --ignore-scripts
+      - name: Dependencies are signed by the registry and have no known vulnerabilities
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          npm audit signatures
+          npm audit --audit-level=moderate
       - run: npm run check
       - name: Generated files are up to date
         if: matrix.os == 'ubuntu-latest'
         run: |
           npm run generate
-          git diff --exit-code -- themes icons product-icons package.json README.md
+          git diff --exit-code -- themes icons product-icons package.json
       - name: Package
         if: matrix.os == 'ubuntu-latest'
         run: npx vsce package --out bureau-theme.vsix
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: matrix.os == 'ubuntu-latest'
         with:
           name: bureau-theme-vsix
@@ -54,10 +64,10 @@ jobs:
     needs: check
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           cache: npm

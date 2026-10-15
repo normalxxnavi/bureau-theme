@@ -21,7 +21,19 @@ function normalizeCustomFolder(folder) {
   if (f === '~' || f.startsWith('~/') || f.startsWith('~\\')) f = path.join(os.homedir(), f.slice(1));
   f = f.replace(/\$\{userHome\}/g, os.homedir());
   if (!path.isAbsolute(f)) return null;
+  // Ni rutas de red (\\servidor\carpeta, //servidor) ni de dispositivo (\\?\, \\.\):
+  // reproducir un sonido no debe abrir conexiones con otros equipos.
+  if (/^[\\/]{2}/.test(f)) return null;
   return path.normalize(f);
+}
+
+/** ¿Es un archivo normal? (no una carpeta, una tubería ni un dispositivo, que bloquearían la lectura) @param {string} p */
+function isFile(p) {
+  try {
+    return fs.statSync(p).isFile();
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -32,9 +44,9 @@ function resolveSoundFile({ extensionPath, pack, customFolder, file }) {
   const custom = normalizeCustomFolder(customFolder);
   if (custom) {
     const candidate = path.join(custom, file);
-    if (fs.existsSync(candidate)) return { path: candidate, source: 'custom' };
+    if (isFile(candidate)) return { path: candidate, source: 'custom' };
   }
   return { path: path.join(extensionPath, 'sounds', pack, file), source: 'pack' };
 }
 
-module.exports = { normalizeCustomFolder, resolveSoundFile };
+module.exports = { normalizeCustomFolder, resolveSoundFile, isFile };

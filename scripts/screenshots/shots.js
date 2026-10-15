@@ -1,6 +1,8 @@
 // @ts-nocheck
-// Capturas: instalación limpia del VSIX en un perfil temporal y un arranque por tema.
+// Capturas: instalación limpia del VSIX en un perfil temporal y un arranque por captura.
+// Son capturas de la ventana real de VS Code, sin retocar.
 //   node shots.js <repo> <rawDir> <profileDir> <vsix> <cmd-probe.vsix>   (lo lanza index.js)
+//   ONLY=theme-dark.png,icons-dark.png node shots.js …                     (solo esas, con el perfil ya creado)
 const fs = require('fs');
 const path = require('path');
 const { spawn, execFileSync } = require('child_process');
@@ -23,16 +25,27 @@ const put = (rel, content) => {
   fs.writeFileSync(path.join(ws, rel), content);
 };
 
+/**
+ * Una captura por arranque. `dpr` fuerza la escala de VS Code: 1 = píxel a píxel
+ * (como en un monitor al 100 %), 2 = primer plano a doble resolución.
+ */
+const COLOR_ICONS = { 'workbench.productIconTheme': 'bureau-product-icons-color' };
+/**
+ * Primeros planos: sin minimapa, para que se vean el explorador, las pestañas y
+ * las barras. Van en una copia del proyecto («dossiers») con su propio estado.
+ */
+const CLOSE_UP = { 'editor.minimap.enabled': false, 'breadcrumbs.enabled': false };
+// Nombres que nunca se usaron para las imágenes compuestas antiguas: la página de
+// detalles las lee de GitHub y así nunca puede mostrar una versión vieja en caché.
 const SHOTS = [
-  { theme: 'CONTROL Dark', out: 'raw-dark.png', file: 'src/archive.ts', line: 34 },
-  { theme: 'CONTROL Black', out: 'raw-black.png', file: 'src/Bureau.cs', line: 52, extra: { 'workbench.productIconTheme': 'bureau-product-icons-color' } },
-  { theme: 'CONTROL Resonant', out: 'raw-resonant.png', file: 'src/sectors.py', line: 18, extra: { 'workbench.productIconTheme': 'bureau-product-icons-color', 'terminal.integrated.fontSize': 12, 'terminal.integrated.lineHeight': 1 } },
-  { theme: 'CONTROL Astral', out: 'raw-astral.png', file: 'src/hotline.js', line: 20 },
-  { theme: 'CONTROL Black', out: 'hero-black.png', file: 'src/archive.ts', line: 34 },
-  { theme: 'CONTROL Resonant', out: 'hero-resonant.png', file: 'src/archive.ts', line: 34, extra: { 'bureauTheme.font': 'bureau', 'editor.fontFamily': "'Interstate Mono', 'Overpass Mono', monospace", 'terminal.integrated.fontFamily': "'Interstate Mono', 'Overpass Mono', monospace" } },
-  { theme: 'CONTROL Astral', out: 'hero-astral.png', file: 'src/archive.ts', line: 34 },
-  { theme: 'CONTROL Dark', out: 'raw-console.png', file: 'src/archive.ts', line: 34, extra: { 'cmdProbe.command': 'bureauTheme.soundMenu' } },
-  { theme: 'CONTROL Dark', out: 'raw-dark-top.png', file: 'src/archive.ts', line: 34, extra: { 'workbench.activityBar.location': 'top' } },
+  { theme: 'CONTROL Dark', out: 'control-dark.png', file: 'src/archive.ts', line: 18 },
+  { theme: 'CONTROL Black', out: 'control-black.png', file: 'src/Bureau.cs', line: 50, extra: COLOR_ICONS },
+  { theme: 'CONTROL Resonant', out: 'control-resonant.png', file: 'src/sectors.py', line: 17, extra: COLOR_ICONS },
+  { theme: 'CONTROL Astral', out: 'control-astral.png', file: 'src/hotline.js', line: 18 },
+  { theme: 'CONTROL Dark', out: 'sounds.png', file: 'src/archive.ts', line: 18, extra: { 'cmdProbe.command': 'bureauTheme.soundMenu' } },
+  { theme: 'CONTROL Dark', out: 'icons-dark.png', file: 'package.json', line: 2, dpr: 2, workspace: 'dossiers', extra: { ...CLOSE_UP, ...COLOR_ICONS } },
+  // Con el explorador arriba: las carpetas y sus emblemas (el de CONTROL Dark muestra los archivos).
+  { theme: 'CONTROL Astral', out: 'icons-astral.png', file: 'package.json', line: 2, dpr: 2, workspace: 'dossiers', extra: { ...CLOSE_UP, 'explorer.autoReveal': false } },
 ];
 
 const fontsFor = (t) =>
@@ -54,10 +67,11 @@ function settings(theme, extra = {}) {
         'workbench.tips.enabled': false,
         'editor.fontSize': 14,
         'editor.lineHeight': 22,
+        'editor.stickyScroll.enabled': false,
         'terminal.integrated.fontSize': 13,
         'window.restoreWindows': 'none',
         'security.workspace.trust.enabled': false,
-        'task.allowAutomaticTasks': 'on',
+        'task.allowAutomaticTasks': 'off',
         'chat.disableAIFeatures': true,
         'workbench.secondarySideBar.defaultVisibility': 'hidden',
         'update.mode': 'none',
@@ -81,14 +95,14 @@ function settings(theme, extra = {}) {
   );
 }
 
-async function launch(file, line) {
-  const args = [`--user-data-dir=${ud}`, `--extensions-dir=${ext}`, '--new-window', ws];
-  if (file) args.push('--goto', `${path.join(ws, file)}:${line}:5`);
+async function launch(file, line, dpr = 1, folder = ws) {
+  const args = [`--user-data-dir=${ud}`, `--extensions-dir=${ext}`, `--force-device-scale-factor=${dpr}`, '--new-window', folder];
+  if (file) args.push('--goto', `${path.join(folder, file)}:${line}:5`);
   const child = spawn(exe, args, { env, detached: true, stdio: 'ignore' });
   child.unref();
 }
 
-const titleOf = (file) => `${path.basename(file)} - oldest-house`;
+const titleOf = (file, folder = ws) => `${path.basename(file)} - ${path.basename(folder)}`;
 
 async function waitForWindow(title) {
   for (let i = 0; i < 60; i++) {
@@ -103,19 +117,24 @@ async function waitForWindow(title) {
   throw new Error(`no aparece la ventana ${title}`);
 }
 
+/** Arranca VS Code con los ajustes de la captura, espera a que cargue y guarda la ventana. */
+async function shoot(s) {
+  const folder = s.workspace ? path.join(profile, s.workspace) : ws;
+  if (!fs.existsSync(folder)) fs.cpSync(ws, folder, { recursive: true });
+  settings(s.theme, s.extra);
+  await launch(s.file, s.line, s.dpr, folder);
+  const title = titleOf(s.file, folder);
+  await waitForWindow(title);
+  await sleep(11000); // servidor de lenguaje y semantic tokens
+  console.log(s.out, ps(['-TitleContains', title, '-OutFile', path.join(outDir, s.out), '-Width', '1600', '-Height', '1000']));
+  ps(['-TitleContains', title, '-OutFile', 'x', '-Close']);
+  await sleep(3500);
+}
+
 const ONLY = process.env.ONLY;
 (async () => {
   if (ONLY) {
-    for (const s of SHOTS.filter((x) => ONLY.split(',').includes(x.out))) {
-      settings(s.theme, s.extra);
-      await launch(s.file, s.line);
-      const title = titleOf(s.file);
-      await waitForWindow(title);
-      await sleep(12000);
-      console.log(s.out, ps(['-TitleContains', title, '-OutFile', path.join(outDir, s.out), '-Width', '1600', '1000' === '1000' ? '-Height' : '', '1000']));
-      ps(['-TitleContains', title, '-OutFile', 'x', '-Close']);
-      await sleep(3500);
-    }
+    for (const s of SHOTS.filter((x) => ONLY.split(',').includes(x.out))) await shoot(s);
     return;
   }
   fs.rmSync(profile, { recursive: true, force: true });
@@ -125,9 +144,17 @@ const ONLY = process.env.ONLY;
 
   // --- Proyecto de demostración con estructura real -------------------------
   const tw = path.join(repo, 'test-workspace');
+  // Sin los comentarios de cabecera de los archivos de prueba («Archivo de prueba del
+  // tema…»): en las capturas solo debe verse código normal.
+  const stripHeader = (text) => {
+    const lines = text.split(NL);
+    while (lines.length && (/^\s*(\/\/|--\s)/.test(lines[0]) || /Archivo de prueba/.test(lines[0]))) lines.shift();
+    while (lines.length && !lines[0].trim()) lines.shift();
+    return lines.join(NL);
+  };
   const copy = (from, to) => {
     fs.mkdirSync(path.dirname(path.join(ws, to)), { recursive: true });
-    fs.copyFileSync(path.join(tw, from), path.join(ws, to));
+    fs.writeFileSync(path.join(ws, to), stripHeader(fs.readFileSync(path.join(tw, from), 'utf8')));
   };
   copy('typescript.ts', 'src/archive.ts');
   copy('csharp.cs', 'src/Bureau.cs');
@@ -153,6 +180,12 @@ const ONLY = process.env.ONLY;
   put('.env', 'FBC_CLEARANCE=5' + NL);
   put('.gitignore', 'node_modules/' + NL);
   put('Dockerfile', 'FROM node:22' + NL);
+  put('docker-compose.yml', 'services:' + NL + '  archive:' + NL + '    build: .' + NL);
+  put('CHANGELOG.md', '# Changelog' + NL);
+  put('.prettierrc', '{ "singleQuote": true }' + NL);
+  put('eslint.config.js', 'export default [];' + NL);
+  put('vite.config.ts', "export default { root: 'public' };" + NL);
+  put('.editorconfig', 'root = true' + NL);
   put('node_modules/.package-lock.json', '{}');
   put('.vscode/settings.json', '{}' + NL);
   put(
@@ -194,16 +227,7 @@ const ONLY = process.env.ONLY;
   await sleep(4000);
 
   // --- Un arranque por captura -------------------------------------------------
-  for (const s of SHOTS) {
-    settings(s.theme, s.extra);
-    await launch(s.file, s.line);
-    const title = titleOf(s.file);
-    await waitForWindow(title);
-    await sleep(11000); // servidor de lenguaje, semantic tokens y la tarea de la terminal
-    console.log(s.out, ps(['-TitleContains', title, '-OutFile', path.join(outDir, s.out), '-Width', '1600', '-Height', '1000']));
-    ps(['-TitleContains', title, '-OutFile', 'x', '-Close']);
-    await sleep(3500);
-  }
+  for (const s of SHOTS) await shoot(s);
 })().catch((e) => {
   console.error(e.message);
   process.exit(1);

@@ -17,6 +17,7 @@ images/screenshots/**
 **/*.map
 **/*.ts
 .gitignore
+.npmrc
 jsconfig.json
 package-lock.json
 .gitattributes

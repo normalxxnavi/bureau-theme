@@ -6,6 +6,11 @@
  *
  *   npm run icons
  *
+ * Nitidez: todo se dibuja en la rejilla de 16 × 16 píxeles con los bordes
+ * horizontales y verticales en coordenadas enteras (scripts/lib/glyph-kit.js),
+ * y las etiquetas usan letras propias de 6 × 10 px (scripts/lib/label-font.js):
+ * a 16 px se ven nítidas también en pantallas al 100 %.
+ *
  * Diseño:
  *   - ARCHIVOS: la etiqueta de un expediente del Bureau: el código (TS, C#,
  *     {}…) o un pictograma en el color del lenguaje, sobre la franja de
@@ -23,6 +28,10 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const K = require('./lib/glyph-kit');
+const { label } = require('./lib/label-font');
+
+/** @typedef {import('./lib/glyph-kit').Poly} Poly */
 
 const ROOT = path.resolve(__dirname, '..');
 const OUT = path.join(ROOT, 'icons');
@@ -47,29 +56,13 @@ const C = {
 };
 /** @typedef {keyof typeof C} ColorName */
 
-/** Color «recortado» encima de las placas de color. */
-const KNOCK = ['#121315', '#FFFFFF'];
-/** Ventanas de la Casa Inmemorial: luz astral sobre el hormigón oscuro. */
-const WINDOWS = ['#F2EFE8', '#FAF9F6'];
-
-/** Estrella de Polaris (ocho rayos) como path SVG. */
-function polarisPath(/** @type {number} */ cx, /** @type {number} */ cy, /** @type {number} */ r) {
-  const pts = [];
-  for (let i = 0; i < 16; i++) {
-    const rr = i % 2 ? r * 0.28 : i % 4 === 0 ? r : r * 0.62;
-    const a = ((-90 + 22.5 * i) * Math.PI) / 180;
-    pts.push(`${(cx + rr * Math.cos(a)).toFixed(2)} ${(cy + rr * Math.sin(a)).toFixed(2)}`);
-  }
-  return `M${pts.join('L')}Z`;
-}
-
-const BOARD = { fill: ['#0D0E0F', '#151517'], stroke: ['#F2EFE8', '#151517'], line: ['#E0352B', '#C8261C'] };
-const FONT = "font-family='Segoe UI, -apple-system, Helvetica Neue, Arial, sans-serif' font-weight='700' text-anchor='middle'";
-
-const esc = (/** @type {string} */ s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 /** Muesca de la franja de clasificación: luz astral (oscuro) o tinta (claro). */
 const NOTCH = ['#F2EFE8', '#1A1A1C'];
+/** La Casa Inmemorial: hormigón, contorno de luz astral, ventanas y la línea roja del FBC. */
+const BOARD = { fill: ['#0D0E0F', '#151517'], stroke: ['#F2EFE8', '#151517'], line: ['#E0352B', '#C8261C'], windows: ['#F2EFE8', '#FAF9F6'] };
+
 const svg = (/** @type {string} */ body) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">${body}</svg>\n`;
+const path_ = (/** @type {string} */ fill, /** @type {Poly[]} */ polys, extra = '') => (polys.length ? `<path fill="${fill}"${extra} d="${K.toPath(polys)}"/>` : '');
 
 /** Oscurece un color (mezcla con negro). */
 function darken(/** @type {string} */ hex, /** @type {number} */ t) {
@@ -78,117 +71,324 @@ function darken(/** @type {string} */ hex, /** @type {number} */ t) {
   return `#${f((n >> 16) & 255)}${f((n >> 8) & 255)}${f(n & 255)}`.toUpperCase();
 }
 
-const stroke = (/** @type {string} */ k, w = 1.2) => `fill="none" stroke="${k}" stroke-width="${w}" stroke-linecap="square" stroke-linejoin="miter"`;
+// --- Pictogramas de archivo --------------------------------------------------------------
+// Zona: x 1–15, y 1–12 (debajo va la franja de clasificación, y 13–15). Bordes
+// horizontales y verticales en píxeles enteros. `dim` se pinta a media opacidad.
 
-// --- Pictogramas de archivo (dentro de la hoja; zona ≈ 3–13 × 4–12.6) -------------------
+/** @typedef {{fill: Poly[], dim?: Poly[]}} Picto */
 
-/** @type {Record<string, (k: string, c: string) => string>} */
+/** @type {Record<string, () => Picto>} */
 const PICTO = {
-  image: (k) => `<rect x="3.3" y="3.7" width="9" height="8.6" ${stroke(k, 1.1)}/><path d="M4.2 11.6 6.6 8.1l1.8 2.2 1.3-1.5 2.1 2.8z" fill="${k}"/><rect x="9.3" y="5.2" width="1.8" height="1.8" fill="${k}"/>`,
-  audio: (k) => [2.4, 6, 8, 5.2, 2.8].map((h, i) => `<rect x="${3.2 + i * 1.9}" y="${8.5 - h / 2}" width="1.2" height="${h}" fill="${k}"/>`).join(''),
-  video: (k) => `<path d="M5.4 4.8v7.4l6.2-3.7z" fill="${k}"/>`,
-  database: (k, c) => `<path d="M3.6 5.2C3.6 4 5.6 3.4 7.8 3.4s4.2.6 4.2 1.8v6.6c0 1.2-2 1.8-4.2 1.8s-4.2-.6-4.2-1.8z" fill="${k}"/><path d="M3.6 8.4c0 1.1 2 1.7 4.2 1.7s4.2-.6 4.2-1.7" ${stroke(c, 0.9)}/>`,
-  lock: (k) => `<rect x="4.2" y="7.4" width="7.4" height="5.4" fill="${k}"/><path d="M5.8 7.4V5.6a2.1 2.1 0 0 1 4.2 0v1.8" ${stroke(k, 1.3)}/>`,
-  git: (k) => `<path d="M4.2 12.6V4h8v8.6H7.4V7.2h1.8" ${stroke(k, 1.4)}/>`,
-  config: (k) => `<path d="M3.4 5h8.8M3.4 8.4h8.8M3.4 11.8h8.8" ${stroke(k, 1)} stroke-opacity=".55"/><rect x="9" y="3.8" width="2.4" height="2.4" fill="${k}"/><rect x="4.4" y="7.2" width="2.4" height="2.4" fill="${k}"/><rect x="7.4" y="10.6" width="2.4" height="2.4" fill="${k}"/>`,
-  archive: (k, c) => `<rect x="3.4" y="4.2" width="8.8" height="8.4" fill="${k}"/><rect x="3.4" y="6.4" width="8.8" height="1" fill="${c}"/><rect x="7" y="6.4" width="1.6" height="2.4" fill="${c}"/>`,
-  text: (k) => `<path d="M3.6 4.4h8M3.6 6.9h6M3.6 9.4h8M3.6 11.9h4.6" ${stroke(k, 1.2)}/>`,
-  license: (k, c) => `<path d="M7.8 3.2l3.6 2v4l-3.6 2-3.6-2v-4z" fill="${k}"/><rect x="7" y="6.4" width="1.6" height="1.6" fill="${c}"/><path d="M5.6 10.4 4.8 13.2l1.6-.8 1 1.1M10 10.4l.8 2.8-1.6-.8" ${stroke(k, 1.1)}/>`,
-  readme: (k) => `<path d="M6 3.3h3.6l2.6 2.6v3.6l-2.6 2.6H6L3.4 9.5V5.9z" ${stroke(k, 1.1)}/><rect x="7" y="7.1" width="1.6" height="3.4" fill="${k}"/><rect x="7" y="5" width="1.6" height="1.5" fill="${k}"/>`,
-  changelog: (k) => `<rect x="3.4" y="4" width="1.6" height="1.6" fill="${k}"/><rect x="3.4" y="7.6" width="1.6" height="1.6" fill="${k}"/><rect x="3.4" y="11.2" width="1.6" height="1.6" fill="${k}"/><path d="M6.4 4.8h5.8M6.4 8.4h5.8M6.4 12h3.6" ${stroke(k, 1.2)}/>`,
-  classified: (k) => `<rect x="3.2" y="3.6" width="6" height="1.8" fill="${k}"/><rect x="5.2" y="7" width="7.2" height="1.8" fill="${k}"/><rect x="3.2" y="10.4" width="7.6" height="1.8" fill="${k}"/>`,
-  test: (k) => `<path d="M7.8 3.2l4.2 2.4v4.8l-4.2 2.4-4.2-2.4V5.6z" ${stroke(k, 1.2)}/><path d="M5.8 8.2l1.4 1.4 2.8-2.9" ${stroke(k, 1.3)}/>`,
-  diff: (k) => `<path d="M5.6 3.6v4.6M3.3 5.9h4.6M8.4 11h4.4" ${stroke(k, 1.4)}/>`,
-  grid: (k) => `<path d="M3.4 4h8.8v8.4H3.4zM3.4 6.8h8.8M3.4 9.6h8.8M6.4 4v8.4M9.3 4v8.4" ${stroke(k, 0.9)}/>`,
-  cube: (k) => `<path d="M7.8 3.2l4.2 2.4v4.8l-4.2 2.4-4.2-2.4V5.6zM3.6 5.6l4.2 2.4 4.2-2.4M7.8 8v4.8" ${stroke(k, 1.1)}/>`,
-  key: (k) => `<rect x="3.2" y="4.2" width="4.6" height="4.6" fill="${k}"/><path d="M7.4 8.2l4.6 4.6M10.2 11l1.4-1.4" ${stroke(k, 1.4)}/>`,
-  docker: (k) => `<rect x="3.2" y="8" width="2.6" height="2.4" fill="${k}"/><rect x="6.4" y="8" width="2.6" height="2.4" fill="${k}"/><rect x="9.6" y="8" width="2.6" height="2.4" fill="${k}"/><rect x="6.4" y="5" width="2.6" height="2.4" fill="${k}"/><path d="M3 11.4h9.6l-1 1.4H4z" fill="${k}"/>`,
-  polaris: (k) => `<path d="${polarisPath(7.85, 8.1, 5.2)}" fill="${k}"/>`,
-  terminal: (k) => `<path d="M3.8 5l2.8 2.6-2.8 2.6" ${stroke(k, 1.4)}/><rect x="7.6" y="10.4" width="4.6" height="1.5" fill="${k}"/>`,
-  gear: (k, c) => `<path d="M7.8 3.4l4 2.3v4.6l-4 2.3-4-2.3V5.7z" fill="${k}"/><path d="M7.8 6.6l1.4.8v1.6l-1.4.8-1.4-.8V7.4z" fill="${c}"/>`,
-  globe: (k) => `<path d="M5.8 3.4h4l2.8 2.8v4l-2.8 2.8h-4l-2.8-2.8v-4zM3 8.2h9.6M7.8 3.4v9.6" ${stroke(k, 1)}/>`,
-  shield: (k) => `<path d="M7.8 3.2l4.4 1.6v3.6c0 2.2-1.8 3.6-4.4 4.6-2.6-1-4.4-2.4-4.4-4.6V4.8z" fill="${k}"/>`,
-  workspace: (k) => `<path d="M3.4 4.2h8.8v8.2H3.4zM3.4 6.4h8.8M7 6.4v6" ${stroke(k, 1)}/>`,
+  text: () => ({ fill: [K.rect(1, 1, 14, 2), K.rect(1, 4, 10, 2), K.rect(1, 7, 14, 2), K.rect(1, 10, 8, 2)] }),
+  image: () => ({ fill: [...K.frame(1, 1, 14, 11, 1), K.poly([2, 11], [6, 6], [9, 9], [11, 7], [14, 10], [14, 11]), K.rect(9, 3, 2, 2)] }),
+  audio: () => ({ fill: [3, 7, 11, 5, 3].map((h, i) => K.rect(1 + i * 3, 6.5 - h / 2, 2, h)) }),
+  video: () => ({ fill: [...K.frame(1, 1, 14, 11, 1), K.poly([6, 3.5], [11, 6.5], [6, 9.5])] }),
+  database: () => ({
+    fill: [0, 4, 8].flatMap((y) => K.move(K.art(`
+      ..J##########L..
+      ..############..
+      ..7##########F..`), 0, 1 + y)),
+  }),
+  lock: () => ({ fill: [...K.stroke([[5, 7], [5, 2], [11, 2], [11, 7]], 2), K.rect(3, 6, 10, 6), K.cutRect(7, 8, 2, 2)] }),
+  git: () => ({ fill: K.stroke([[3, 12], [3, 2], [13, 2], [13, 11], [7, 11], [7, 6], [10, 6]], 2) }),
+  config: () => ({ fill: [K.rect(9, 1, 3, 3), K.rect(3, 5, 3, 3), K.rect(6, 9, 3, 3)], dim: [K.rect(1, 2, 14, 1), K.rect(1, 6, 14, 1), K.rect(1, 10, 14, 1)] }),
+  archive: () => ({ fill: [K.rect(1, 1, 14, 3), K.rect(2, 5, 12, 7), K.cutRect(6, 7, 4, 2)] }),
+  license: () => ({
+    fill: [K.octagon(4, 1, 8, 8, 2), K.cutRect(7, 4, 2, 2), K.poly([5, 8], [7, 8], [7, 12], [6, 11], [5, 12]), K.poly([9, 8], [11, 8], [11, 12], [10, 11], [9, 12])],
+  }),
+  readme: () => ({ fill: [K.octagon(2, 1, 12, 11, 3), K.cutRect(7, 3, 2, 2), K.cutRect(7, 6, 2, 4)] }),
+  changelog: () => ({ fill: [K.rect(1, 1, 2, 2), K.rect(1, 5, 2, 2), K.rect(1, 9, 2, 2), K.rect(4, 1, 11, 2), K.rect(4, 5, 11, 2), K.rect(4, 9, 7, 2)] }),
+  classified: () => ({ fill: [K.rect(1, 1, 9, 3), K.rect(4, 5, 11, 3), K.rect(1, 9, 12, 3)] }),
+  test: () => ({ fill: [...K.ring([[5, 2], [11, 2], [14, 6.5], [11, 11], [5, 11], [2, 6.5]], 2), ...K.stroke([[5.2, 6.4], [7.2, 8.4], [10.8, 4.8]], 2)] }),
+  diff: () => ({ fill: [K.rect(4, 1, 2, 6), K.rect(2, 3, 6, 2), K.rect(8, 9, 6, 2)] }),
+  grid: () => ({ fill: [K.rect(1, 1, 14, 3), ...K.frame(1, 1, 14, 11, 1), K.rect(1, 7, 14, 1), K.rect(5, 1, 1, 11), K.rect(10, 1, 1, 11)] }),
+  cube: () => ({
+    fill: [K.poly([8, 1], [14, 4], [8, 7], [2, 4]), K.poly([2, 5.2], [7, 7.7], [7, 12], [2, 9.5]), K.poly([14, 5.2], [9, 7.7], [9, 12], [14, 9.5])],
+  }),
+  key: () => ({ fill: [...K.frame(1, 1, 7, 7, 2), ...K.stroke([[7, 7], [11.6, 11.6]], 2), ...K.stroke([[9.2, 9.2], [11.2, 7.2]], 2), ...K.stroke([[11, 11], [13, 9]], 2)] }),
+  docker: () => ({ fill: [K.rect(6, 1, 3, 2), K.rect(2, 4, 3, 2), K.rect(6, 4, 3, 2), K.rect(10, 4, 3, 2), K.poly([1, 7], [15, 7], [13, 12], [3, 12])] }),
+  polaris: () => ({ fill: [K.star(8, 6.5, 8, 6.4, 2.2, 4.4)] }),
+  shield: () => ({ fill: [K.poly([8, 1], [14, 3], [14, 7], [8, 12], [2, 7], [2, 3]), K.cutRect(7, 4, 2, 5)] }),
+  workspace: () => ({ fill: [...K.frame(1, 1, 14, 11, 1), K.rect(1, 1, 14, 3), K.rect(6, 4, 1, 8)] }),
+  vector: () => ({
+    fill: K.art(`
+      ................
+      ......####......
+      ......####......
+      ....J######L....
+      ...J########L...
+      ...####..####...
+      ...####..####...
+      ...7###..###F...
+      ....7##..##F....
+      .....7#..#F.....
+      ......7..F......
+      ................
+      ................
+      ................
+      ................
+      ................`, 16),
+  }),
 };
 
-// --- Emblemas de carpeta (abajo a la derecha; zona ≈ 8.2–14.6 × 7.6–13.4) ---------------
+// --- Emblemas de carpeta: 10 × 6 px, calados en la carpeta (x 3–13, y 7–13) ---------------
 
-/** @type {Record<string, (k: string, c: string) => string>} */
+/** @type {Record<string, () => Poly[]>} */
 const EMBLEM = {
-  code: (k) => `<path d="M9.9 8.5 8.5 10.6l1.4 2.1M12.9 8.5l1.4 2.1-1.4 2.1" ${stroke(k, 1.2)}/>`,
-  check: (k) => `<path d="M8.7 10.7l1.6 1.6 3.4-3.6" ${stroke(k, 1.4)}/>`,
-  docs: (k) => `<path d="M8.7 8.6h5.2M8.7 10.5h5.2M8.7 12.4h3.2" ${stroke(k, 1.1)}/>`,
-  image: (k) => `<path d="M8.4 13l2.2-3.2 1.5 1.8 1-1.2 1.6 2.6z" fill="${k}"/><rect x="12.4" y="7.9" width="1.5" height="1.5" fill="${k}"/>`,
-  wave: (k) => [2.4, 5, 3.6, 1.8].map((h, i) => `<rect x="${8.6 + i * 1.5}" y="${10.6 - h / 2}" width="1" height="${h}" fill="${k}"/>`).join(''),
-  play: (k) => `<path d="M9.8 8.2v5l4-2.5z" fill="${k}"/>`,
-  maze: (k) => `<path d="M8.8 13.3V8.1h5.2v5.2h-2.9v-2.7" ${stroke(k, 1)}/>`,
-  gear: (k, c) => `<path d="M11.4 7.7l2.7 1.5v3l-2.7 1.5-2.7-1.5v-3z" fill="${k}"/><path d="M11.4 9.9l.8.5v.9l-.8.5-.8-.5v-.9z" fill="${c}"/>`,
-  cube: (k) => `<path d="M11.4 7.9l2.7 1.5v3l-2.7 1.5-2.7-1.5v-3zM8.7 9.4l2.7 1.5 2.7-1.5M11.4 10.9v2.9" ${stroke(k, 0.9)}/>`,
-  box: (k, c) => `<rect x="8.6" y="8.4" width="5.8" height="4.8" fill="${k}"/><rect x="8.6" y="9.7" width="5.8" height=".8" fill="${c}"/>`,
-  blocks: (k) => `<rect x="8.7" y="8.1" width="2.4" height="2.4" fill="${k}"/><rect x="11.8" y="8.1" width="2.4" height="2.4" fill="${k}"/><rect x="8.7" y="11.1" width="2.4" height="2.4" fill="${k}"/><rect x="11.8" y="11.1" width="2.4" height="2.4" fill="${k}"/>`,
-  sliders: (k) => `<path d="M8.6 8.8h5.8M8.6 10.8h5.8M8.6 12.8h5.8" ${stroke(k, 0.8)} stroke-opacity=".6"/><rect x="12" y="8" width="1.6" height="1.6" fill="${k}"/><rect x="9.2" y="10" width="1.6" height="1.6" fill="${k}"/><rect x="10.8" y="12" width="1.6" height="1.6" fill="${k}"/>`,
-  globe: (k) => `<path d="M10.2 8h2.4l1.7 1.7v2.4l-1.7 1.7h-2.4l-1.7-1.7V9.7zM8.5 10.9h5.8M11.4 8v5.8" ${stroke(k, 0.9)}/>`,
-  star: (k) => `<path d="M11.4 7.8l.9 2 2.1.2-1.6 1.4.5 2.1-1.9-1.1-1.9 1.1.5-2.1-1.6-1.4 2.1-.2z" fill="${k}"/>`,
-  database: (k) => `<path d="M8.8 8.8c0-.7 1.2-1.1 2.6-1.1s2.6.4 2.6 1.1v3.6c0 .7-1.2 1.1-2.6 1.1s-2.6-.4-2.6-1.1z" fill="${k}"/>`,
-  plug: (k) => `<rect x="9.2" y="9.6" width="4.4" height="2.4" fill="${k}"/><rect x="9.8" y="7.8" width="1" height="1.8" fill="${k}"/><rect x="12" y="7.8" width="1" height="1.8" fill="${k}"/><rect x="10.9" y="12" width="1" height="1.6" fill="${k}"/>`,
-  wrench: (k) => `<path d="M8.9 13.1l3.4-3.4" ${stroke(k, 1.4)}/><path d="M12 7.8h2.3v2.3l-.9.9h-2.3V8.7z" fill="${k}"/>`,
-  bolt: (k) => `<path d="M11.9 7.6 9.2 11.1h1.9l-.6 2.5 3.1-3.8h-2z" fill="${k}"/>`,
-  shield: (k) => `<path d="M11.4 7.7l2.8 1v2.2c0 1.4-1.1 2.3-2.8 2.9-1.7-.6-2.8-1.5-2.8-2.9V8.7z" fill="${k}"/>`,
-  person: (k) => `<rect x="10.4" y="7.8" width="2" height="2" fill="${k}"/><path d="M8.8 13.4l.6-2.6h4l.6 2.6z" fill="${k}"/>`,
-  window: (k) => `<path d="M8.7 8.3h5.6v4.9H8.7zM8.7 9.9h5.6" ${stroke(k, 1)}/>`,
-  diamond: (k) => `<path d="M11.4 7.8l2.8 2.8-2.8 2.8-2.8-2.8z" ${stroke(k, 1.1)}/>`,
-  clock: (k) => `<path d="M10.2 8h2.4l1.7 1.7v2.4l-1.7 1.7h-2.4l-1.7-1.7V9.7zM11.4 9.2v1.8h1.3" ${stroke(k, 0.9)}/>`,
-  flask: (k) => `<path d="M10.4 7.8h2v2l1.8 3.4H8.6l1.8-3.4z" fill="${k}"/>`,
-  polaris: (k) => `<path d="${polarisPath(11.4, 10.6, 3.3)}" fill="${k}"/>`,
-  loop: (k) => `<path d="M9 12.8V9h4.4M13.8 9.4v3.8H9.4" ${stroke(k, 1.1)}/><path d="M12.6 7.6l1.6 1.4-1.6 1.4zM10.2 14.6l-1.6-1.4 1.6-1.4z" fill="${k}"/>`,
-  phone: (k) => `<path d="M9.6 7.8h3.6v5.6H9.6z" ${stroke(k, 1)}/><rect x="10.9" y="11.6" width="1" height="1" fill="${k}"/>`,
-  font: (k) => `<path d="M8.8 13.4l2.6-5.6 2.6 5.6M9.8 11.6h3.2" ${stroke(k, 1.1)}/>`,
-  arrow: (k) => `<path d="M8.6 10.6h5M12 8.8l1.8 1.8-1.8 1.8" ${stroke(k, 1.2)}/>`,
-  layers: (k) => `<path d="M8.6 9.2h5.6M9.2 11h5.2M8.6 12.8h5.6" ${stroke(k, 1.2)}/>`,
-  target: (k) => `<path d="M8.7 8.1h5.4v5.4H8.7z" ${stroke(k, 1)}/><rect x="10.7" y="10.1" width="1.4" height="1.4" fill="${k}"/>`,
-  key: (k) => `<rect x="8.6" y="8" width="2.6" height="2.6" fill="${k}"/><path d="M10.8 10.4l3 3" ${stroke(k, 1.2)}/>`,
-  palette: (k) => `<path d="M11.4 7.7l2.6 3.2c0 1.6-1.2 2.6-2.6 2.6s-2.6-1-2.6-2.6z" fill="${k}"/>`,
-  terminal: (k) => `<path d="M8.8 8.6l1.8 1.8-1.8 1.8" ${stroke(k, 1.2)}/><rect x="11.4" y="12.2" width="2.8" height="1.1" fill="${k}"/>`,
-  container: (k) => `<rect x="8.6" y="10.2" width="1.7" height="1.6" fill="${k}"/><rect x="10.6" y="10.2" width="1.7" height="1.6" fill="${k}"/><rect x="12.6" y="10.2" width="1.7" height="1.6" fill="${k}"/><rect x="10.6" y="8.2" width="1.7" height="1.6" fill="${k}"/><path d="M8.4 12.3h6.2l-.6 1H9z" fill="${k}"/>`,
+  code: () => K.art(`
+    ..........
+    .J#F..7#L.
+    J#F....7#L
+    7#L....J#F
+    .7#L..J#F.
+    ..........`),
+  check: () => K.art(`
+    ........J#
+    .......J#F
+    ......J#F.
+    7#L..J#F..
+    .7#LJ#F...
+    ..7##F....`),
+  docs: () => K.art(`
+    ##########
+    ..........
+    ##########
+    ..........
+    ######....
+    ..........`),
+  image: () => K.art(`
+    ........##
+    ...JL...##
+    ..J##L....
+    .J####L...
+    J######L..
+    ##########`),
+  wave: () => K.art(`
+    ....##....
+    .##.##.##.
+    .##.##.##.
+    .##.##.##.
+    .##.##.##.
+    ....##....`),
+  play: () => [K.poly([3, 0], [8, 3], [3, 6])],
+  maze: () => K.art(`
+    ##########
+    .........#
+    #######..#
+    #.....#..#
+    #.###.####
+    #.#.......`),
+  gear: () => [K.poly([3, 0], [7, 0], [9, 3], [7, 6], [3, 6], [1, 3]), K.cutRect(4, 2, 2, 2)],
+  cube: () => K.art(`
+    ...J##L...
+    .J######L.
+    #L.J##L.J#
+    ###L##J###
+    7#######F.
+    ...7##F...`),
+  box: () => K.art(`
+    ##########
+    ##########
+    ..........
+    .########.
+    .########.
+    .########.`),
+  blocks: () => K.art(`
+    ###.###...
+    ###.###...
+    ..........
+    ###.###.##
+    ###.###.##
+    ........##`),
+  sliders: () => K.art(`
+    ......##..
+    ##########
+    ..##......
+    ##########
+    ....##....
+    ##########`),
+  globe: () => K.art(`
+    ..J####L..
+    .J#.##.#L.
+    ##########
+    ##########
+    .7#.##.#F.
+    ..7####F..`),
+  star: () => [K.poly([5, 0], [6, 2.2], [10, 3], [6, 3.8], [5, 6], [4, 3.8], [0, 3], [4, 2.2])],
+  database: () => K.art(`
+    .J######L.
+    .7######F.
+    ..........
+    .J######L.
+    .########.
+    .7######F.`),
+  // Dos flechas (⇄): las API reciben y devuelven.
+  plug: () => [K.rect(0, 1, 6, 1), K.poly([6, 0], [9, 1.5], [6, 3]), K.rect(4, 4, 6, 1), K.poly([4, 3], [1, 4.5], [4, 6])],
+  wrench: () => K.art(`
+    ......J##L
+    ......####
+    .....J###F
+    ...J#F7#F.
+    .J#F......
+    J#F.......`),
+  bolt: () => [K.poly([6.5, 0], [1.5, 4], [4.5, 4], [3.5, 6], [8.5, 2], [5.5, 2])],
+  shield: () => [K.poly([3, 0], [7, 0], [8, 1], [8, 3], [5, 6], [2, 3], [2, 1])],
+  person: () => K.art(`
+    ....##....
+    ....##....
+    ..........
+    ..J####L..
+    .J######L.
+    .########.`),
+  window: () => K.art(`
+    ##########
+    ##########
+    #........#
+    #........#
+    #........#
+    ##########`),
+  diamond: () => K.art(`
+    ....JL....
+    ..J#77#L..
+    J#F....7#L
+    7#L....J#F
+    ..7#LJ#F..
+    ....7F....`),
+  clock: () => K.art(`
+    ..J####L..
+    .J#.##.#L.
+    ##..##..##
+    ##..####.#
+    .7#....#F.
+    ..7####F..`),
+  flask: () => K.art(`
+    ...####...
+    ...####...
+    ...#..#...
+    ..J#..#L..
+    .J######L.
+    ##########`),
+  // Polaris y su destello: los asistentes de IA.
+  polaris: () => [
+    K.poly([4, 0], [4.9, 2.1], [7.5, 3], [4.9, 3.9], [4, 6], [3.1, 3.9], [0.5, 3], [3.1, 2.1]),
+    K.poly([8.5, 0], [8.9, 1.1], [10, 1.5], [8.9, 1.9], [8.5, 3], [8.1, 1.9], [7, 1.5], [8.1, 1.1]),
+  ],
+  loop: () => K.art(`
+    7#L..7#L..
+    .7#L..7#L.
+    ..7#L..7#L
+    ..J#F..J#F
+    .J#F..J#F.
+    J#F..J#F..`),
+  phone: () => K.art(`
+    ...####...
+    ...#..#...
+    ...#..#...
+    ...#..#...
+    ...####...
+    ...####...`),
+  font: () => K.art(`
+    ...J##L...
+    ..J#..#L..
+    ..##..##..
+    ..######..
+    ..##..##..
+    ..##..##..`),
+  arrow: () => K.art(`
+    ......#L..
+    ......##L.
+    #########L
+    #########F
+    ......##F.
+    ......#F..`),
+  layers: () => K.art(`
+    ##########
+    ..........
+    .########.
+    ..........
+    ..######..
+    ..........`),
+  target: () => K.art(`
+    ##########
+    #........#
+    #...##...#
+    #...##...#
+    #........#
+    ##########`),
+  key: () => K.art(`
+    ####......
+    #..#......
+    #..#######
+    ####..#.#.
+    ..........
+    ..........`),
+  palette: () => K.art(`
+    ...J##L...
+    ..J####L..
+    .J######L.
+    .########.
+    .########.
+    ..7####F..`),
+  terminal: () => K.art(`
+    J#F.......
+    .J#F......
+    ..##......
+    .7#L......
+    7#L.######
+    ....######`),
+  container: () => K.art(`
+    ...###....
+    ..........
+    ###.###.##
+    ..........
+    ##########
+    .7######F.`),
 };
+
+/** Posición del emblema dentro de la carpeta. */
+const EMBLEM_AT = /** @type {const} */ ([3, 7]);
 
 // --- Plantillas ---------------------------------------------------------------------------
 
-/** Hoja de expediente con etiqueta o pictograma. */
+/** Franja de clasificación con su muesca, en píxeles enteros. */
+const band = (/** @type {string} */ c, /** @type {number} */ v) =>
+  `<rect x="2" y="13" width="12" height="2" fill="${c}" fill-opacity=".85"/><rect x="2" y="13" width="3" height="2" fill="${NOTCH[v]}"/>`;
+
+/** Etiqueta de expediente: código o pictograma sobre la franja de clasificación. */
 function fileIcon(/** @type {Spec} */ spec, /** @type {number} */ v) {
   const c = C[spec.color][v];
-  // Franja de clasificación con la muesca de luz astral, en píxeles enteros
-  // para que a 16 px quede nítida.
-  const band = `<rect x="2" y="13" width="12" height="2" fill="${c}" fill-opacity=".85"/><rect x="2" y="13" width="3" height="2" fill="${NOTCH[v]}"/>`;
   if (spec.kind === 'picto') {
-    // El pictograma, algo más grande y por encima de la franja. Se dibuja como
-    // máscara para que sus recortes queden transparentes sobre cualquier fondo.
-    const shape = PICTO[spec.value]('#fff', '#000');
-    return svg(`<mask id="p"><g transform="translate(8 6.7) scale(1.2) translate(-7.85 -8.1)">${shape}</g></mask><rect width="16" height="12.6" fill="${c}" mask="url(#p)"/>${band}`);
+    const p = PICTO[spec.value]();
+    return svg(`${path_(c, p.fill)}${path_(c, p.dim ?? [], ' fill-opacity=".5"')}${band(c, v)}`);
   }
-  const n = [...spec.value].length;
-  const size = n === 1 ? 11 : n === 2 ? 8.8 : 6.8;
-  const y = n === 1 ? 11.5 : n === 2 ? 10.9 : 10.2;
-  return svg(`<text x="8" y="${y}" font-size="${size}" ${FONT} letter-spacing="${n > 2 ? -0.5 : -0.3}" fill="${c}">${esc(spec.value)}</text>${band}`);
+  return svg(`${path_(c, label(spec.value))}${band(c, v)}`);
 }
 
-/** Carpeta sólida con emblema. */
+/** Carpeta sólida del color de su categoría con el emblema calado. */
 function folderIcon(/** @type {ColorName} */ color, /** @type {string | null} */ emblem, /** @type {boolean} */ open, /** @type {number} */ v) {
   const body = C[color][v];
   const back = darken(body, v === 0 ? 0.38 : 0.3);
-  const k = KNOCK[v];
-  let s = `<path d="M1 3h5.3l1.5 1.6H15v1.6H1z" fill="${back}"/>`;
-  s += open ? `<path d="M1 6.2h14v1.2H1z" fill="${back}"/><path d="M2.7 7.6h12.9L13.9 14H1z" fill="${body}"/>` : `<path d="M1 6.2h14V14H1z" fill="${body}"/>`;
-  if (emblem) s += EMBLEM[emblem](k, body);
-  return svg(s);
+  const cutout = emblem ? K.invert(K.move(EMBLEM[emblem](), EMBLEM_AT[0], EMBLEM_AT[1])) : [];
+  if (open) {
+    return svg(
+      path_(back, [K.poly([1, 2], [6, 2], [8, 4], [14, 4], [14, 6], [3, 6], [1, 13])]) +
+        path_(body, [K.poly([3, 6], [16, 6], [14, 14], [1, 14]), ...cutout])
+    );
+  }
+  return svg(path_(back, [K.poly([1, 2], [6, 2], [8, 4], [15, 4], [15, 6], [1, 6])]) + path_(body, [K.rect(1, 6, 14, 8), ...cutout]));
 }
 
 /** Carpeta raíz: la Casa Inmemorial, torre brutalista con su remate volado y la línea roja del FBC. */
 function oldestHouse(/** @type {boolean} */ open, /** @type {number} */ v) {
-  const tower = `<path d="M1.5 2h13v3.4h-2.6v8H4.1v-8H1.5z" fill="${BOARD.fill[v]}" stroke="${BOARD.stroke[v]}" stroke-width=".8" stroke-linejoin="miter"/>`;
-  const windows = `<path d="M6.3 7v4.4M9.7 7v4.4" stroke="${WINDOWS[v]}" stroke-width="1.3" stroke-opacity="${open ? 1 : 0.45}"/>`;
-  const ground = `<rect x="1" y="13.6" width="14" height="1.4" fill="${BOARD.line[v]}"/>`;
-  return svg(`${tower}${windows}${ground}`);
+  /** @param {number} i grosor del contorno */
+  const tower = (i) => [K.poly([1 + i, 1 + i], [15 - i, 1 + i], [15 - i, 5 - i], [12 - i, 5 - i], [12 - i, 13], [4 + i, 13], [4 + i, 5 - i], [1 + i, 5 - i])];
+  const windows = [K.rect(6, 7, 1, 5), K.rect(9, 7, 1, 5)];
+  return svg(
+    path_(BOARD.stroke[v], tower(0)) +
+      path_(BOARD.fill[v], tower(1)) +
+      path_(BOARD.windows[v], windows, open ? '' : ' fill-opacity=".45"') +
+      path_(BOARD.line[v], [K.rect(1, 13, 14, 2)])
+  );
 }
 
 // --- Catálogo -------------------------------------------------------------------------------
@@ -214,8 +414,8 @@ const S = {
   vue: L('V', 'green'), svelte: L('SV', 'orange'), astro: L('AT', 'orange'), html: L('<>', 'red'), css: L('#', 'teal'), scss: L('S', 'rose'),
   less: L('L', 'ice'), stylus: L('ST', 'green'), pug: L('PG', 'bone'), handlebars: L('HB', 'amber'), ejs: L('EJ', 'paper'), twig: L('TW', 'green'),
   liquid: L('LQ', 'teal'), jinja: L('JN', 'red'), md: L('MD', 'bone'), mdx: L('MX', 'amber'), rst: L('RT', 'bone'), adoc: L('AD', 'red'),
-  tex: L('TEX', 'teal'), text: P('text', 'concrete'), log: P('text', 'paper'), xml: L('</>', 'orange'), svg: L('SVG', 'amber'), yaml: L('Y', 'rose'),
-  config: P('config', 'concrete'), csv: P('grid', 'green'), sheet: L('X', 'green'), doc: L('W', 'steel'), slides: L('P', 'orange'), pdf: L('PDF', 'red'),
+  tex: L('TE', 'teal'), text: P('text', 'concrete'), log: P('text', 'paper'), xml: L('</>', 'orange'), svg: P('vector', 'amber'), yaml: L('Y', 'rose'),
+  config: P('config', 'concrete'), csv: P('grid', 'green'), sheet: L('X', 'green'), doc: L('W', 'steel'), slides: L('P', 'orange'), pdf: L('PD', 'red'),
   epub: L('EP', 'paper'), image: P('image', 'green'), audio: P('audio', 'rose'), video: P('video', 'rose'), font: L('Aa', 'bone'),
   archive: P('archive', 'concrete'), jar: P('archive', 'orange'), apk: P('archive', 'green'), ipa: P('archive', 'steel'), installer: P('archive', 'dim'),
   binary: L('01', 'dim'), nupkg: P('archive', 'violet'), vsix: P('archive', 'red'), whl: P('archive', 'ice'), key: P('key', 'amber'), signature: P('key', 'green'),
@@ -229,7 +429,7 @@ const S = {
   next: L('NX', 'bone'), nuxt: L('NU', 'green'), angular: L('NG', 'red'), nest: L('NE', 'red'), turbo: L('TB', 'rose'), vercel: L('VC', 'bone'),
   netlify: L('NT', 'teal'), firebase: L('FB', 'amber'), make: L('MK', 'orange'), cmake: L('CM', 'teal'), bazel: L('BZ', 'green'),
   gradle: L('GR', 'teal'), maven: L('MV', 'red'), cargo: P('config', 'orange'), gomod: P('config', 'cyan'), pyconfig: P('config', 'ice'),
-  requirements: P('changelog', 'ice'), gemfile: L('RB', 'red'), composer: L('CP', 'paper'), podfile: L('PD', 'red'), pubspec: L('DT', 'cyan'),
+  requirements: P('changelog', 'ice'), gemfile: L('RB', 'red'), composer: L('CP', 'paper'), podfile: L('PO', 'red'), pubspec: L('DT', 'cyan'),
   procfile: L('PF', 'violet'), jenkins: L('JK', 'red'), ci: L('CI', 'orange'), prisma: L('PS', 'violet'), http: L('HT', 'green'),
   workspace: P('workspace', 'steel'), shellrc: L('$_', 'green'), favicon: P('image', 'red'), robots: P('text', 'green'), webConfig: P('config', 'steel'),
   nginx: L('NG', 'green'), editorconfig: P('config', 'bone'), browserslist: P('config', 'amber'), dotnetTool: P('cube', 'violet'),

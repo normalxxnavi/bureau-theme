@@ -4,16 +4,16 @@
 /**
  * Regenera las imágenes del README (images/screenshots/) desde cero:
  *
- *   npm run screenshots                       → todas
- *   npm run screenshots -- hero,theme-dark    → solo componer esas (con las capturas ya hechas)
+ *   npm run screenshots                         → todas
+ *   npm run screenshots -- control-dark,icons-dark → solo copiar esas (con las capturas ya hechas)
  *
  * 1. Empaqueta la extensión y una pequeña extensión auxiliar (cmd-probe) que
  *    abre la consola de sonido para su captura.
  * 2. shots.js: instala el .vsix en un perfil limpio de VS Code, crea un
  *    proyecto de demostración (con Git y una tarea de tests) y captura la
  *    ventana con cada tema (PrintWindow, capture.ps1).
- * 3. compose.js: compone las capturas sobre fondos diseñados con HTML y las
- *    renderiza con Edge/Chrome sin interfaz.
+ * 3. publish.js: copia las capturas tal cual a images/screenshots/ (sin
+ *    fondos ni textos: son la ventana real de VS Code).
  *
  * Solo Windows. Abre y cierra varias ventanas de VS Code: no toques el ratón
  * mientras se capturan (unos 5 minutos).
@@ -49,5 +49,5 @@ if (!only) {
   node([vsce, 'package', '--no-dependencies', '--allow-missing-repository', '--skip-license', '--out', probe], path.join(__dirname, 'cmd-probe'));
   node([path.join(__dirname, 'shots.js'), ROOT, raw, path.join(WORK, 'profile'), vsix, probe]);
 }
-node([path.join(__dirname, 'compose.js'), ROOT, raw, path.join(ROOT, 'images', 'screenshots'), ...(only ? [only] : [])]);
+node([path.join(__dirname, 'publish.js'), raw, path.join(ROOT, 'images', 'screenshots'), ...(only ? [only] : [])]);
 console.log(`\n✔ images/screenshots/ actualizado (trabajo en ${WORK})`);

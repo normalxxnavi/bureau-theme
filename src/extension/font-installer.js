@@ -23,9 +23,24 @@ const { registryName } = require('./fontsets');
 const REG_KEY = 'HKCU\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts';
 
 /**
- * @typedef {{platform?: NodeJS.Platform, fontsDir?: string, run?: (cmd: string, args: string[]) => {status: number | null}}} InstallerOptions
- *   `fontsDir` y `run` existen para los tests (carpeta temporal y comandos falsos).
+ * @typedef {{platform?: NodeJS.Platform, fontsDir?: string, run?: (cmd: string, args: string[]) => {status: number | null}, fcCache?: string | null}} InstallerOptions
+ *   `fontsDir`, `run` y `fcCache` existen para los tests (carpeta temporal y comandos falsos).
  */
+
+/** fc-cache con ruta absoluta (nunca uno de la carpeta del proyecto abierto), o null si no hay. */
+function fcCachePath() {
+  const { which, systemPath } = require('./player');
+  return which('fc-cache', systemPath());
+}
+
+/** ¿Tienen los dos archivos el mismo contenido? @param {string} a @param {string} b */
+function sameFile(a, b) {
+  try {
+    return fs.statSync(a).size === fs.statSync(b).size && fs.readFileSync(a).equals(fs.readFileSync(b));
+  } catch {
+    return false;
+  }
+}
 
 /** Carpeta de fuentes del usuario según el sistema. */
 function userFontsDir(platform = process.platform) {
@@ -61,15 +76,15 @@ function installFonts(fontsRoot, files, o = {}) {
   for (const f of files) {
     const src = path.join(fontsRoot, f.file);
     const dest = path.join(dir, `BureauTheme-${path.basename(f.file)}`);
-    const same = fs.existsSync(dest) && fs.statSync(dest).size === fs.statSync(src).size;
-    if (!same) fs.copyFileSync(src, dest);
+    // Se compara el contenido, no solo el tamaño: una versión nueva de la fuente siempre se copia.
+    if (!sameFile(src, dest)) fs.copyFileSync(src, dest);
     if (platform === 'win32') {
       const r = run(regExe(), ['add', REG_KEY, '/v', registryName(f), '/t', 'REG_SZ', '/d', dest, '/f']);
       if (r.status !== 0) throw new Error(`No se pudo registrar ${registryName(f)} en Windows`);
     }
     installed.push(dest);
   }
-  if (platform === 'linux') run('fc-cache', ['-f', dir]);
+  refreshFontCache(platform, dir, run, o);
   return installed;
 }
 
@@ -95,8 +110,19 @@ function uninstallFonts(files, o = {}) {
       // Windows puede tener la fuente abierta hasta reiniciar: se queda para la próxima vez.
     }
   }
-  if (platform === 'linux') run('fc-cache', ['-f', dir]);
+  refreshFontCache(platform, dir, run, o);
   return removed;
+}
+
+/**
+ * En Linux, avisa a fontconfig de las fuentes nuevas.
+ * @param {NodeJS.Platform} platform @param {string} dir
+ * @param {NonNullable<InstallerOptions['run']>} run @param {InstallerOptions} o
+ */
+function refreshFontCache(platform, dir, run, o) {
+  if (platform !== 'linux') return;
+  const bin = o.fcCache === undefined ? fcCachePath() : o.fcCache;
+  if (bin) run(bin, ['-f', dir]);
 }
 
 module.exports = { installFonts, uninstallFonts, userFontsDir, REG_KEY };

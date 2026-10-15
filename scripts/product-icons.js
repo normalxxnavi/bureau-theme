@@ -9,9 +9,14 @@
  *   npm run product-icons
  *
  * VS Code exige que los product icons vengan en una FUENTE (.woff): cada icono
- * es un glifo. Aquí se dibujan como formas rellenas en una cuadrícula de 24×24
- * (las fuentes no admiten trazos) y se convierten con svgicons2svgfont →
- * svg2ttf → ttf2woff.
+ * es un glifo. Aquí se dibujan como formas rellenas (las fuentes no admiten
+ * trazos) y se convierten con svgicons2svgfont → svg2ttf → ttf2woff.
+ *
+ * Nitidez: VS Code pinta los iconos a 16 px, así que los glifos se dibujan en
+ * una rejilla de 16 × 16 con los bordes horizontales y verticales en píxeles
+ * enteros (scripts/lib/glyph-kit.js); los de la barra de actividad, que se
+ * pintan a 24 px, tienen su propia versión en 24 × 24. La fuente usa 1024
+ * unidades por em (64 por píxel), así que esos bordes caen exactos.
  *
  * Estilo: geométrico y brutalista, trazos gruesos de esquina viva; los
  * círculos son octógonos y los puntos, cuadrados. Guiños de lore:
@@ -33,6 +38,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { Readable } = require('node:stream');
 const { addColorTables } = require('./lib/colr');
+const K = require('./lib/glyph-kit');
 
 const ROOT = path.resolve(__dirname, '..');
 const OUT = path.join(ROOT, 'product-icons');
@@ -40,415 +46,340 @@ const SVG_DIR = path.join(OUT, 'svg');
 const FONT_NAME = 'bureau-product-icons';
 
 // --- Geometría -----------------------------------------------------------------
+//
+// Rejilla de 16 × 16 (VS Code pinta los iconos a 16 px): todos los bordes
+// horizontales y verticales caen en píxeles enteros y el trazo estándar es de
+// 2 px. Los iconos de la barra de actividad, que se pintan a 24 px, tienen su
+// propia versión en una rejilla de 24 × 24 (GRID24).
 
-/** @typedef {Array<[number, number]>} Poly */
+/** @typedef {import('./lib/glyph-kit').Poly} Poly */
+/** @typedef {Array<[string, Poly[]]>} Layers */
 
-/** Área con signo (coordenadas SVG, y hacia abajo): > 0 = sentido horario. */
-const area = (/** @type {Poly} */ p) => p.reduce((s, [x, y], i) => s + x * p[(i + 1) % p.length][1] - p[(i + 1) % p.length][0] * y, 0) / 2;
+const { rect, poly, cut, cutRect, frame, octagon, octRing, stroke, ring, cross, star, move } = K;
 
-/** Polígono relleno (siempre horario). */
-const solid = (/** @type {Poly} */ p) => (area(p) < 0 ? [...p].reverse() : p);
-/** Contorno de hueco (siempre antihorario, para recortar con la regla nonzero). */
-const hole = (/** @type {Poly} */ p) => (area(p) > 0 ? [...p].reverse() : p);
-
-const rect = (/** @type {number} */ x, /** @type {number} */ y, /** @type {number} */ w, /** @type {number} */ h) =>
-  solid([[x, y], [x + w, y], [x + w, y + h], [x, y + h]]);
-
-/** Segmento grueso como polígono. */
-function bar(/** @type {number} */ x1, /** @type {number} */ y1, /** @type {number} */ x2, /** @type {number} */ y2, /** @type {number} */ w) {
-  const len = Math.hypot(x2 - x1, y2 - y1);
-  const nx = (-(y2 - y1) / len) * (w / 2);
-  const ny = ((x2 - x1) / len) * (w / 2);
-  return solid([[x1 + nx, y1 + ny], [x2 + nx, y2 + ny], [x2 - nx, y2 - ny], [x1 - nx, y1 - ny]]);
-}
-
-/** Línea quebrada gruesa: segmentos + una junta cuadrada en cada vértice interior. */
-function polyline(/** @type {Poly} */ pts, /** @type {number} */ w) {
-  /** @type {Poly[]} */
-  const out = [];
-  for (let i = 0; i < pts.length - 1; i++) out.push(bar(pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1], w));
-  for (let i = 1; i < pts.length - 1; i++) out.push(regular(pts[i][0], pts[i][1], w / 2 / Math.cos(Math.PI / 8), 8, 22.5));
-  return out;
-}
-
-/** Polígono regular. `rot` en grados. */
-function regular(/** @type {number} */ cx, /** @type {number} */ cy, /** @type {number} */ r, /** @type {number} */ n, rot = -90) {
-  /** @type {Poly} */
-  const p = [];
-  for (let i = 0; i < n; i++) {
-    const a = ((rot + (360 / n) * i) * Math.PI) / 180;
-    p.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]);
-  }
-  return solid(p);
-}
-
-/** Puntos de un octógono (para arcos «brutalistas»). Ángulos en grados, y hacia abajo. */
-const octPoints = (/** @type {number} */ cx, /** @type {number} */ cy, /** @type {number} */ r, /** @type {number[]} */ angles) =>
-  /** @type {Poly} */ (angles.map((a) => [cx + r * Math.cos((a * Math.PI) / 180), cy + r * Math.sin((a * Math.PI) / 180)]));
-
-/** Escala un polígono respecto a un punto. */
-const scale = (/** @type {Poly} */ p, /** @type {number} */ k, /** @type {number} */ cx, /** @type {number} */ cy) =>
-  /** @type {Poly} */ (p.map(([x, y]) => [cx + (x - cx) * k, cy + (y - cy) * k]));
-
-/** Incentro y radio inscrito de un triángulo. */
-function incircle(/** @type {Poly} */ [a, b, c]) {
-  const la = Math.hypot(b[0] - c[0], b[1] - c[1]);
-  const lb = Math.hypot(a[0] - c[0], a[1] - c[1]);
-  const lc = Math.hypot(a[0] - b[0], a[1] - b[1]);
-  const s = la + lb + lc;
-  const cx = (la * a[0] + lb * b[0] + lc * c[0]) / s;
-  const cy = (la * a[1] + lb * b[1] + lc * c[1]) / s;
-  return { cx, cy, r: Math.abs(area([a, b, c])) / (s / 2) };
-}
-
-/** Contornos huecos (escalados desde el centro). */
-function frameTriangle(/** @type {Poly} */ tri, /** @type {number} */ w) {
-  const { cx, cy, r } = incircle(tri);
-  return [solid(tri), hole(scale(tri, (r - w) / r, cx, cy))];
-}
-function frameRegular(/** @type {number} */ cx, /** @type {number} */ cy, /** @type {number} */ r, /** @type {number} */ n, /** @type {number} */ w, rot = -90) {
-  const apothem = r * Math.cos(Math.PI / n);
-  const k = (apothem - w) / apothem;
-  return [regular(cx, cy, r, n, rot), hole(scale(regular(cx, cy, r, n, rot), k, cx, cy))];
-}
-const frameOct = (/** @type {number} */ cx, /** @type {number} */ cy, /** @type {number} */ r, /** @type {number} */ w) => frameRegular(cx, cy, r, 8, w, 22.5);
-function frameRect(/** @type {number} */ x, /** @type {number} */ y, /** @type {number} */ w, /** @type {number} */ h, /** @type {number} */ t) {
-  return [rect(x, y, w, h), hole(rect(x + t, y + t, w - 2 * t, h - 2 * t))];
-}
-/** Contorno hueco de un polígono cualquiera dado su interior a mano. */
-const framePoly = (/** @type {Poly} */ outer, /** @type {Poly} */ inner) => [solid(outer), hole(inner)];
-
-const W = 2.4; // grosor de trazo estándar
-
-/** Ventana genérica (layouts, dividir). */
-const windowFrame = () => frameRect(2, 4, 20, 16, 2);
-/** Bandeja (subir / descargar). */
-const tray = () => polyline([[3.2, 14], [3.2, 20.2], [20.8, 20.2], [20.8, 14]], W);
-/** Documento con esquina cortada, recortado abajo a la derecha para dejar sitio a un «+». */
-const docWithBadge = () =>
-  framePoly(
-    [[2, 1.5], [10.5, 1.5], [15, 6], [15, 11.5], [11.5, 11.5], [11.5, 19.5], [2, 19.5]],
-    [[4.1, 3.6], [9.6, 3.6], [12.9, 6.9], [12.9, 9.4], [9.4, 9.4], [9.4, 17.4], [4.1, 17.4]]
-  );
-const folderWithBadge = () =>
-  framePoly(
-    [[1.5, 3.5], [8, 3.5], [10, 5.5], [19, 5.5], [19, 11.5], [11.5, 11.5], [11.5, 19.5], [1.5, 19.5]],
-    [[3.6, 5.6], [7.1, 5.6], [9.1, 7.6], [16.9, 7.6], [16.9, 9.4], [9.4, 9.4], [9.4, 17.4], [3.6, 17.4]]
-  );
-const badgePlus = () => [rect(16.8, 13.2, 2.4, 9.6), rect(13.2, 16.8, 9.6, 2.4)];
-/** Pirámide de la rama de Git, más pequeña y desplazada para dejar sitio a una marca. */
-function smallPyramid() {
-  /** @type {Poly} */
-  const tri = [[0.8, 6.6], [17.4, 6.6], [9.1, 21.8]];
-  const { cx, cy } = incircle(tri);
-  return [...frameTriangle(tri, 2.1), solid(scale(tri, 0.3, cx, cy))];
-}
-
-/** Polaris (ocho rayos). `r` radio de los rayos largos. */
-function polarisStar(/** @type {number} */ cx, /** @type {number} */ cy, /** @type {number} */ r) {
-  /** @type {Poly} */
-  const p = [];
-  for (let i = 0; i < 16; i++) {
-    const rr = i % 2 ? r * 0.28 : i % 4 === 0 ? r : r * 0.63;
-    const a = ((-90 + 22.5 * i) * Math.PI) / 180;
-    p.push([cx + rr * Math.cos(a), cy + rr * Math.sin(a)]);
-  }
-  return solid(p);
-}
-
-/** Marcas de esquina (arriba a la derecha) para las variantes de estado de un glifo. */
-const MARK = {
-  dot: () => [rect(17.6, 0.8, 5, 5)],
-  alert: () => [solid([[20.1, 0.4], [23.6, 3.9], [20.1, 7.4], [16.6, 3.9]])],
-  error: () => [bar(17.2, 1.2, 23, 7, 1.9), bar(23, 1.2, 17.2, 7, 1.9)],
-  check: () => polyline([[16.9, 4.2], [19.1, 6.4], [23.2, 1.6]], 1.9),
-  off: () => [...frameOct(20.1, 3.9, 3.6, 1.3), bar(18.2, 6, 22.2, 1.8, 1.3)],
-  pause: () => [rect(17.6, 1, 2, 6), rect(20.8, 1, 2, 6)],
+/**
+ * Colores reales de «Bureau Product Icons (Color)». Tonos medios: tienen que
+ * leerse sobre el monolito oscuro y sobre CONTROL Astral (fondo claro).
+ */
+const REAL = {
+  red: '#E0352B', // la Hotline (el teléfono rojo), el Hiss, el rojo del FBC
+  orange: '#E07A2B', // Git, la gramola Songmaster, el pico del patito
+  amber: '#C98A1E', // avisos, el Laberinto del Cenicero, la cinta de Ahti
+  yellow: '#D9B02A', // Polaris, la luz del proyector, el patito de goma
+  green: '#4FA05A', // ejecutar, añadir, correcto
+  teal: '#2E9C8E',
+  cyan: '#2FA7B8', // la Hedron, el Umbral, el Aberrante (Control Resonant)
+  blue: '#4A8CD0',
+  steel: '#6F93B8', // la interfaz de la Agencia: flechas, ventanas, menús
+  violet: '#8C6BC8', // lo paranatural: el Consejo, los Objetos de Poder
+  paper: '#C9A15C', // los expedientes de la Agencia
+  brass: '#C2953F', // la placa del FBC, cerraduras, la televisión Benicoff
 };
-/** Polaris pequeña, desplazada abajo a la izquierda para dejar sitio a la marca. */
-const smallPolaris = () => [polarisStar(9.6, 13.4, 10.4)];
+const R = REAL;
 
-/** Estrella de cinco puntas. */
-function star(/** @type {number} */ k) {
-  /** @type {Poly} */
-  const p = [];
-  for (let i = 0; i < 10; i++) {
-    const r = i % 2 ? 4.3 * k : 10.5 * k;
-    const a = ((-90 + 36 * i) * Math.PI) / 180;
-    p.push([12 + r * Math.cos(a), 12.6 + r * Math.sin(a)]);
-  }
-  return p;
-}
+/** Un glifo de un solo color. @param {string} color @param {Poly[]} polys @returns {Layers} */
+const one = (color, polys) => [[color, polys]];
 
-// --- Glifos (cuadrícula 24×24) ---------------------------------------------------
+/** Pirámide de la rama de Git, más pequeña y abajo a la izquierda para dejar sitio a una marca. */
+const smallPyramid = () => [...ring([[2, 6], [11, 6], [6.5, 13.5]], 2), poly([5.2, 8], [7.8, 8], [6.5, 10])];
+/** Polaris pequeña, abajo a la izquierda (deja sitio a una marca arriba a la derecha). */
+const smallPolaris = () => [star(6.5, 9.5, 8, 6, 2, 4)];
+/** El teléfono de la Hotline. `full` = con el auricular entero (sin marca). */
+const hotline = (/** @type {boolean} */ full) => [
+  rect(3, 2, full ? 10 : 7, 2),
+  poly([1, 2], [5, 2], [5, 7], [3, 7], [1, 5]),
+  full ? poly([11, 2], [15, 2], [15, 5], [13, 7], [11, 7]) : rect(8, 2, 2, 5),
+  poly([4, 9], [12, 9], [14, 15], [2, 15]),
+  cutRect(7, 11, 2, 2),
+];
 
-/** @type {Record<string, () => Poly[]>} */
-const GLYPHS = {
+/** Marcas de esquina (arriba a la derecha, x 10–16 · y 0–6) para las variantes de estado. */
+const MARK = {
+  dot: () => [rect(12, 0, 4, 4)],
+  plus: () => [rect(12, 0, 2, 6), rect(10, 2, 6, 2)],
+  minus: () => [rect(10, 2, 6, 2)],
+  alert: () => [poly([13, 0], [16, 3], [13, 6], [10, 3])],
+  error: () => [cross(13, 3, 2.2, 1.6)],
+  check: () => stroke([[10.4, 3.2], [12.2, 5], [15, 1.6]], 1.6),
+  off: () => [...octRing(10, 0, 6, 6, 2, 1), ...stroke([[11, 5], [15, 1]], 1.4)],
+  pause: () => [rect(11, 0, 2, 5), rect(14, 0, 2, 5)],
+};
+
+/** Ventana de los iconos de distribución (contorno de 1 px, como los de la barra de título). */
+const win = () => frame(1, 2, 14, 12, 1);
+/** Bandeja (subir / descargar). */
+const tray = () => stroke([[2, 10], [2, 14], [14, 14], [14, 10]], 2);
+/** Expediente de detrás (copiar, contraer). */
+const backSheet = () => [rect(1, 1, 9, 2), rect(1, 1, 2, 9)];
+/** Signo «+» de las insignias (nuevo archivo / carpeta). */
+const badgePlus = () => [rect(12, 9, 2, 6), rect(10, 11, 6, 2)];
+/** Hexágono de la Hedron (vértice arriba, lados verticales nítidos). */
+const hedron = () => ring([[8, 1.5], [14, 5], [14, 11], [8, 14.5], [2, 11], [2, 5]], 2);
+
+/**
+ * Glifos: capas [color, polígonos], de abajo arriba. La fuente monocroma usa la
+ * unión de todas; la de color, una capa por color (COLR/CPAL).
+ * @type {Record<string, () => Layers>}
+ */
+const DEFS = {
   // ── Lore ──────────────────────────────────────────────────────────────────
   // Expediente del Bureau: documento con la esquina cortada, franja de clasificación y otro expediente detrás.
-  dossier: () => [rect(3, 2, 10, 2), rect(3, 2, 2, 15), ...framePoly([[7, 6], [16, 6], [21, 11], [21, 22], [7, 22]], [[9, 8], [15.2, 8], [19, 11.8], [19, 20], [9, 20]]), rect(11, 15.5, 6, 2.2)],
+  dossier: () => [[R.paper, [...backSheet(), ...ring([[6, 6], [11, 6], [14, 9], [14, 14], [6, 14]], 2)]], [R.red, [rect(8, 9, 4, 2)]]],
   // Lupa cuadrada y brutalista.
-  lens: () => [...frameRect(2, 2, 14, 14, W), bar(14.2, 14.2, 21.6, 21.6, 3.4)],
+  lens: () => [[R.steel, frame(1, 1, 10, 10, 2)], [R.brass, stroke([[10, 10], [14.6, 14.6]], 2.6)]],
   // Pirámide invertida con su núcleo: control de código fuente y rama de Git.
-  pyramid: () => {
-    /** @type {Poly} */
-    const tri = [[1.8, 3.2], [22.2, 3.2], [12, 21.6]];
-    const { cx, cy } = incircle(tri);
-    return [...frameTriangle(tri, 2.3), solid(scale(tri, 0.3, cx, cy))];
-  },
+  pyramid: () => one(R.orange, [...ring([[2.5, 3], [13.5, 3], [8, 13]], 2), poly([6.4, 6], [9.6, 6], [8, 9])]),
   // Variantes de la rama de Git: pirámide algo menor con una marca en la esquina.
-  pyramidDot: () => [...smallPyramid(), rect(17.6, 0.8, 5, 5)],
-  pyramidPlus: () => [...smallPyramid(), rect(19.1, 0.6, 2, 7), rect(16.6, 3.1, 7, 2)],
-  pyramidMinus: () => [...smallPyramid(), rect(16.6, 3.1, 7, 2)],
-  pyramidAlert: () => [...smallPyramid(), solid([[20.1, 0.4], [23.6, 3.9], [20.1, 7.4], [16.6, 3.9]])],
+  pyramidDot: () => [[R.orange, smallPyramid()], [R.amber, MARK.dot()]],
+  pyramidPlus: () => [[R.orange, smallPyramid()], [R.green, MARK.plus()]],
+  pyramidMinus: () => [[R.orange, smallPyramid()], [R.red, MARK.minus()]],
+  pyramidAlert: () => [[R.orange, smallPyramid()], [R.red, MARK.alert()]],
   // El Consejo: pirámide maciza con una ranura, y la línea con la que «habla».
-  board: () => [rect(5, 2, 14, W), solid([[2.5, 7.5], [21.5, 7.5], [12, 22.5]]), hole(rect(8.4, 10.6, 7.2, 1.8))],
+  board: () => [[R.red, [rect(4, 1, 8, 2)]], [R.violet, [poly([1, 5], [15, 5], [8, 15]), cutRect(5, 7, 6, 2)]]],
   // Hexágono de la Hedron con «play» (ejecutar y depurar) o con un check (tests).
-  hedronPlay: () => [...frameRegular(12, 12, 10.6, 6, 2.2), solid([[9.4, 7.6], [16.8, 12], [9.4, 16.4]])],
-  hedronCheck: () => [...frameRegular(12, 12, 10.6, 6, 2.2), ...polyline([[7.6, 12.2], [10.6, 15.2], [16.8, 8.6]], 2.6)],
+  hedronPlay: () => one(R.cyan, [...hedron(), poly([6, 5], [11, 8], [6, 11])]),
+  hedronCheck: () => [[R.cyan, hedron()], [R.green, stroke([[5, 8], [7, 10], [11, 6]], 2)]],
   // Bloques de hormigón; uno está «alterado» (desplazado y hueco).
-  blocks: () => [rect(2, 13, 9, 9), rect(13, 13, 9, 9), rect(2, 2, 9, 9), ...frameRect(14, 1, 9, 9, 2.2)],
+  blocks: () => [[R.blue, [rect(1, 9, 6, 6)]], [R.teal, [rect(9, 9, 6, 6)]], [R.steel, [rect(1, 1, 6, 6)]], [R.red, frame(10, 0, 6, 6, 2)]],
   // Credencial del Bureau con el emblema de la pirámide.
-  badge: () => [...frameRect(4, 1.5, 16, 21, 2.2), solid([[8.4, 5.6], [15.6, 5.6], [12, 11]]), rect(8, 14, 8, 2.2), rect(8, 17.6, 5, 2.2)],
+  badge: () => [[R.brass, frame(3, 1, 10, 14, 2)], [R.red, [poly([5, 4], [11, 4], [8, 8])]], [R.brass, [rect(5, 10, 6, 2)]]],
   // Tuerca hexagonal (ajustes).
-  hexNut: () => [...frameRegular(12, 12, 10.8, 6, 3.4, 0), regular(12, 12, 2.6, 6, 0)],
+  hexNut: () => [[R.steel, nut(8, 8, 6, 3)], [R.brass, [rect(7, 7, 2, 2)]]],
   // El teléfono de la Hotline (notificaciones).
-  hotline: () => [
-    rect(4, 3.5, 16, 3.4),
-    solid([[1.5, 3.5], [7.5, 3.5], [7.5, 10.5], [4, 10.5], [1.5, 8]]),
-    solid([[16.5, 3.5], [22.5, 3.5], [22.5, 8], [20, 10.5], [16.5, 10.5]]),
-    solid([[6.5, 12.5], [17.5, 12.5], [20.5, 21.5], [3.5, 21.5]]),
-    hole(rect(10, 15.5, 4, 3)),
-  ],
-  hotlineDot: () => [
-    rect(4, 3.5, 13, 3.4),
-    solid([[1.5, 3.5], [7.5, 3.5], [7.5, 10.5], [4, 10.5], [1.5, 8]]),
-    solid([[16.5, 3.5], [18.5, 3.5], [18.5, 10.5], [16.5, 10.5]]),
-    solid([[6.5, 12.5], [17.5, 12.5], [20.5, 21.5], [3.5, 21.5]]),
-    hole(rect(10, 15.5, 4, 3)),
-    rect(19.2, 0.6, 4.2, 4.2),
-  ],
-  // Cubo de un Objeto de Poder (paquetes).
-  cube: () => [...frameRegular(12, 12, 10.6, 6, 2.2), bar(12, 12, 12, 22, 2.2), bar(12, 12, 3.6, 7.2, 2.2), bar(12, 12, 20.4, 7.2, 2.2)],
+  hotline: () => one(R.red, hotline(true)),
+  hotlineDot: () => [[R.red, hotline(false)], [R.amber, MARK.dot()]],
+  // Cubo de un Objeto de Poder (paquetes): tres caras separadas.
+  cube: () => one(R.violet, [poly([8, 1], [15, 4.5], [8, 8], [1, 4.5]), poly([1, 6], [7, 9.2], [7, 15], [1, 11.8]), poly([15, 6], [9, 9.2], [9, 15], [15, 11.8])]),
   // Polaris, la luz que guía a Jesse: los asistentes de IA (Copilot, chat).
-  polaris: () => {
-    /** @type {Poly} */
-    const p = [];
-    for (let i = 0; i < 16; i++) {
-      const r = i % 2 ? 3.1 : i % 4 === 0 ? 11.2 : 7;
-      const a = ((-90 + 22.5 * i) * Math.PI) / 180;
-      p.push([12 + r * Math.cos(a), 12 + r * Math.sin(a)]);
-    }
-    return [solid(p)];
-  },
+  polaris: () => one(R.yellow, [star(8, 8, 8, 7.6, 2.6, 5)]),
   // Estados de Copilot y del chat: Polaris con una marca (trabajando, aviso, error, listo, sin conexión, en pausa).
-  polarisDot: () => [...smallPolaris(), ...MARK.dot()],
-  polarisAlert: () => [...smallPolaris(), ...MARK.alert()],
-  polarisError: () => [...smallPolaris(), ...MARK.error()],
-  polarisCheck: () => [...smallPolaris(), ...MARK.check()],
-  polarisOff: () => [...smallPolaris(), ...MARK.off()],
-  polarisPause: () => [...smallPolaris(), ...MARK.pause()],
+  polarisDot: () => [[R.yellow, smallPolaris()], [R.amber, MARK.dot()]],
+  polarisAlert: () => [[R.yellow, smallPolaris()], [R.amber, MARK.alert()]],
+  polarisError: () => [[R.yellow, smallPolaris()], [R.red, MARK.error()]],
+  polarisCheck: () => [[R.yellow, smallPolaris()], [R.green, MARK.check()]],
+  polarisOff: () => [[R.yellow, smallPolaris()], [R.red, MARK.off()]],
+  polarisPause: () => [[R.yellow, smallPolaris()], [R.steel, MARK.pause()]],
   // La Hotline en «no molestar» (notificaciones silenciadas).
-  hotlineOff: () => [...GLYPHS.hotlineDot().slice(0, -1), ...MARK.off()],
+  hotlineOff: () => [[R.red, hotline(false)], [R.steel, MARK.off()]],
   // El Laberinto del Cenicero (Ashtray Maze): control de código fuente, caminos que se bifurcan.
-  maze: () => polyline([[3, 21], [3, 3], [21, 3], [21, 21], [8, 21], [8, 8], [16, 8], [16, 16], [12, 16], [12, 12.4]], 2.3),
+  maze: () => one(R.amber, stroke([[2, 15], [2, 2], [14, 2], [14, 14], [6, 14], [6, 6], [10, 6], [10, 10]], 2)),
   // El patito de goma que se teletransporta (Objeto Alterado): depurar, «rubber duck debugging».
   duck: () => [
-    solid([[1.5, 9.5], [5.5, 13], [16, 13], [18.5, 11], [22.5, 12], [22, 16.5], [18, 21.5], [6, 21.5], [2.5, 17.5]]),
-    regular(9.8, 8, 5.2, 8, 22.5),
-    hole(rect(9.8, 5.5, 1.9, 1.9)),
-    solid([[14.4, 7], [19.8, 8.4], [14.4, 10.6]]),
+    [R.yellow, [octagon(5, 1, 7, 7, 2), cutRect(8, 3, 2, 2), rect(6, 7, 4, 3), poly([1, 7], [4, 10], [11, 10], [13, 9], [15, 10], [15, 12], [13, 15], [4, 15], [1, 12])]],
+    [R.orange, [poly([12, 3], [14, 3], [16, 4.5], [14, 6], [12, 6])]],
   ],
   // Disquete de 8 pulgadas (Objeto de Poder): guardar.
   floppy: () => [
-    solid([[2.5, 2.5], [18, 2.5], [21.5, 6], [21.5, 21.5], [2.5, 21.5]]),
-    hole(rect(7, 4.5, 10, 5.2)),
-    hole(rect(5.6, 12.4, 12.8, 7.2)),
-    rect(13, 5.4, 2.4, 3.4),
-    rect(7.4, 14, 9.2, 4),
+    [R.blue, [poly([1, 1], [12, 1], [15, 4], [15, 15], [1, 15]), cutRect(4, 3, 7, 4), cutRect(4, 9, 8, 6)]],
+    [R.steel, [rect(8, 4, 2, 2)]],
+    [R.paper, [rect(5, 10, 6, 1), rect(5, 12, 4, 1)]],
   ],
   // La cinta de Ahti (la puerta trasera del Laberinto): la línea de tiempo.
   cassette: () => [
-    rect(1.5, 4.5, 21, 15.5),
-    hole(rect(4.6, 7.4, 14.8, 6.6)),
-    hole(solid([[6.4, 16.2], [17.6, 16.2], [16.4, 20], [7.6, 20]])),
-    regular(8.8, 10.7, 2.3, 8, 22.5),
-    regular(15.2, 10.7, 2.3, 8, 22.5),
+    [R.amber, [rect(1, 3, 14, 11), cutRect(3, 5, 10, 4), cut([5, 11], [11, 11], [12, 14], [4, 14])]],
+    [R.steel, [rect(5, 6, 2, 2), rect(9, 6, 2, 2)]],
   ],
   // La televisión Benicoff (Objeto de Poder): la consola de depuración.
-  tv: () => [...polyline([[7, 1.8], [12, 6.6], [17, 1.8]], 2), rect(1.5, 6.6, 21, 15.4), hole(rect(3.8, 8.9, 12.6, 10.8)), hole(rect(18.3, 10, 2.4, 2.4)), hole(rect(18.3, 14.4, 2.4, 2.4))],
+  tv: () => [[R.steel, stroke([[4.8, 0.8], [8, 4], [11.2, 0.8]], 1.6)], [R.brass, [rect(1, 4, 14, 11), cutRect(3, 6, 8, 7), cutRect(12, 7, 2, 2), cutRect(12, 10, 2, 2)]]],
   // El proyector de diapositivas (Objeto de Poder): la salida.
   projector: () => [
-    regular(5.6, 6.2, 3.2, 8, 22.5),
-    regular(12, 6.2, 3.2, 8, 22.5),
-    rect(1.5, 9, 14, 10),
-    hole(regular(8.5, 14, 2.6, 8, 22.5)),
-    rect(3, 19, 2.4, 2.6),
-    rect(11.1, 19, 2.4, 2.6),
-    solid([[16.5, 11.2], [22.8, 7.6], [22.8, 20.4], [16.5, 16.8]]),
+    [R.steel, [octagon(1, 1, 4, 4, 1), octagon(6, 1, 4, 4, 1), rect(1, 5, 10, 7), cutRect(4, 7, 3, 3), rect(2, 12, 2, 3), rect(8, 12, 2, 3)]],
+    [R.yellow, [poly([11, 7], [15, 5], [15, 13], [11, 11])]],
   ],
   // La caja fuerte (Objeto de Poder del Escudo): confianza del espacio de trabajo, archivar.
-  safe: () => [...frameRect(2.5, 2.5, 19, 16.5, 2.2), ...frameOct(12, 10.75, 4.6, 2), rect(11.1, 9.85, 1.8, 1.8), rect(4.5, 19, 3.6, 2.8), rect(15.9, 19, 3.6, 2.8)],
+  safe: () => [[R.steel, [...frame(1, 1, 14, 12, 2), rect(2, 13, 3, 2), rect(11, 13, 3, 2)]], [R.brass, octRing(5, 4, 6, 6, 2, 2)]],
   // El cubo y la fregona de Ahti, el conserje: limpiar todo.
   mop: () => [
-    solid([[7, 11.5], [21.5, 11.5], [19.5, 22], [9, 22]]),
-    hole(rect(9.2, 14.6, 10.4, 1.8)),
-    bar(3, 1.8, 13.6, 13.8, 2.4),
-    ...polyline([[8.6, 11.5], [14.25, 7.4], [19.9, 11.5]], 1.8),
+    [R.blue, [poly([5, 8], [15, 8], [14, 15], [6, 15]), cutRect(7, 10, 6, 1)]],
+    [R.paper, stroke([[1, 1], [8, 8]], 2)],
+    [R.steel, stroke([[6, 8], [10, 5], [14, 8]], 1.4)],
   ],
   // La llave del Motel Oceanview con su llavero de rombo: claves y atajos de teclado.
-  key: () => [solid([[7, 1], [13, 7], [7, 13], [1, 7]]), hole(regular(7, 7, 1.8, 4, 0)), bar(10.5, 10.5, 21, 21, 2.6), bar(15, 15, 17.6, 12.4, 2.2), bar(18.4, 18.4, 21, 15.8, 2.2)],
+  key: () => [
+    [R.red, [poly([5, 0], [10, 5], [5, 10], [0, 5]), cutRect(4, 4, 2, 2)]],
+    [R.brass, [...stroke([[8, 8], [14.3, 14.3]], 2), ...stroke([[10.5, 10.5], [13, 8]], 1.8), ...stroke([[12.8, 12.8], [15, 10.6]], 1.8)]],
+  ],
   // La Casa Inmemorial: torre brutalista con su remate volado (inicio).
   oldestHouse: () => [
-    solid([[1.5, 2.5], [22.5, 2.5], [22.5, 8], [18.5, 8], [18.5, 20], [5.5, 20], [5.5, 8], [1.5, 8]]),
-    hole(rect(3.6, 4.6, 16.8, 1.4)),
-    hole(rect(8.4, 10.4, 2.2, 7.6)),
-    hole(rect(13.4, 10.4, 2.2, 7.6)),
-    rect(1, 20, 22, 2.2),
+    [R.steel, [poly([1, 1], [15, 1], [15, 5], [12, 5], [12, 13], [4, 13], [4, 5], [1, 5]), cutRect(3, 3, 10, 1), cutRect(5, 7, 2, 5), cutRect(9, 7, 2, 5)]],
+    [R.red, [rect(1, 14, 14, 2)]],
   ],
   // El Umbral (Threshold): la puerta entre mundos, conexiones remotas.
-  threshold: () => [...frameRect(5, 1.5, 14, 19.5, 2.2), solid([[7.2, 3.7], [14, 5.8], [14, 21], [7.2, 18.8]]), rect(1.5, 21, 21, 1.8)],
+  threshold: () => [[R.steel, stroke([[4, 14], [4, 2], [12, 2], [12, 14]], 2)], [R.cyan, [poly([5, 3], [10, 4.5], [10, 14], [5, 12.5])]], [R.steel, [rect(1, 14, 14, 2)]]],
   // El Aberrante, el arma que cambia de forma de Dylan (Control Resonant): herramientas.
   hammer: () => [
-    solid([[2, 3], [16, 3], [19, 6], [19, 8.5], [16, 11], [2, 11]]),
-    hole(rect(4.4, 6, 9, 2)),
-    rect(9.6, 11, 3, 11.5),
-    solid([[19, 6], [22.5, 4], [22.5, 10.5], [19, 8.5]]),
+    [R.cyan, [poly([1, 2], [10, 2], [12, 4], [12, 6], [10, 8], [1, 8]), cutRect(3, 4, 5, 2), poly([12, 4], [15, 2.5], [15, 7.5], [12, 6])]],
+    [R.steel, [rect(6, 8, 3, 8)]],
   ],
   // Resonancia: el sonido de la extensión (icono de la barra de estado).
-  resonance: () => [
-    solid([[2, 8.8], [6.6, 8.8], [12, 3.8], [12, 20.2], [6.6, 15.2], [2, 15.2]]),
-    ...polyline(octPoints(12, 12, 5, [-45, 0, 45]), 2.2),
-    ...polyline(octPoints(12, 12, 9.4, [-55, -27.5, 0, 27.5, 55]), 2.2),
-  ],
-  resonanceOff: () => [solid([[2, 8.8], [6.6, 8.8], [12, 3.8], [12, 20.2], [6.6, 15.2], [2, 15.2]]), bar(15, 8.6, 21.8, 15.4, 2.4), bar(21.8, 8.6, 15, 15.4, 2.4)],
+  resonance: () =>
+    one(R.cyan, [
+      poly([1, 6], [4, 6], [8, 2], [8, 14], [4, 10], [1, 10]),
+      ...stroke([[9.5, 4.5], [11, 6], [11, 10], [9.5, 11.5]], 2),
+      ...stroke([[11.5, 1.5], [14, 4], [14, 12], [11.5, 14.5]], 2),
+    ]),
+  resonanceOff: () => [[R.steel, [poly([1, 6], [4, 6], [8, 2], [8, 14], [4, 10], [1, 10])]], [R.red, [cross(12.5, 8, 2.6, 1.8)]]],
   // La gramola Songmaster (Objeto de Poder): música y packs de sonido.
-  jukebox: () => [
-    solid([[3.5, 8.5], [7, 2.5], [17, 2.5], [20.5, 8.5], [20.5, 22], [3.5, 22]]),
-    hole(solid([[6.2, 8.8], [8.6, 5], [15.4, 5], [17.8, 8.8], [17.8, 12.4], [6.2, 12.4]])),
-    hole(rect(6.2, 14.8, 11.6, 1.6)),
-    hole(rect(6.2, 18, 11.6, 1.6)),
-  ],
+  jukebox: () =>
+    one(R.orange, [poly([2, 5], [5, 1], [11, 1], [14, 5], [14, 15], [2, 15]), cut([4, 6], [6, 3], [10, 3], [12, 6], [12, 8], [4, 8]), cutRect(4, 10, 8, 1), cutRect(4, 12, 8, 1)]),
 
   // ── Terminal, puertos ─────────────────────────────────────────────────────────
-  prompt: () => [...polyline([[4, 6], [10.5, 12], [4, 18]], 2.8), rect(12.5, 17, 8.5, 2.8)],
-  plug: () => [rect(6.5, 8, 11, 8.5), rect(8.5, 2.5, 2.4, 5.5), rect(13.1, 2.5, 2.4, 5.5), bar(12, 16.5, 12, 22.5, W)],
+  prompt: () => one(R.green, [...stroke([[2, 3], [7, 8], [2, 13]], 2), rect(9, 12, 6, 2)]),
+  plug: () => one(R.teal, [rect(3, 5, 10, 6), rect(5, 1, 2, 4), rect(9, 1, 2, 4), rect(7, 11, 2, 4)]),
 
   // ── Navegación ──────────────────────────────────────────────────────────────
-  chevronRight: () => polyline([[9, 5.5], [15.5, 12], [9, 18.5]], 2.6),
-  chevronLeft: () => polyline([[15, 5.5], [8.5, 12], [15, 18.5]], 2.6),
-  chevronDown: () => polyline([[5.5, 9], [12, 15.5], [18.5, 9]], 2.6),
-  chevronUp: () => polyline([[5.5, 15], [12, 8.5], [18.5, 15]], 2.6),
-  arrowLeft: () => [bar(20, 12, 6, 12, 2.6), ...polyline([[11.5, 6], [5.5, 12], [11.5, 18]], 2.6)],
-  arrowRight: () => [bar(4, 12, 18, 12, 2.6), ...polyline([[12.5, 6], [18.5, 12], [12.5, 18]], 2.6)],
-  arrowUp: () => [bar(12, 20, 12, 6, 2.6), ...polyline([[6, 11.5], [12, 5.5], [18, 11.5]], 2.6)],
-  arrowDown: () => [bar(12, 4, 12, 18, 2.6), ...polyline([[6, 12.5], [12, 18.5], [18, 12.5]], 2.6)],
-  triangleRight: () => [solid([[8.5, 5.5], [16.5, 12], [8.5, 18.5]])],
-  triangleDown: () => [solid([[5.5, 8.5], [18.5, 8.5], [12, 16.5]])],
+  chevronRight: () => one(R.steel, stroke([[6, 3], [11, 8], [6, 13]], 2)),
+  chevronLeft: () => one(R.steel, stroke([[10, 3], [5, 8], [10, 13]], 2)),
+  chevronDown: () => one(R.steel, stroke([[3, 6], [8, 11], [13, 6]], 2)),
+  chevronUp: () => one(R.steel, stroke([[3, 10], [8, 5], [13, 10]], 2)),
+  arrowLeft: () => one(R.steel, [rect(4, 7, 10, 2), ...stroke([[8, 3], [3, 8], [8, 13]], 2)]),
+  arrowRight: () => one(R.steel, [rect(2, 7, 10, 2), ...stroke([[8, 3], [13, 8], [8, 13]], 2)]),
+  arrowUp: () => one(R.steel, [rect(7, 4, 2, 10), ...stroke([[3, 8], [8, 3], [13, 8]], 2)]),
+  arrowDown: () => one(R.steel, [rect(7, 2, 2, 10), ...stroke([[3, 8], [8, 13], [13, 8]], 2)]),
+  triangleRight: () => one(R.steel, [poly([5, 3], [11, 8], [5, 13])]),
+  triangleDown: () => one(R.steel, [poly([3, 5], [13, 5], [8, 11])]),
 
   // ── Acciones ────────────────────────────────────────────────────────────────
-  close: () => [bar(5.5, 5.5, 18.5, 18.5, 2.6), bar(18.5, 5.5, 5.5, 18.5, 2.6)],
-  add: () => [rect(10.7, 4, 2.6, 16), rect(4, 10.7, 16, 2.6)],
-  remove: () => [rect(4, 10.7, 16, 2.6)],
-  check: () => polyline([[4, 12.5], [9.5, 18], [20, 6.5]], 2.8),
-  checkAll: () => [...polyline([[1.5, 12.5], [6, 17], [14.5, 7.5]], 2.4), ...polyline([[10.5, 17], [20.5, 7]], 2.4), bar(8.5, 15, 10.5, 17, 2.4)],
-  ellipsis: () => [rect(2.5, 10.2, 3.6, 3.6), rect(10.2, 10.2, 3.6, 3.6), rect(17.9, 10.2, 3.6, 3.6)],
-  kebab: () => [rect(10.2, 2.5, 3.6, 3.6), rect(10.2, 10.2, 3.6, 3.6), rect(10.2, 17.9, 3.6, 3.6)],
-  menu: () => [rect(3.5, 5, 17, W), rect(3.5, 10.8, 17, W), rect(3.5, 16.6, 17, W)],
-  trash: () => [rect(3.5, 4.8, 17, 2.2), rect(9, 2, 6, 2.8), ...framePoly([[5.8, 8.5], [18.2, 8.5], [17.2, 22], [6.8, 22]], [[8, 10.7], [16, 10.7], [15.2, 19.8], [8.8, 19.8]]), rect(11, 12, 2, 6)],
-  edit: () => [bar(5.5, 18.5, 17.5, 6.5, 3.4), solid([[2.5, 21.5], [3.3, 16.9], [7.1, 20.7]]), bar(17.2, 2.6, 21.4, 6.8, 3.4)],
-  filter: () => [solid([[2.5, 4], [21.5, 4], [14, 12.5], [14, 20.5], [10, 18.3], [10, 12.5]])],
-  collapseAll: () => [rect(2, 2, 13, 2.2), rect(2, 2, 2.2, 13), ...frameRect(6.5, 6.5, 15, 15, 2.2), rect(9.8, 12.9, 8.4, 2.2)],
-  expandAll: () => [rect(2, 2, 13, 2.2), rect(2, 2, 2.2, 13), ...frameRect(6.5, 6.5, 15, 15, 2.2), rect(9.8, 12.9, 8.4, 2.2), rect(12.9, 9.8, 2.2, 8.4)],
-  newFile: () => [...docWithBadge(), ...badgePlus()],
-  newFolder: () => [...folderWithBadge(), ...badgePlus()],
-  file: () => framePoly([[4, 1.5], [13.5, 1.5], [20, 8], [20, 22.5], [4, 22.5]], [[6.2, 3.7], [12.6, 3.7], [17.8, 8.9], [17.8, 20.3], [6.2, 20.3]]),
-  folder: () => framePoly([[1.5, 4], [8.5, 4], [10.5, 6], [22.5, 6], [22.5, 20], [1.5, 20]], [[3.7, 6.2], [7.6, 6.2], [9.6, 8.2], [20.3, 8.2], [20.3, 17.8], [3.7, 17.8]]),
-  folderOpened: () => [...polyline([[3.2, 15], [3.2, 5.2], [8, 5.2], [10, 7.2], [17.8, 7.2], [17.8, 9.5]], 2.2), ...framePoly([[1.5, 20.5], [5.6, 10.5], [23, 10.5], [18.9, 20.5]], [[4.7, 18.3], [7, 12.7], [19.8, 12.7], [17.4, 18.3]])],
-  copy: () => [rect(2.5, 2.5, 13, 2.2), rect(2.5, 2.5, 2.2, 13), ...frameRect(7.5, 7.5, 14, 14, 2.2)],
-  pin: () => [rect(8, 2.5, 8, 8.5), rect(5, 11, 14, W), rect(10.9, 13.4, 2.2, 8.6)],
-  lock: () => [rect(4, 10, 16, 12), hole(rect(10.8, 13.5, 2.4, 5)), ...polyline([[7.5, 10], [7.5, 4], [16.5, 4], [16.5, 10]], W)],
-  unlock: () => [rect(4, 10, 16, 12), hole(rect(10.8, 13.5, 2.4, 5)), ...polyline([[7.5, 10], [7.5, 4], [16.5, 4], [16.5, 6.5]], W)],
-  eye: () => [...framePoly([[1.5, 12], [7.5, 5.5], [16.5, 5.5], [22.5, 12], [16.5, 18.5], [7.5, 18.5]], [[4.5, 12], [8.5, 7.7], [15.5, 7.7], [19.5, 12], [15.5, 16.3], [8.5, 16.3]]), rect(9.6, 9.6, 4.8, 4.8)],
-  eyeClosed: () => [...polyline([[1.5, 9], [7.5, 14.5], [16.5, 14.5], [22.5, 9]], W), bar(6, 15.5, 4, 20, 2.2), bar(12, 16, 12, 21, 2.2), bar(18, 15.5, 20, 20, 2.2)],
-  lightbulb: () => [...framePoly([[7, 2], [17, 2], [20.5, 6.5], [20.5, 11], [16, 15.5], [8, 15.5], [3.5, 11], [3.5, 6.5]], [[8, 4.2], [16, 4.2], [18.3, 7.2], [18.3, 10.1], [15.1, 13.3], [8.9, 13.3], [5.7, 10.1], [5.7, 7.2]]), rect(8.5, 17, 7, 2.2), rect(9.8, 20.2, 4.4, 2.2)],
-  zap: () => [solid([[13.5, 1.5], [4.5, 13.5], [10.8, 13.5], [9, 22.5], [19.5, 9.8], [13, 9.8]])],
-  comment: () => framePoly([[2, 3], [22, 3], [22, 16.5], [10.5, 16.5], [5, 21.5], [5, 16.5], [2, 16.5]], [[4.2, 5.2], [19.8, 5.2], [19.8, 14.3], [9.7, 14.3], [7.2, 16.6], [7.2, 14.3], [4.2, 14.3]]),
-  history: () => [...frameOct(12, 12, 10.4, 2.2), rect(10.9, 6, 2.2, 7.1), rect(10.9, 10.9, 6, 2.2)],
-  starFull: () => [solid(star(1))],
-  starEmpty: () => [solid(star(1)), hole(scale(star(1), 0.5, 12, 12.6))],
-  circleFilled: () => [regular(12, 12, 5.6, 8, 22.5)],
-  loading: () => polyline(octPoints(12, 12, 8.6, [-90, -45, 0, 45, 90, 135, 180]), 2.6),
+  close: () => one(R.red, [cross(8, 8, 5, 2)]),
+  add: () => one(R.green, [rect(7, 2, 2, 12), rect(2, 7, 12, 2)]),
+  remove: () => one(R.red, [rect(2, 7, 12, 2)]),
+  check: () => one(R.green, stroke([[2, 8], [6, 12], [14, 4]], 2)),
+  checkAll: () => one(R.green, [...stroke([[1, 8], [4.5, 11.5], [10, 6]], 2), ...stroke([[8, 11.5], [14.5, 5]], 2)]),
+  ellipsis: () => one(R.steel, [rect(2, 7, 2, 2), rect(7, 7, 2, 2), rect(12, 7, 2, 2)]),
+  kebab: () => one(R.steel, [rect(7, 2, 2, 2), rect(7, 7, 2, 2), rect(7, 12, 2, 2)]),
+  menu: () => one(R.steel, [rect(2, 3, 12, 2), rect(2, 7, 12, 2), rect(2, 11, 12, 2)]),
+  trash: () => one(R.red, [rect(2, 3, 12, 2), rect(6, 1, 4, 2), poly([3, 6], [13, 6], [12, 15], [4, 15]), cut([5, 8], [11, 8], [10.6, 13], [5.4, 13]), rect(7, 9, 2, 3)]),
+  edit: () => [
+    [R.amber, stroke([[4.2, 11.8], [11, 5]], 3)],
+    [R.steel, [poly([1.2, 14.8], [2.1, 10.8], [5.2, 13.9])]],
+    [R.red, stroke([[12, 4], [14.5, 1.5]], 3)],
+  ],
+  filter: () => one(R.teal, [poly([1, 2], [15, 2], [10, 8], [10, 14], [6, 12], [6, 8])]),
+  collapseAll: () => [[R.steel, [...backSheet(), ...frame(5, 5, 10, 10, 2)]], [R.blue, [rect(7, 9, 6, 2)]]],
+  expandAll: () => [[R.steel, [...backSheet(), ...frame(5, 5, 10, 10, 2)]], [R.blue, [rect(7, 9, 6, 2), rect(9, 7, 2, 6)]]],
+  newFile: () => [[R.paper, stroke([[9, 14], [3, 14], [3, 2], [8, 2], [11, 5], [11, 8]], 2)], [R.green, badgePlus()]],
+  newFolder: () => [[R.amber, stroke([[9, 13], [2, 13], [2, 3], [6, 3], [8, 5], [14, 5], [14, 8]], 2)], [R.green, badgePlus()]],
+  file: () => one(R.paper, ring([[3, 2], [9, 2], [13, 6], [13, 14], [3, 14]], 2)),
+  folder: () => one(R.amber, ring([[2, 3], [6, 3], [8, 5], [14, 5], [14, 13], [2, 13]], 2)),
+  folderOpened: () => one(R.amber, [...stroke([[2, 11], [2, 3], [6, 3], [8, 5], [12, 5], [12, 7]], 2), ...ring([[4, 8], [14, 8], [12, 14], [2, 14]], 2)]),
+  copy: () => one(R.blue, [...backSheet(), ...frame(5, 5, 10, 10, 2)]),
+  pin: () => one(R.red, [rect(5, 1, 6, 6), rect(3, 7, 10, 2), rect(7, 9, 2, 6)]),
+  lock: () => one(R.brass, [...stroke([[5, 7], [5, 3], [11, 3], [11, 7]], 2), rect(3, 7, 10, 8), cutRect(7, 10, 2, 3)]),
+  unlock: () => one(R.brass, [...stroke([[5, 7], [5, 3], [11, 3], [11, 5]], 2), rect(3, 7, 10, 8), cutRect(7, 10, 2, 3)]),
+  eye: () => [[R.blue, ring([[1.8, 8], [5, 4], [11, 4], [14.2, 8], [11, 12], [5, 12]], 2)], [R.cyan, [rect(6, 6, 4, 4)]]],
+  eyeClosed: () => one(R.steel, [...stroke([[1, 6], [5, 10], [11, 10], [15, 6]], 2), ...stroke([[4, 11], [2.5, 13.8]], 1.6), rect(7, 11, 2, 3), ...stroke([[12, 11], [13.5, 13.8]], 1.6)]),
+  lightbulb: () => [[R.yellow, ring([[5, 2], [11, 2], [13, 4], [13, 7], [10, 10], [6, 10], [3, 7], [3, 4]], 2)], [R.steel, [rect(5, 12, 6, 2), rect(6, 15, 4, 1)]]],
+  zap: () => one(R.yellow, [poly([9, 1], [3, 9], [7, 9], [6, 15], [13, 6], [9, 6])]),
+  comment: () => one(R.blue, [...frame(1, 1, 14, 11, 2), poly([4, 12], [7, 12], [4, 15])]),
+  history: () => [[R.steel, octRing(1, 1, 14, 14, 4, 2)], [R.red, [rect(7, 4, 2, 5), rect(7, 7, 5, 2)]]],
+  starFull: () => one(R.yellow, [star(8, 8.6, 5, 7.6, 3.1)]),
+  starEmpty: () => one(R.yellow, [star(8, 8.6, 5, 7.6, 3.1), K.hole(star(8, 8.6, 5, 3.8, 1.55))]),
+  circleFilled: () => one(R.amber, [octagon(4, 4, 8, 8, 2)]),
+  loading: () => one(R.cyan, stroke([[3, 8], [3, 5], [5, 3], [11, 3], [13, 5], [13, 11], [11, 13], [8, 13]], 2)),
 
   // ── Estado y diagnósticos ─────────────────────────────────────────────────────
-  error: () => [...frameOct(12, 12, 10.6, 2.2), bar(8.4, 8.4, 15.6, 15.6, 2.4), bar(15.6, 8.4, 8.4, 15.6, 2.4)],
-  warning: () => [...frameTriangle([[12, 1.8], [22.8, 21], [1.2, 21]], 2.2), rect(10.9, 8.6, 2.2, 6.4), rect(10.9, 16.3, 2.2, 2.2)],
-  info: () => [...frameRect(2.5, 2.5, 19, 19, 2.2), rect(10.9, 10.3, 2.2, 7.4), rect(10.9, 6.3, 2.2, 2.2)],
+  error: () => one(R.red, [...octRing(1, 1, 14, 14, 4, 2), cross(8, 8, 2.8, 2)]),
+  warning: () => one(R.amber, [poly([8, 1], [15, 15], [1, 15]), cutRect(7, 6, 2, 5), cutRect(7, 12, 2, 2)]),
+  info: () => one(R.blue, [...frame(1, 1, 14, 14, 2), rect(7, 4, 2, 2), rect(7, 7, 2, 5)]),
 
   // ── Control de código fuente ───────────────────────────────────────────────────
-  gitCommit: () => [rect(1.5, 10.8, 5.5, W), rect(17, 10.8, 5.5, W), ...frameRect(7, 7, 10, 10, W)],
-  gitPullRequest: () => [...frameRect(2.5, 2, 6.5, 6.5, 2), ...frameRect(2.5, 15.5, 6.5, 6.5, 2), rect(4.75, 8.5, 2, 7), ...frameRect(15, 15.5, 6.5, 6.5, 2), ...polyline([[18.25, 15.5], [18.25, 5.25], [13.5, 5.25]], 2), solid([[14.5, 1.8], [10, 5.25], [14.5, 8.7]])],
-  sync: () => [
-    ...polyline(octPoints(12, 12, 8.6, [180, 225, 270, 315]), 2.4),
-    solid([[16, 2.6], [22.5, 5.5], [17.6, 10.6]]),
-    ...polyline(octPoints(12, 12, 8.6, [0, 45, 90, 135]), 2.4),
-    solid([[8, 21.4], [1.5, 18.5], [6.4, 13.4]]),
-  ],
-  refresh: () => [...polyline(octPoints(12, 12.5, 8.4, [-45, 0, 45, 90, 135, 180, 225, 270]), 2.4), solid([[11.6, 0.6], [18.2, 4.1], [11.6, 7.6]])],
-  cloudUpload: () => [...tray(), bar(12, 16.5, 12, 5, W), ...polyline([[6.8, 9.5], [12, 4.3], [17.2, 9.5]], W)],
-  cloudDownload: () => [...tray(), bar(12, 3, 12, 15, W), ...polyline([[6.8, 10.2], [12, 15.4], [17.2, 10.2]], W)],
-  discard: () => [...polyline([[19.5, 18], [19.5, 9], [8, 9]], W), solid([[9.5, 3.8], [3, 9], [9.5, 14.2]])],
-  listFlat: () => [rect(3, 5, 18, 2.2), rect(3, 10.9, 18, 2.2), rect(3, 16.8, 18, 2.2)],
-  listTree: () => [rect(3, 4, 18, 2.2), rect(7.5, 10.9, 13.5, 2.2), rect(7.5, 17.8, 13.5, 2.2), rect(3, 6.2, 2.2, 12.8), rect(3, 10.9, 4.5, 2.2), rect(3, 17.8, 4.5, 2.2)],
+  gitCommit: () => one(R.orange, [rect(1, 7, 4, 2), rect(11, 7, 4, 2), ...frame(5, 5, 6, 6, 2)]),
+  gitPullRequest: () => one(R.green, [rect(2, 1, 4, 4), rect(3, 5, 2, 6), rect(2, 11, 4, 4), rect(10, 11, 4, 4), ...stroke([[12, 11], [12, 4], [8, 4]], 2), poly([8, 1], [5, 4], [8, 7])]),
+  sync: () =>
+    one(R.teal, [
+      ...stroke([[3, 11], [3, 6], [6, 3], [9, 3]], 2),
+      poly([9, 0], [12, 3], [9, 6]),
+      ...stroke([[13, 5], [13, 10], [10, 13], [7, 13]], 2),
+      poly([7, 10], [4, 13], [7, 16]),
+    ]),
+  refresh: () => one(R.teal, [...stroke([[3, 7], [3, 11], [5, 13], [11, 13], [13, 11], [13, 5], [11, 3], [8, 3]], 2), poly([8, 0], [5, 3], [8, 6])]),
+  cloudUpload: () => one(R.blue, [...tray(), rect(7, 3, 2, 9), ...stroke([[4, 6], [8, 2], [12, 6]], 2)]),
+  cloudDownload: () => one(R.blue, [...tray(), rect(7, 1, 2, 9), ...stroke([[4, 6], [8, 10], [12, 6]], 2)]),
+  discard: () => one(R.amber, [...stroke([[13, 13], [13, 6], [6, 6]], 2), poly([6, 2], [2, 6], [6, 10])]),
+  listFlat: () => one(R.steel, [rect(1, 3, 2, 2), rect(4, 3, 11, 2), rect(1, 7, 2, 2), rect(4, 7, 11, 2), rect(1, 11, 2, 2), rect(4, 11, 11, 2)]),
+  listTree: () => one(R.steel, [rect(2, 2, 12, 2), rect(2, 4, 2, 10), rect(4, 7, 10, 2), rect(4, 12, 10, 2)]),
 
   // ── Depuración y ejecución ────────────────────────────────────────────────────
-  play: () => [solid([[6.5, 4], [19.5, 12], [6.5, 20]])],
-  debugContinue: () => [rect(4, 4.5, 2.8, 15), solid([[9.5, 4.5], [20.5, 12], [9.5, 19.5]])],
-  debugPause: () => [rect(5.5, 4.5, 4.4, 15), rect(14.1, 4.5, 4.4, 15)],
-  debugStop: () => [rect(5, 5, 14, 14)],
-  debugDisconnect: () => frameRect(5, 5, 14, 14, 2.6),
-  debugStepOver: () => [...polyline([[4, 13], [4, 6.5], [19.5, 6.5], [19.5, 10.5]], W), solid([[15.6, 10], [23.4, 10], [19.5, 14.8]]), rect(9.8, 16.5, 4.4, 4.4)],
-  debugStepInto: () => [bar(12, 1.5, 12, 10, W), solid([[7.5, 9], [16.5, 9], [12, 14]]), rect(9.8, 17, 4.4, 4.4)],
-  debugStepOut: () => [bar(12, 15, 12, 6, W), solid([[7.5, 7], [16.5, 7], [12, 2]]), rect(9.8, 17, 4.4, 4.4)],
+  play: () => one(R.green, [poly([4, 2], [14, 8], [4, 14])]),
+  debugContinue: () => one(R.green, [rect(2, 3, 2, 10), poly([6, 3], [14, 8], [6, 13])]),
+  debugPause: () => one(R.amber, [rect(3, 2, 4, 12), rect(9, 2, 4, 12)]),
+  debugStop: () => one(R.red, [rect(3, 3, 10, 10)]),
+  debugDisconnect: () => one(R.red, frame(3, 3, 10, 10, 2)),
+  debugStepOver: () => [[R.blue, [...stroke([[3, 9], [3, 4], [13, 4], [13, 7]], 2), poly([10, 7], [16, 7], [13, 10])]], [R.amber, [rect(6, 12, 4, 4)]]],
+  debugStepInto: () => [[R.blue, [rect(7, 1, 2, 5), poly([4, 6], [12, 6], [8, 10])]], [R.amber, [rect(6, 12, 4, 4)]]],
+  debugStepOut: () => [[R.blue, [rect(7, 5, 2, 5), poly([4, 5], [12, 5], [8, 1])]], [R.amber, [rect(6, 12, 4, 4)]]],
 
-  // ── Ventana y distribución ────────────────────────────────────────────────────
-  screenFull: () => [rect(3, 3, 7, W), rect(3, 3, W, 7), rect(14, 3, 7, W), rect(18.6, 3, W, 7), rect(3, 18.6, 7, W), rect(3, 14, W, 7), rect(14, 18.6, 7, W), rect(18.6, 14, W, 7)],
-  screenNormal: () => [rect(3, 7.6, 7, W), rect(7.6, 3, W, 7), rect(14, 7.6, 7, W), rect(14, 3, W, 7), rect(3, 14, 7, W), rect(7.6, 14, W, 7), rect(14, 14, 7, W), rect(14, 14, W, 7)],
-  chromeMinimize: () => [rect(5, 11.2, 14, 1.6)],
-  chromeMaximize: () => frameRect(5, 5, 14, 14, 1.6),
-  chromeRestore: () => [...frameRect(5, 8.5, 10.5, 10.5, 1.6), rect(8.5, 5, 10.5, 1.6), rect(17.4, 5, 1.6, 10.5)],
-  chromeClose: () => [bar(5.5, 5.5, 18.5, 18.5, 1.7), bar(18.5, 5.5, 5.5, 18.5, 1.7)],
-  layoutSidebarLeft: () => [...windowFrame(), rect(4, 6, 5.5, 12)],
-  layoutSidebarLeftOff: () => [...windowFrame(), rect(8.5, 4, 2, 16)],
-  layoutSidebarRight: () => [...windowFrame(), rect(14.5, 6, 5.5, 12)],
-  layoutSidebarRightOff: () => [...windowFrame(), rect(13.5, 4, 2, 16)],
-  layoutPanel: () => [...windowFrame(), rect(4, 12.5, 16, 5.5)],
-  layoutPanelOff: () => [...windowFrame(), rect(2, 12, 20, 2)],
-  layout: () => [...windowFrame(), rect(8.5, 4, 2, 16), rect(10.5, 12, 11.5, 2)],
-  splitHorizontal: () => [...windowFrame(), rect(11, 4, 2, 16)],
-  splitVertical: () => [...windowFrame(), rect(2, 11, 20, 2)],
+  // ── Ventana y distribución (contornos de 1 px, como la barra de título) ─────────
+  screenFull: () => one(R.steel, [rect(1, 1, 5, 2), rect(1, 1, 2, 5), rect(10, 1, 5, 2), rect(13, 1, 2, 5), rect(1, 13, 5, 2), rect(1, 10, 2, 5), rect(10, 13, 5, 2), rect(13, 10, 2, 5)]),
+  screenNormal: () => one(R.steel, [rect(1, 4, 5, 2), rect(4, 1, 2, 5), rect(10, 4, 5, 2), rect(10, 1, 2, 5), rect(1, 10, 5, 2), rect(4, 10, 2, 5), rect(10, 10, 5, 2), rect(10, 10, 2, 5)]),
+  chromeMinimize: () => one(R.steel, [rect(3, 8, 10, 1)]),
+  chromeMaximize: () => one(R.steel, frame(3, 3, 10, 10, 1)),
+  chromeRestore: () => one(R.steel, [...frame(3, 5, 8, 8, 1), rect(5, 3, 8, 1), rect(12, 3, 1, 8)]),
+  chromeClose: () => one(R.red, [cross(8, 8, 5, 1.2)]),
+  layoutSidebarLeft: () => [[R.steel, win()], [R.blue, [rect(2, 3, 4, 10)]]],
+  layoutSidebarLeftOff: () => [[R.steel, win()], [R.blue, [rect(5, 3, 1, 10)]]],
+  layoutSidebarRight: () => [[R.steel, win()], [R.blue, [rect(10, 3, 4, 10)]]],
+  layoutSidebarRightOff: () => [[R.steel, win()], [R.blue, [rect(10, 3, 1, 10)]]],
+  layoutPanel: () => [[R.steel, win()], [R.blue, [rect(2, 9, 12, 4)]]],
+  layoutPanelOff: () => [[R.steel, win()], [R.blue, [rect(2, 9, 12, 1)]]],
+  layout: () => [[R.steel, win()], [R.blue, [rect(5, 3, 1, 10), rect(6, 9, 8, 1)]]],
+  splitHorizontal: () => [[R.steel, win()], [R.blue, [rect(7, 3, 2, 10)]]],
+  splitVertical: () => [[R.steel, win()], [R.blue, [rect(2, 7, 12, 2)]]],
+
+  // ── Barra de actividad: versiones dibujadas en 24 × 24 (se pintan a 24 px) ──────
+  dossierBar: () => [[R.paper, [rect(2, 2, 12, 2), rect(2, 2, 2, 16), ...ring([[8, 8], [16, 8], [21, 13], [21, 22], [8, 22]], 2)]], [R.red, [rect(11, 15, 7, 2)]]],
+  lensBar: () => [[R.steel, frame(2, 2, 14, 14, 2)], [R.brass, stroke([[15, 15], [21.6, 21.6]], 3.2)]],
+  mazeBar: () => one(R.amber, stroke([[3, 22], [3, 3], [21, 3], [21, 21], [8, 21], [8, 8], [16, 8], [16, 16], [12, 16], [12, 12]], 2)),
+  duckBar: () => [
+    [R.yellow, [octagon(8, 2, 10, 10, 3), cutRect(13, 5, 2, 2), rect(9, 11, 7, 4), poly([2, 10], [6, 15], [16, 15], [19, 13], [22, 14], [22, 18], [18, 22], [6, 22], [2, 18])]],
+    [R.orange, [poly([18, 5], [20, 5], [23, 7.5], [20, 10], [18, 10])]],
+  ],
+  blocksBar: () => [[R.blue, [rect(2, 13, 9, 9)]], [R.teal, [rect(13, 13, 9, 9)]], [R.steel, [rect(2, 2, 9, 9)]], [R.red, frame(14, 1, 9, 9, 2)]],
+  hedronCheckBar: () => [[R.cyan, ring([[12, 2], [21, 7], [21, 17], [12, 22], [3, 17], [3, 7]], 2)], [R.green, stroke([[7.5, 12], [10.5, 15], [16.5, 9]], 2.4)]],
+  badgeBar: () => [[R.brass, frame(4, 2, 16, 20, 2)], [R.red, [poly([8, 6], [16, 6], [12, 11.5])]], [R.brass, [rect(8, 14, 8, 2), rect(8, 18, 5, 2)]]],
+  hexNutBar: () => [[R.steel, nut(12, 12, 9, 3)], [R.brass, [nut(12, 12, 2)[0]]]],
+  thresholdBar: () => [[R.steel, stroke([[6, 21], [6, 3], [18, 3], [18, 21]], 2)], [R.cyan, [poly([7, 4], [15, 6.5], [15, 21], [7, 18.5])]], [R.steel, [rect(2, 21, 20, 2)]]],
 };
+
+/** Tamaño de rejilla de cada glifo (16 salvo los de la barra de actividad). */
+const GRID24 = new Set(['dossierBar', 'lensBar', 'mazeBar', 'duckBar', 'blocksBar', 'hedronCheckBar', 'badgeBar', 'hexNutBar', 'thresholdBar']);
+
+/**
+ * Tuerca hexagonal (lados planos arriba y abajo, en filas enteras): `half` es la
+ * distancia del centro a los lados planos y `t` el grosor (sin `t`, maciza).
+ * @param {number} cx @param {number} cy @param {number} half @param {number} [t]
+ * @returns {Poly[]}
+ */
+function nut(cx, cy, half, t) {
+  const hex = (/** @type {number} */ h) => K.regular(cx, cy, h / Math.sin(Math.PI / 3), 6, 0);
+  return t ? [hex(half), K.hole(hex(half - t))] : [hex(half)];
+}
+
+/** Glifos (unión de capas) para la fuente monocroma. @type {Record<string, () => Poly[]>} */
+const GLYPHS = Object.fromEntries(Object.entries(DEFS).map(([name, def]) => [name, () => def().flatMap(([, polys]) => polys)]));
+/** Capas de color de TODOS los glifos (el test comprueba que no falta ninguno). @type {Record<string, () => Layers>} */
+const COLOR = DEFS;
 
 /** Iconos de VS Code → glifo. Las claves son codicons o identificadores de iconos registrados. */
 const MAPPING = {
   // Barra de actividad
-  'explorer-view-icon': 'dossier', files: 'dossier', book: 'dossier',
-  'search-view-icon': 'lens', search: 'lens', 'search-large': 'lens',
-  'source-control-view-icon': 'maze', 'source-control': 'maze', repo: 'maze', 'git-merge': 'maze', 'git-branch': 'pyramid',
+  'explorer-view-icon': 'dossierBar', files: 'dossier', book: 'dossier',
+  'search-view-icon': 'lensBar', search: 'lens', 'search-large': 'lens',
+  'source-control-view-icon': 'mazeBar', 'source-control': 'maze', repo: 'maze', 'git-merge': 'maze', 'git-branch': 'pyramid',
   'git-branch-compact': 'pyramid', 'git-branch-changes': 'pyramidDot', 'git-branch-staged-changes': 'pyramidPlus',
   'git-branch-conflicts': 'pyramidAlert', 'git-branch-create': 'pyramidPlus', 'git-branch-delete': 'pyramidMinus',
-  'run-view-icon': 'duck', 'debug-alt': 'duck', 'debug-alt-small': 'duck', debug: 'duck', bug: 'duck',
-  'extensions-view-icon': 'blocks', extensions: 'blocks',
-  'test-view-icon': 'hedronCheck', beaker: 'hedronCheck', pass: 'hedronCheck', 'pass-filled': 'hedronCheck',
-  'accounts-view-bar-icon': 'badge', account: 'badge', person: 'badge',
-  'settings-view-bar-icon': 'hexNut', 'settings-gear': 'hexNut', manage: 'hexNut', gear: 'hexNut', settings: 'hexNut',
+  'run-view-icon': 'duckBar', 'debug-alt': 'duck', 'debug-alt-small': 'duck', debug: 'duck', bug: 'duck',
+  'extensions-view-icon': 'blocksBar', extensions: 'blocks',
+  'test-view-icon': 'hedronCheckBar', beaker: 'hedronCheck', pass: 'hedronCheck', 'pass-filled': 'hedronCheck',
+  'accounts-view-bar-icon': 'badgeBar', account: 'badge', person: 'badge',
+  'settings-view-bar-icon': 'hexNutBar', 'settings-gear': 'hexNut', manage: 'hexNut', gear: 'hexNut', settings: 'hexNut',
   'chat-view-icon': 'polaris', 'chat-sparkle': 'polaris', copilot: 'polaris', 'copilot-logo': 'polaris', sparkle: 'polaris', 'sparkle-filled': 'polaris',
   law: 'board',
   bell: 'hotline', 'bell-dot': 'hotlineDot',
   package: 'cube', home: 'oldestHouse', save: 'floppy', 'save-all': 'floppy', 'save-as': 'floppy',
   shield: 'safe', 'workspace-trusted': 'safe', 'workspace-untrusted': 'safe', 'workspace-unknown': 'safe', archive: 'safe',
   key: 'key', keyboard: 'key', 'record-keys': 'key', music: 'jukebox', unmute: 'resonance', mute: 'resonanceOff',
-  'remote-explorer-view-icon': 'threshold', 'remote-explorer': 'threshold', remote: 'threshold',
+  'remote-explorer-view-icon': 'thresholdBar', 'remote-explorer': 'threshold', remote: 'threshold',
   // Terminal, salida, consola, puertos, tareas
   'terminal-view-icon': 'prompt', terminal: 'prompt', 'terminal-powershell': 'prompt', 'terminal-cmd': 'prompt', 'terminal-bash': 'prompt',
   'terminal-linux': 'prompt', 'terminal-ubuntu': 'prompt', 'terminal-debian': 'prompt', 'terminal-git-bash': 'prompt', 'terminal-tmux': 'prompt',
@@ -539,181 +470,6 @@ for (const [alias, base] of Object.entries(ALIASES)) {
   /** @type {Record<string, string>} */ (MAPPING)[alias] = /** @type {Record<string, string>} */ (MAPPING)[base];
 }
 
-// --- Versión a color -------------------------------------------------------------
-
-/**
- * Colores reales de «Bureau Product Icons (Color)». Tonos medios: tienen que
- * leerse sobre el monolito oscuro y sobre CONTROL Astral (fondo claro).
- */
-const REAL = {
-  red: '#E0352B', // la Hotline (el teléfono rojo), el Hiss, el rojo del FBC
-  orange: '#E07A2B', // Git, la gramola Songmaster, el pico del patito
-  amber: '#C98A1E', // avisos, el Laberinto del Cenicero, la cinta de Ahti
-  yellow: '#D9B02A', // Polaris, la luz del proyector, el patito de goma
-  green: '#4FA05A', // ejecutar, añadir, correcto
-  teal: '#2E9C8E',
-  cyan: '#2FA7B8', // la Hedron, el Umbral, el Aberrante (Control Resonant)
-  blue: '#4A8CD0',
-  steel: '#6F93B8', // la interfaz de la Agencia: flechas, ventanas, menús
-  violet: '#8C6BC8', // lo paranatural: el Consejo, los Objetos de Poder
-  paper: '#C9A15C', // los expedientes de la Agencia
-  brass: '#C2953F', // la placa del FBC, cerraduras, la televisión Benicoff
-};
-
-/** @typedef {Array<[string, Poly[]]>} Layers */
-/** Todo el glifo de un color. */
-const one = (/** @type {string} */ c) => (/** @type {Poly[]} */ p) => /** @type {Layers} */ ([[c, p]]);
-/** Las primeras `n` formas (o todas menos las últimas `-n`) de un color y el resto de otro. */
-const two = (/** @type {number} */ n, /** @type {string} */ a, /** @type {string} */ b) => (/** @type {Poly[]} */ p) =>
-  /** @type {Layers} */ ([[a, p.slice(0, n)], [b, p.slice(n)]]);
-/** Tramos de formas: [[color, hasta], …]; el último llega al final. Los huecos van con su forma. */
-const spans = (/** @type {Array<[string, number?]>} */ parts) => (/** @type {Poly[]} */ p) => {
-  /** @type {Layers} */
-  const out = [];
-  let from = 0;
-  for (const [color, to] of parts) {
-    out.push([color, p.slice(from, to ?? p.length)]);
-    from = to ?? p.length;
-  }
-  return out;
-};
-
-const R = REAL;
-
-/**
- * Capas de color de TODOS los glifos (el test comprueba que no falta ninguno y
- * que ninguna capa se queda con el color del tema).
- * @type {Record<string, (p: Poly[]) => Layers>}
- */
-const COLOR = {
-  // Lore
-  dossier: two(-1, R.paper, R.red),
-  lens: two(2, R.steel, R.brass),
-  pyramid: one(R.orange),
-  pyramidDot: two(-1, R.orange, R.amber),
-  pyramidPlus: two(-2, R.orange, R.green),
-  pyramidMinus: two(-1, R.orange, R.red),
-  pyramidAlert: two(-1, R.orange, R.red),
-  board: two(1, R.red, R.violet),
-  hedronPlay: one(R.cyan),
-  hedronCheck: two(2, R.cyan, R.green),
-  blocks: spans([[R.blue, 1], [R.teal, 2], [R.steel, 3], [R.red]]),
-  badge: spans([[R.brass, -3], [R.red, -2], [R.brass]]),
-  hexNut: two(2, R.steel, R.brass),
-  hotline: one(R.red),
-  hotlineDot: two(-1, R.red, R.amber),
-  cube: one(R.violet),
-  polaris: one(R.yellow),
-  polarisDot: two(1, R.yellow, R.amber),
-  polarisAlert: two(1, R.yellow, R.amber),
-  polarisError: two(1, R.yellow, R.red),
-  polarisCheck: two(1, R.yellow, R.green),
-  polarisOff: two(1, R.yellow, R.red),
-  polarisPause: two(1, R.yellow, R.steel),
-  hotlineOff: two(5, R.red, R.steel),
-  maze: one(R.amber),
-  duck: two(-1, R.yellow, R.orange),
-  floppy: spans([[R.blue, 3], [R.steel, 4], [R.paper]]),
-  cassette: two(3, R.amber, R.steel),
-  tv: two(3, R.steel, R.brass),
-  projector: two(-1, R.steel, R.yellow),
-  safe: spans([[R.steel, 2], [R.brass, 5], [R.steel]]),
-  mop: spans([[R.blue, 2], [R.paper, 3], [R.steel]]),
-  key: two(2, R.red, R.brass),
-  oldestHouse: two(-1, R.steel, R.red),
-  threshold: spans([[R.steel, 2], [R.cyan, 3], [R.steel]]),
-  hammer: spans([[R.cyan, 2], [R.steel, 3], [R.cyan]]),
-  resonance: one(R.cyan),
-  resonanceOff: two(1, R.steel, R.red),
-  jukebox: one(R.orange),
-  // Terminal y puertos
-  prompt: one(R.green),
-  plug: one(R.teal),
-  // Navegación
-  chevronRight: one(R.steel),
-  chevronLeft: one(R.steel),
-  chevronDown: one(R.steel),
-  chevronUp: one(R.steel),
-  arrowLeft: one(R.steel),
-  arrowRight: one(R.steel),
-  arrowUp: one(R.steel),
-  arrowDown: one(R.steel),
-  triangleRight: one(R.steel),
-  triangleDown: one(R.steel),
-  // Acciones
-  close: one(R.red),
-  add: one(R.green),
-  remove: one(R.red),
-  check: one(R.green),
-  checkAll: one(R.green),
-  ellipsis: one(R.steel),
-  kebab: one(R.steel),
-  menu: one(R.steel),
-  trash: one(R.red),
-  edit: spans([[R.amber, 1], [R.steel, 2], [R.red]]),
-  filter: one(R.teal),
-  collapseAll: two(-1, R.steel, R.blue),
-  expandAll: two(-2, R.steel, R.blue),
-  newFile: two(-2, R.paper, R.green),
-  newFolder: two(-2, R.amber, R.green),
-  file: one(R.paper),
-  folder: one(R.amber),
-  folderOpened: one(R.amber),
-  copy: one(R.blue),
-  pin: one(R.red),
-  lock: one(R.brass),
-  unlock: one(R.brass),
-  eye: two(2, R.blue, R.cyan),
-  eyeClosed: one(R.steel),
-  lightbulb: two(2, R.yellow, R.steel),
-  zap: one(R.yellow),
-  comment: one(R.blue),
-  history: two(2, R.steel, R.red),
-  starFull: one(R.yellow),
-  starEmpty: one(R.yellow),
-  circleFilled: one(R.amber),
-  loading: one(R.cyan),
-  // Estado
-  error: one(R.red),
-  warning: one(R.amber),
-  info: one(R.blue),
-  // Control de código fuente
-  gitCommit: one(R.orange),
-  gitPullRequest: one(R.green),
-  sync: one(R.teal),
-  refresh: one(R.teal),
-  cloudUpload: one(R.blue),
-  cloudDownload: one(R.blue),
-  discard: one(R.amber),
-  listFlat: one(R.steel),
-  listTree: one(R.steel),
-  // Depuración
-  play: one(R.green),
-  debugContinue: one(R.green),
-  debugPause: one(R.amber),
-  debugStop: one(R.red),
-  debugDisconnect: one(R.red),
-  debugStepOver: two(-1, R.blue, R.amber),
-  debugStepInto: two(-1, R.blue, R.amber),
-  debugStepOut: two(-1, R.blue, R.amber),
-  // Ventana
-  screenFull: one(R.steel),
-  screenNormal: one(R.steel),
-  chromeMinimize: one(R.steel),
-  chromeMaximize: one(R.steel),
-  chromeRestore: one(R.steel),
-  chromeClose: one(R.red),
-  layoutSidebarLeft: two(2, R.steel, R.blue),
-  layoutSidebarLeftOff: two(2, R.steel, R.blue),
-  layoutSidebarRight: two(2, R.steel, R.blue),
-  layoutSidebarRightOff: two(2, R.steel, R.blue),
-  layoutPanel: two(2, R.steel, R.blue),
-  layoutPanelOff: two(2, R.steel, R.blue),
-  layout: two(2, R.steel, R.blue),
-  splitHorizontal: two(2, R.steel, R.blue),
-  splitVertical: two(2, R.steel, R.blue),
-};
-
 /**
  * Iconos propios que la extensión registra (`contributes.icons`) para la barra
  * de estado y la consola de sonido. Salen de la fuente monocroma, así que
@@ -733,9 +489,10 @@ const CONTRIBUTED = {
 
 // --- Generación ----------------------------------------------------------------
 
-const fmt = (/** @type {number} */ n) => String(Math.round(n * 1000) / 1000);
-const toPath = (/** @type {Poly[]} */ polys) => polys.map((p) => `M${p.map(([x, y]) => `${fmt(x)} ${fmt(y)}`).join('L')}Z`).join('');
-const toSvg = (/** @type {Poly[]} */ polys) => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="${toPath(polys)}"/></svg>\n`;
+/** @param {Poly[]} polys @param {number} [size] lado de la rejilla (16, o 24 en la barra de actividad) */
+const toSvg = (polys, size = 16) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><path d="${K.toPath(polys)}"/></svg>\n`;
+const gridOf = (/** @type {string} */ name) => (GRID24.has(name) ? 24 : 16);
 
 /** Fuente TrueType con los glifos dados. */
 async function buildTtf(/** @type {Array<{name: string, svg: string, code: number}>} */ glyphs) {
@@ -744,7 +501,7 @@ async function buildTtf(/** @type {Array<{name: string, svg: string, code: numbe
 
   const svgFont = await new Promise((resolve, reject) => {
     let out = '';
-    const stream = new SVGIcons2SVGFontStream({ fontName: FONT_NAME, fontHeight: 1000, normalize: true });
+    const stream = new SVGIcons2SVGFontStream({ fontName: FONT_NAME, fontHeight: 1024, normalize: true });
     stream.on('data', (/** @type {Buffer} */ d) => (out += d.toString()));
     stream.on('end', () => resolve(out));
     stream.on('error', reject);
@@ -790,12 +547,19 @@ async function main() {
 
   const names = Object.keys(GLYPHS);
   const glyphs = names.map((name, i) => {
-    const svg = toSvg(GLYPHS[name]());
+    const svg = toSvg(GLYPHS[name](), gridOf(name));
     fs.writeFileSync(path.join(SVG_DIR, `${name}.svg`), svg);
     return { name, svg, code: 0xe001 + i };
   });
 
   for (const [id, glyph] of Object.entries(MAPPING)) if (!(glyph in GLYPHS)) throw new Error(`${id} → glifo inexistente: ${glyph}`);
+  // svgicons2svgfont funde los glifos idénticos: dos iguales dejarían un punto de código sin glifo propio.
+  const seen = new Map();
+  for (const g of glyphs) {
+    const d = g.svg.replace(/^<svg[^>]*>/, '');
+    if (seen.has(d)) throw new Error(`Glifos idénticos: ${seen.get(d)} y ${g.name}`);
+    seen.set(d, g.name);
+  }
 
   const codeOf = Object.fromEntries(glyphs.map((g) => [g.name, g.code]));
   const mono = toWoff(await buildTtf(glyphs));
@@ -810,11 +574,19 @@ async function main() {
   for (const name of names) if (!(name in COLOR)) throw new Error(`COLOR: falta el color de ${name}`);
   for (const [name, layersOf] of Object.entries(COLOR)) {
     if (!(name in GLYPHS)) throw new Error(`COLOR: glifo inexistente ${name}`);
-    const layers = layersOf(GLYPHS[name]()).map(([color, polys], i) => {
+    // Capas seguidas del mismo color van en un solo glifo.
+    /** @type {Layers} */
+    const merged = [];
+    for (const [color, polys] of layersOf()) {
+      const last = merged[merged.length - 1];
+      if (last && last[0] === color) last[1].push(...polys);
+      else merged.push([color, [...polys]]);
+    }
+    const layers = merged.map(([color, polys], i) => {
       if (polys.length === 0) throw new Error(`COLOR: capa vacía en ${name}`);
       if (!color) throw new Error(`COLOR: capa sin color en ${name}`);
       const code = 0xe800 + layerGlyphs.length;
-      layerGlyphs.push({ name: `${name}-${i}`, svg: toSvg(polys), code });
+      layerGlyphs.push({ name: `${name}-${i}`, svg: toSvg(polys, gridOf(name)), code });
       return { code, color };
     });
     colorGlyphs.push({ code: codeOf[name], layers });
@@ -847,4 +619,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { GLYPHS, MAPPING, COLOR, REAL, CONTRIBUTED, toSvg, area };
+module.exports = { GLYPHS, MAPPING, COLOR, REAL, CONTRIBUTED, GRID24, toSvg };
