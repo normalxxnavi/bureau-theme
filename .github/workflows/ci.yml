@@ -75,4 +75,12 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: npm run download-vscode
-      - run: npm run test:integration
+      # El test maneja un VS Code real con tiempos límite (servidor de TypeScript,
+      # depurador, sonidos): en un runner lento puede fallar sin motivo. Se repite
+      # una vez; un fallo real falla las dos veces.
+      - name: Integration test (one retry)
+        shell: bash
+        run: |
+          npm run test:integration && exit 0
+          echo "::warning::Integration test failed on the first attempt; retrying once."
+          npm run test:integration

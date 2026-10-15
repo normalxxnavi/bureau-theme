@@ -64,7 +64,7 @@ function activate(context) {
   const log = lazyLog(context);
   const status = new SoundStatus(context);
 
-  /** @type {import('./fonts').FontController | undefined} */
+  /** @type {InstanceType<typeof import('./fonts').FontController> | undefined} */
   let fonts;
   /** Las tipografías, cargadas la primera vez que hacen falta. */
   const typography = () => {
@@ -76,7 +76,7 @@ function activate(context) {
     return fonts;
   };
 
-  /** @type {import('./controller').SoundController | undefined} */
+  /** @type {InstanceType<typeof import('./controller').SoundController> | undefined} */
   let controller;
   /** El motor de sonido, creado la primera vez que hace falta. */
   const sounds = () => {

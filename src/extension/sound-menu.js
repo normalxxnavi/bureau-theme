@@ -48,8 +48,8 @@ async function pick(title, options, current) {
 }
 
 /**
- * @param {import('./controller').SoundController} controller
- * @param {import('./sound-status').SoundStatus} status
+ * @param {InstanceType<typeof import('./controller').SoundController>} controller
+ * @param {InstanceType<typeof import('./sound-status').SoundStatus>} status
  */
 async function openSoundMenu(controller, status) {
   for (;;) {
