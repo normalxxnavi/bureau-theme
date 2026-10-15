@@ -1,5 +1,6 @@
-# Comprobaciones en cada push a develop (desarrollo) o release (producción) y en
-# cada pull request.
+# Comprobaciones de la rama de producción: en cada push a release y en cada pull
+# request hacia release (develop → release). En develop no se lanzan solas; se
+# pueden lanzar a mano desde Actions → CI → Run workflow.
 #
 # Las acciones van fijadas por el SHA de su commit (el comentario dice la
 # versión): una etiqueta como «v7» se puede mover y colar otro código en la CI;
@@ -8,8 +9,9 @@ name: CI
 
 on:
   push:
-    branches: [develop, release]
+    branches: [release]
   pull_request:
+    branches: [release]
   workflow_dispatch:
 
 # Mínimo privilegio: la CI solo lee el repositorio.

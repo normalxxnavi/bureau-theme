@@ -59,7 +59,7 @@ The extension code lives in `src/extension/`: `extension.js` only registers comm
 | `develop` | Development. Every change lands here (directly or through a pull request); Dependabot targets it too. |
 | `release` | Production: the default branch on GitHub and what users get. It only receives merges from `develop` and the release commit. |
 
-Pull requests go to `develop`. CI runs on both branches and on every pull request.
+Pull requests go to `develop`. GitHub Actions (CI and CodeQL) only run on `release`: on every push to it and on pull requests into it, so a pull request from `develop` to `release` is checked before it reaches production. To check `develop` earlier, run *Actions → CI → Run workflow* on it, or `npm run check` locally.
 
 ### Releases (maintainer)
 
@@ -142,7 +142,7 @@ El código de la extensión está en `src/extension/`: `extension.js` solo regis
 | `develop` | Desarrollo. Todo cambio entra aquí (directamente o con un pull request); Dependabot también apunta aquí. |
 | `release` | Producción: la rama por defecto en GitHub y lo que reciben los usuarios. Solo recibe merges desde `develop` y el commit de la versión. |
 
-Los pull requests van a `develop`. La CI se ejecuta en las dos ramas y en cada pull request.
+Los pull requests van a `develop`. Las GitHub Actions (CI y CodeQL) solo se ejecutan en `release`: en cada push y en los pull requests hacia ella, así que un pull request de `develop` a `release` se comprueba antes de llegar a producción. Para comprobar `develop` antes, lanza *Actions → CI → Run workflow* sobre ella, o `npm run check` en local.
 
 ### Releases (mantenedor)
 

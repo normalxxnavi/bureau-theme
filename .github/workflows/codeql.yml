@@ -1,12 +1,16 @@
 # Análisis de seguridad del código JavaScript con CodeQL (inyección de
 # comandos, rutas manipuladas, expresiones regulares peligrosas…). Los
-# resultados aparecen en la pestaña Security → Code scanning.
+# resultados aparecen en la pestaña Security → Code scanning. Solo en la rama de
+# producción (release) y en los pull requests hacia ella; el análisis semanal usa
+# la rama por defecto (release).
 name: CodeQL
 
 on:
   push:
-    branches: [develop, release]
+    branches: [release]
   pull_request:
+    branches: [release]
+  workflow_dispatch:
   schedule:
     - cron: '17 4 * * 1' # cada lunes: reglas nuevas aunque no haya cambios
 
