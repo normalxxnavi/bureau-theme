@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 **Beta.** During the beta the version is **0.*day*.*build***: the minor number counts the days of development (day 1 = 2026-10-06; only days with changes count) and the patch number counts the builds of that day. Version 1.0.0 will be the first stable release. (The earliest builds, never published, were numbered 0.5.0–0.10.1; they are listed here with their new numbers.)
 
-## [Unreleased]
+## [0.6.0] — 2026-10-15
 
 ### Changed
 
