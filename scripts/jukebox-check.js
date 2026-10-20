@@ -26,12 +26,15 @@ const path = require('node:path');
 const { spawn, execFileSync } = require('node:child_process');
 const { createMusicSource, macReadScript, macCommandScript, macApps } = require('../src/extension/music-source');
 const H = require('../src/extension/hover');
+const { ciError } = require('./lib/ci');
 
 const TEST_TRACK = { title: 'Take Control', artist: 'Old Gods of Asgard', album: 'Take Control' };
+const CI_TITLE = `Songmaster jukebox (${process.platform})`;
 
 /** @param {string} message */
 function fail(message) {
   console.error(`✘ ${message}`);
+  ciError(CI_TITLE, message);
   process.exitCode = 1;
 }
 
@@ -148,5 +151,6 @@ async function main() {
 
 main().catch((e) => {
   console.error(e);
+  ciError(CI_TITLE, String(e?.stack || e));
   process.exit(1);
 });
