@@ -1,0 +1,19 @@
+//- Archivo de prueba del tema: Pug.
+doctype html
+html(lang="es")
+  head
+    title= title
+    link(rel="stylesheet" href="/bureau.css")
+  body
+    - const items = [{ code: 'OOP-0001', threat: 7 }, { code: 'AI-0042', threat: 1 }]
+    h1.title Registro de la Agencia
+    if director
+      p Directora: #{director.name}
+    else
+      p Sin directora
+    ul#registry
+      each item, i in items
+        li(class=item.threat > 2 ? 'high' : 'low' data-index=i)= item.code
+    include footer.pug
+    script.
+      console.log('<<THE BOARD OBSERVES.>>');

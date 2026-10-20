@@ -1,0 +1,14 @@
+# Query: hotline
+# Flags: CaseSensitive WordMatch
+# Including: src/**
+# ContextLines: 1
+
+3 results - 2 files
+
+src/hotline.js:
+  12:   const hotline = createHotline();
+  13    hotline.ring();
+  40:   return hotline.answer(board);
+
+src/board.js:
+   7:   // <<THE HOTLINE CONNECTS US.>>

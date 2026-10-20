@@ -1,0 +1,15 @@
+{# Archivo de prueba del tema: Twig. #}
+{% extends 'layout.html.twig' %}
+
+{% block content %}
+  <h1>{{ title|upper }}</h1>
+  {% set dangerous = objects|filter(o => o.threat > 2) %}
+  <ul>
+    {% for item in dangerous %}
+      <li class="{{ item.breach ? 'breach' : '' }}">{{ item.code }} ({{ loop.index }})</li>
+    {% else %}
+      <li>Todo contenido</li>
+    {% endfor %}
+  </ul>
+  {{ include('footer.html.twig', { year: 2026 }) }}
+{% endblock %}

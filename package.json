@@ -2,7 +2,7 @@
   "name": "bureau-theme",
   "displayName": "%displayName%",
   "description": "%description%",
-  "version": "0.6.0",
+  "version": "0.7.716102026",
   "preview": true,
   "publisher": "Normalxxnavi",
   "author": {
@@ -76,7 +76,6 @@
         "bureauTheme.sounds.onlyWithControlTheme",
         "bureauTheme.sounds.errorTrigger",
         "bureauTheme.sounds.cooldownMs",
-        "bureauTheme.sounds.statusBarItem",
         "bureauTheme.sounds.events.startup",
         "bureauTheme.sounds.events.themeActivated",
         "bureauTheme.sounds.events.save",
@@ -138,6 +137,12 @@
     ],
     "commands": [
       {
+        "command": "bureauTheme.openOldestHouse",
+        "title": "%command.openOldestHouse%",
+        "category": "CONTROL",
+        "icon": "$(bureau-house)"
+      },
+      {
         "command": "bureauTheme.toggleSounds",
         "title": "%command.toggleSounds%",
         "category": "CONTROL"
@@ -159,8 +164,8 @@
         "icon": "$(bureau-resonance)"
       },
       {
-        "command": "bureauTheme.toggleSoundStatusBar",
-        "title": "%command.toggleSoundStatusBar%",
+        "command": "bureauTheme.toggleStatusBarItem",
+        "title": "%command.toggleStatusBarItem%",
         "category": "CONTROL"
       },
       {
@@ -172,9 +177,243 @@
         "command": "bureauTheme.removeFonts",
         "title": "%command.removeFonts%",
         "category": "CONTROL"
+      },
+      {
+        "command": "bureauTheme.openWelcome",
+        "title": "%command.openWelcome%",
+        "category": "CONTROL"
+      },
+      {
+        "command": "bureauTheme.chooseTheme",
+        "title": "%command.chooseTheme%",
+        "category": "CONTROL"
+      },
+      {
+        "command": "bureauTheme.applyFullSet",
+        "title": "%command.applyFullSet%",
+        "category": "CONTROL"
+      },
+      {
+        "command": "bureauTheme.followSystem",
+        "title": "%command.followSystem%",
+        "category": "CONTROL"
+      },
+      {
+        "command": "bureauTheme.toggleClassified",
+        "title": "%command.toggleClassified%",
+        "category": "CONTROL"
+      },
+      {
+        "command": "bureauTheme.declassify",
+        "title": "%command.declassify%",
+        "category": "CONTROL"
+      },
+      {
+        "command": "bureauTheme.toggleAlertLevel",
+        "title": "%command.toggleAlertLevel%",
+        "category": "CONTROL"
+      },
+      {
+        "command": "bureauTheme.boardMessage",
+        "title": "%command.boardMessage%",
+        "category": "CONTROL",
+        "icon": "$(bureau-board)"
+      },
+      {
+        "command": "bureauTheme.toggleBoardComments",
+        "title": "%command.toggleBoardComments%",
+        "category": "CONTROL"
+      },
+      {
+        "command": "bureauTheme.boardSettings",
+        "title": "%command.boardSettings%",
+        "category": "CONTROL"
+      },
+      {
+        "command": "bureauTheme.toggleBoardRandom",
+        "title": "%command.toggleBoardRandom%",
+        "category": "CONTROL"
+      },
+      {
+        "command": "bureauTheme.musicMenu",
+        "title": "%command.musicMenu%",
+        "category": "CONTROL",
+        "icon": "$(bureau-jukebox)"
+      },
+      {
+        "command": "bureauTheme.musicPlayPause",
+        "title": "%command.musicPlayPause%",
+        "category": "CONTROL"
+      },
+      {
+        "command": "bureauTheme.musicNext",
+        "title": "%command.musicNext%",
+        "category": "CONTROL"
+      },
+      {
+        "command": "bureauTheme.musicPrevious",
+        "title": "%command.musicPrevious%",
+        "category": "CONTROL"
+      },
+      {
+        "command": "bureauTheme.toggleMusic",
+        "title": "%command.toggleMusic%",
+        "category": "CONTROL"
+      },
+      {
+        "command": "bureauTheme.openSoundtrack",
+        "title": "%command.openSoundtrack%",
+        "category": "CONTROL"
+      }
+    ],
+    "walkthroughs": [
+      {
+        "id": "welcome",
+        "title": "%walkthrough.title%",
+        "description": "%walkthrough.description%",
+        "steps": [
+          {
+            "id": "theme",
+            "title": "%walkthrough.theme.title%",
+            "description": "%walkthrough.theme.description%",
+            "media": {
+              "svg": "media/walkthrough/theme.svg",
+              "altText": "%walkthrough.theme.alt%"
+            },
+            "completionEvents": [
+              "onSettingChanged:workbench.colorTheme",
+              "onCommand:bureauTheme.chooseTheme"
+            ]
+          },
+          {
+            "id": "fullSet",
+            "title": "%walkthrough.fullSet.title%",
+            "description": "%walkthrough.fullSet.description%",
+            "media": {
+              "svg": "media/walkthrough/fullSet.svg",
+              "altText": "%walkthrough.fullSet.alt%"
+            },
+            "completionEvents": [
+              "onCommand:bureauTheme.applyFullSet"
+            ]
+          },
+          {
+            "id": "icons",
+            "title": "%walkthrough.icons.title%",
+            "description": "%walkthrough.icons.description%",
+            "media": {
+              "svg": "media/walkthrough/icons.svg",
+              "altText": "%walkthrough.icons.alt%"
+            },
+            "completionEvents": [
+              "onSettingChanged:workbench.iconTheme",
+              "onSettingChanged:workbench.productIconTheme"
+            ]
+          },
+          {
+            "id": "followSystem",
+            "title": "%walkthrough.followSystem.title%",
+            "description": "%walkthrough.followSystem.description%",
+            "media": {
+              "svg": "media/walkthrough/followSystem.svg",
+              "altText": "%walkthrough.followSystem.alt%"
+            },
+            "completionEvents": [
+              "onSettingChanged:window.autoDetectColorScheme"
+            ]
+          },
+          {
+            "id": "typography",
+            "title": "%walkthrough.typography.title%",
+            "description": "%walkthrough.typography.description%",
+            "media": {
+              "svg": "media/walkthrough/typography.svg",
+              "altText": "%walkthrough.typography.alt%"
+            },
+            "completionEvents": [
+              "onSettingChanged:bureauTheme.font",
+              "onCommand:bureauTheme.chooseFont"
+            ]
+          },
+          {
+            "id": "sounds",
+            "title": "%walkthrough.sounds.title%",
+            "description": "%walkthrough.sounds.description%",
+            "media": {
+              "svg": "media/walkthrough/sounds.svg",
+              "altText": "%walkthrough.sounds.alt%"
+            },
+            "completionEvents": [
+              "onCommand:bureauTheme.soundMenu",
+              "onSettingChanged:bureauTheme.sounds.enabled"
+            ]
+          },
+          {
+            "id": "music",
+            "title": "%walkthrough.music.title%",
+            "description": "%walkthrough.music.description%",
+            "media": {
+              "svg": "media/walkthrough/music.svg",
+              "altText": "%walkthrough.music.alt%"
+            },
+            "completionEvents": [
+              "onSettingChanged:bureauTheme.music.enabled",
+              "onCommand:bureauTheme.openSoundtrack"
+            ]
+          },
+          {
+            "id": "classified",
+            "title": "%walkthrough.classified.title%",
+            "description": "%walkthrough.classified.description%",
+            "media": {
+              "svg": "media/walkthrough/classified.svg",
+              "altText": "%walkthrough.classified.alt%"
+            },
+            "completionEvents": [
+              "onSettingChanged:bureauTheme.classified.enabled"
+            ]
+          },
+          {
+            "id": "alertLevel",
+            "title": "%walkthrough.alertLevel.title%",
+            "description": "%walkthrough.alertLevel.description%",
+            "media": {
+              "svg": "media/walkthrough/alertLevel.svg",
+              "altText": "%walkthrough.alertLevel.alt%"
+            },
+            "completionEvents": [
+              "onSettingChanged:bureauTheme.alertLevel.enabled"
+            ]
+          },
+          {
+            "id": "board",
+            "title": "%walkthrough.board.title%",
+            "description": "%walkthrough.board.description%",
+            "media": {
+              "svg": "media/walkthrough/board.svg",
+              "altText": "%walkthrough.board.alt%"
+            },
+            "completionEvents": [
+              "onCommand:bureauTheme.boardMessage",
+              "onSettingChanged:bureauTheme.board.random",
+              "onSettingChanged:bureauTheme.board.comments"
+            ]
+          }
+        ]
       }
     ],
     "configuration": [
+      {
+        "title": "%config.general.title%",
+        "order": 0,
+        "properties": {
+          "bureauTheme.statusBarItem": {
+            "type": "boolean",
+            "default": true,
+            "markdownDescription": "%config.statusBarItem%"
+          }
+        }
+      },
       {
         "title": "%config.font.title%",
         "order": 0,
@@ -227,9 +466,9 @@
           },
           "bureauTheme.sounds.volume": {
             "type": "number",
-            "default": 70,
+            "default": 80,
             "minimum": 0,
-            "maximum": 100,
+            "maximum": 200,
             "order": 2,
             "description": "%config.sounds.volume%"
           },
@@ -267,12 +506,6 @@
             "scope": "application",
             "order": 6,
             "markdownDescription": "%config.sounds.customFolder%"
-          },
-          "bureauTheme.sounds.statusBarItem": {
-            "type": "boolean",
-            "default": true,
-            "markdownDescription": "%config.sounds.statusBarItem%",
-            "order": 7
           }
         }
       },
@@ -353,6 +586,204 @@
             "description": "%config.events.gitCommit%"
           }
         }
+      },
+      {
+        "title": "%config.protocols.title%",
+        "order": 3,
+        "properties": {
+          "bureauTheme.classified.enabled": {
+            "type": "boolean",
+            "default": false,
+            "order": 0,
+            "markdownDescription": "%config.classified.enabled%"
+          },
+          "bureauTheme.classified.files": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [
+              ".env",
+              ".env.*",
+              "*.env",
+              ".envrc",
+              ".flaskenv",
+              "appsettings*.json",
+              "secrets.json",
+              "local.settings.json",
+              "*.pem",
+              "*.key",
+              "id_rsa",
+              "id_ecdsa",
+              "id_ed25519",
+              ".npmrc",
+              ".pypirc",
+              ".netrc",
+              "credentials",
+              "*.tfvars",
+              "web.config",
+              "application*.properties",
+              "application*.yml",
+              "docker-compose*.yml",
+              "compose*.yaml"
+            ],
+            "order": 1,
+            "markdownDescription": "%config.classified.files%"
+          },
+          "bureauTheme.classified.keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [
+              "password",
+              "passwd",
+              "pwd",
+              "secret",
+              "token",
+              "apikey",
+              "accesskey",
+              "privatekey",
+              "clientsecret",
+              "connectionstring",
+              "credential",
+              "signature",
+              "dsn"
+            ],
+            "order": 2,
+            "markdownDescription": "%config.classified.keywords%"
+          },
+          "bureauTheme.alertLevel.enabled": {
+            "type": "boolean",
+            "default": false,
+            "order": 3,
+            "markdownDescription": "%config.alertLevel.enabled%"
+          },
+          "bureauTheme.alertLevel.incursionThreshold": {
+            "type": "number",
+            "default": 10,
+            "minimum": 1,
+            "maximum": 1000,
+            "order": 4,
+            "markdownDescription": "%config.alertLevel.incursionThreshold%"
+          },
+          "bureauTheme.board.comments": {
+            "type": "boolean",
+            "default": false,
+            "order": 5,
+            "markdownDescription": "%config.board.comments%"
+          },
+          "bureauTheme.board.random": {
+            "type": "boolean",
+            "default": false,
+            "scope": "application",
+            "order": 6,
+            "markdownDescription": "%config.board.random%"
+          },
+          "bureauTheme.board.timesPerDay": {
+            "type": "number",
+            "default": 3,
+            "minimum": 1,
+            "maximum": 24,
+            "order": 7,
+            "markdownDescription": "%config.board.timesPerDay%"
+          },
+          "bureauTheme.board.hours": {
+            "type": "string",
+            "default": "",
+            "pattern": "^$|^\\s*\\d{1,2}:\\d{2}\\s*-\\s*\\d{1,2}:\\d{2}\\s*$",
+            "patternErrorMessage": "%config.board.hours.error%",
+            "order": 8,
+            "markdownDescription": "%config.board.hours%"
+          },
+          "bureauTheme.board.display": {
+            "type": "string",
+            "enum": [
+              "notification",
+              "statusBar",
+              "both"
+            ],
+            "enumDescriptions": [
+              "%config.board.display.notification%",
+              "%config.board.display.statusBar%",
+              "%config.board.display.both%"
+            ],
+            "default": "notification",
+            "order": 9,
+            "description": "%config.board.display%"
+          },
+          "bureauTheme.board.source": {
+            "type": "string",
+            "enum": [
+              "all",
+              "board",
+              "custom"
+            ],
+            "enumDescriptions": [
+              "%config.board.source.all%",
+              "%config.board.source.board%",
+              "%config.board.source.custom%"
+            ],
+            "default": "all",
+            "order": 10,
+            "description": "%config.board.source%"
+          },
+          "bureauTheme.board.customMessages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "scope": "application",
+            "order": 11,
+            "markdownDescription": "%config.board.customMessages%"
+          }
+        }
+      },
+      {
+        "title": "%config.music.title%",
+        "order": 4,
+        "properties": {
+          "bureauTheme.music.enabled": {
+            "type": "boolean",
+            "default": false,
+            "scope": "application",
+            "order": 0,
+            "markdownDescription": "%config.music.enabled%"
+          },
+          "bureauTheme.music.source": {
+            "type": "string",
+            "enum": [
+              "any",
+              "spotify"
+            ],
+            "enumDescriptions": [
+              "%config.music.source.any%",
+              "%config.music.source.spotify%"
+            ],
+            "default": "any",
+            "order": 1,
+            "description": "%config.music.source%"
+          },
+          "bureauTheme.music.controls": {
+            "type": "boolean",
+            "default": true,
+            "order": 2,
+            "description": "%config.music.controls%"
+          }
+        }
+      }
+    ],
+    "colors": [
+      {
+        "id": "bureauTheme.classifiedBar",
+        "description": "%color.classifiedBar%",
+        "defaults": {
+          "dark": "editor.foreground",
+          "light": "editor.foreground",
+          "highContrast": "editor.foreground",
+          "highContrastLight": "editor.foreground"
+        }
       }
     ],
     "icons": {
@@ -418,6 +849,62 @@
           "fontPath": "./product-icons/bureau-product-icons.woff",
           "fontCharacter": "\\E011"
         }
+      },
+      "bureau-board": {
+        "description": "CONTROL: the Board",
+        "default": {
+          "fontPath": "./product-icons/bureau-product-icons.woff",
+          "fontCharacter": "\\E008"
+        }
+      },
+      "bureau-classified": {
+        "description": "CONTROL: Classified mode (values hidden)",
+        "default": {
+          "fontPath": "./product-icons/bureau-product-icons.woff",
+          "fontCharacter": "\\E080"
+        }
+      },
+      "bureau-declassified": {
+        "description": "CONTROL: Classified mode (values revealed)",
+        "default": {
+          "fontPath": "./product-icons/bureau-product-icons.woff",
+          "fontCharacter": "\\E049"
+        }
+      },
+      "bureau-alert": {
+        "description": "CONTROL: Bureau alert level",
+        "default": {
+          "fontPath": "./product-icons/bureau-product-icons.woff",
+          "fontCharacter": "\\E081"
+        }
+      },
+      "bureau-house": {
+        "description": "CONTROL: the Oldest House (theme, icons, sounds, music and protocols)",
+        "default": {
+          "fontPath": "./product-icons/bureau-product-icons.woff",
+          "fontCharacter": "\\E022"
+        }
+      },
+      "bureau-badge": {
+        "description": "CONTROL: full set (Bureau badge)",
+        "default": {
+          "fontPath": "./product-icons/bureau-product-icons.woff",
+          "fontCharacter": "\\E00C"
+        }
+      },
+      "bureau-duck": {
+        "description": "CONTROL: product icons (the rubber duck)",
+        "default": {
+          "fontPath": "./product-icons/bureau-product-icons.woff",
+          "fontCharacter": "\\E01A"
+        }
+      },
+      "bureau-threshold": {
+        "description": "CONTROL: follow the system light/dark mode (the Threshold)",
+        "default": {
+          "fontPath": "./product-icons/bureau-product-icons.woff",
+          "fontCharacter": "\\E023"
+        }
       }
     }
   },
@@ -433,14 +920,17 @@
     "icons": "node scripts/icons.js",
     "product-icons": "node scripts/product-icons.js",
     "icon": "node scripts/icon.js",
+    "walkthrough": "node scripts/walkthrough.js",
     "screenshots": "node scripts/screenshots/index.js",
     "test": "node --test \"test/*.test.js\"",
     "test:integration": "npm run bundle && node scripts/integration.js",
+    "test:jukebox": "node scripts/jukebox-check.js",
+    "version:next": "node scripts/version.js",
     "check": "npm run build && npm run typecheck && npm run contrast && npm run validate && npm test",
     "package": "vsce package",
     "install:local": "node scripts/install-local.js",
     "vscode:prepublish": "npm run build && npm run contrast && npm test",
-    "generate": "npm run build && node scripts/icons.js && node scripts/product-icons.js",
+    "generate": "npm run build && node scripts/icons.js && node scripts/product-icons.js && node scripts/walkthrough.js",
     "download-vscode": "node scripts/download-vscode.js"
   },
   "devDependencies": {
@@ -451,6 +941,7 @@
     "esbuild": "^0.28.2",
     "svg2ttf": "^6.1.0",
     "svgicons2svgfont": "^16.0.0",
+    "tm-grammars": "1.32.22",
     "ttf2woff": "^3.0.0",
     "typescript": "^7.0.2",
     "vscode-oniguruma": "^2.0.1",

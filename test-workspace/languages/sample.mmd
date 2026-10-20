@@ -1,0 +1,8 @@
+%% Archivo de prueba del tema: Mermaid.
+flowchart TD
+    A[Objeto de Poder] -->|resonancia alta| B{¿Brecha?}
+    B -->|sí| C[Contener]
+    B -->|no| D((Archivar))
+    C --> E[/Informe al Consejo/]
+    classDef hiss fill:#e0352b,color:#fff
+    class C hiss

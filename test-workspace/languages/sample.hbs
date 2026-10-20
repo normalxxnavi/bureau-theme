@@ -1,0 +1,18 @@
+{{!-- Archivo de prueba del tema: Handlebars. --}}
+<section class="registry">
+  <h1>{{title}}</h1>
+  {{#if director}}
+    <p>Directora: {{director.name}}</p>
+  {{else}}
+    <p>Sin directora</p>
+  {{/if}}
+  <ul>
+    {{#each items as |item index|}}
+      <li class="{{#if item.breach}}breach{{/if}}" data-index="{{index}}">
+        {{item.code}} — {{format-threat item.threat level=2}}
+      </li>
+    {{/each}}
+  </ul>
+  {{> footer year=2026}}
+  {{{raw-html board.message}}}
+</section>

@@ -51,6 +51,34 @@ const systemPath = () => ['/usr/bin', '/bin', '/usr/local/bin', process.env.PATH
 /** @type {Player} */
 const UNAVAILABLE = { available: false, play() {}, dispose() {} };
 
+/** ¿Corre VS Code dentro de un Flatpak? */
+const inFlatpak = () => Boolean(process.env.FLATPAK_ID) || fs.existsSync('/.flatpak-info');
+
+/**
+ * Reproductor de Linux: paplay (PulseAudio y PipeWire), pw-play o aplay (ALSA).
+ * VS Code en Flatpak no trae ninguno dentro de su sandbox: se usa el del
+ * sistema con `flatpak-spawn --host` (las rutas de los sonidos son las mismas
+ * dentro y fuera, porque el Flatpak de VS Code ve la carpeta personal).
+ * @param {(name: string) => string | null} find busca un ejecutable (ruta absoluta)
+ * @param {boolean} flatpak
+ * @returns {{bin: string, args: (file: string) => string[]} | null}
+ */
+function linuxPlayer(find, flatpak) {
+  /** @type {Array<[string, (file: string) => string[]]>} */
+  const players = [
+    ['paplay', (file) => [file]],
+    ['pw-play', (file) => [file]],
+    ['aplay', (file) => ['-q', file]],
+  ];
+  for (const [name, args] of players) {
+    const bin = find(name);
+    if (bin) return { bin, args };
+  }
+  const spawn = flatpak ? find('flatpak-spawn') : null;
+  if (spawn) return { bin: spawn, args: (file) => ['--host', 'paplay', file] };
+  return null;
+}
+
 /**
  * @param {Log} log
  * @param {NodeJS.Platform} [platform]
@@ -63,19 +91,10 @@ function createPlayer(log, platform = process.platform) {
     return createProcessPlayer('/usr/bin/afplay', (file) => [file], log);
   }
 
-  const linuxPlayers = /** @type {const} */ ([
-    ['paplay', (/** @type {string} */ file) => [file]],
-    ['pw-play', (/** @type {string} */ file) => [file]],
-    ['aplay', (/** @type {string} */ file) => ['-q', file]],
-  ]);
-  for (const [name, args] of linuxPlayers) {
-    const bin = which(name, systemPath());
-    if (bin) {
-      log.debug(`Audio player: ${bin}`);
-      return createProcessPlayer(bin, args, log);
-    }
-  }
-  return UNAVAILABLE;
+  const player = linuxPlayer((name) => which(name, systemPath()), inFlatpak());
+  if (!player) return UNAVAILABLE;
+  log.debug(`Audio player: ${player.bin}`);
+  return createProcessPlayer(player.bin, player.args, log);
 }
 
-module.exports = { createPlayer, which, systemPath };
+module.exports = { createPlayer, linuxPlayer, which, systemPath };

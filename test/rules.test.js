@@ -137,10 +137,10 @@ test('normalizeConfig corrige valores escritos a mano', () => {
   const c = normalizeConfig((k) => ({ enabled: 'yes', pack: 'otro', volume: 250, cooldownMs: -5, errorTrigger: 'x', customFolder: '  C:/sonidos  ' })[k]);
   assert.equal(c.enabled, false, 'solo true activa');
   assert.equal(c.pack, 'auto');
-  assert.equal(c.volume, 100);
+  assert.equal(c.volume, 200, "como mucho 200");
   assert.equal(c.cooldownMs, 0);
   assert.equal(c.errorTrigger, 'onSave');
   assert.equal(c.onlyWithControlTheme, true, 'por defecto true');
   assert.equal(c.customFolder, 'C:/sonidos');
-  assert.equal(normalizeConfig(() => undefined).volume, 70);
+  assert.equal(normalizeConfig(() => undefined).volume, 80);
 });

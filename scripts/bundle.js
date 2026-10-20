@@ -18,12 +18,16 @@ const esbuild = require('esbuild');
 
 const ROOT = path.resolve(__dirname, '..');
 
-// Cuatro archivos: lo que se carga al arrancar, el motor de sonido (solo con los
-// sonidos activados), la consola de sonido (solo al abrirla) y las tipografías
-// (solo si hay algo pendiente). Cada uno lleva sus módulos pequeños compartidos
-// (config, catálogo…): se duplican unos pocos cientos de bytes a cambio de no
-// leer ni compilar código que no se usa.
-const CHUNKS = ['controller', 'sound-menu', 'fonts'];
+// Un archivo para lo que se carga al arrancar y uno por cada módulo opcional:
+// el motor de sonido (solo con los sonidos activados), la consola de sonido
+// (solo al abrirla), las tipografías (solo si hay algo pendiente), cada
+// protocolo de la Agencia (solo si está activado), el Consejo, los comandos
+// de la guía de bienvenida, la Casa Inmemorial y la gramola (al usarlos o activarla). Cada uno lleva sus módulos pequeños
+// compartidos (config, catálogo…): se duplican unos pocos cientos de bytes a
+// cambio de no leer ni compilar código que no se usa.
+const CHUNKS = ['controller', 'sound-menu', 'fonts', 'classified', 'alert-level', 'board', 'setup', 'panel', 'music'];
+/** Lo que cada archivo carga de otro en lugar de llevar su propia copia. */
+const SHARED = { panel: ['./setup', './sound-menu', './board', './music'] };
 
 /** @param {string} name @param {string[]} external */
 const build = (name, external) =>
@@ -41,7 +45,7 @@ const build = (name, external) =>
     logLevel: 'warning',
   });
 
-Promise.all([build('extension', CHUNKS.map((c) => `./${c}`)), ...CHUNKS.map((c) => build(c, []))])
+Promise.all([build('extension', CHUNKS.map((c) => `./${c}`)), ...CHUNKS.map((c) => build(c, /** @type {Record<string, string[]>} */ (SHARED)[c] ?? []))])
   .then((results) => {
     const sizes = results.map((r) => {
       const [file, out] = Object.entries(r.metafile.outputs)[0];

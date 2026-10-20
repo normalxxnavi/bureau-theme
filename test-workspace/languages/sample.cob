@@ -1,0 +1,22 @@
+      * Archivo de prueba del tema: COBOL.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. BUREAU-REGISTRY.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 WS-OBJECT.
+          05 WS-CODE        PIC X(8)  VALUE "OOP-0001".
+          05 WS-THREAT      PIC 9(2)  VALUE 7.
+          05 WS-RESONANCE   PIC 9(4)V99 VALUE 12.50.
+       01 WS-MAX-RESONANCE  PIC 9(4)  VALUE 1000.
+       PROCEDURE DIVISION.
+       MAIN-PARAGRAPH.
+           IF WS-RESONANCE > WS-MAX-RESONANCE
+               DISPLAY "BRECHA EN " WS-CODE
+           ELSE
+               MOVE ZERO TO WS-RESONANCE
+               DISPLAY "CONTENIDO: " WS-CODE
+           END-IF
+           PERFORM VARYING WS-THREAT FROM 1 BY 1 UNTIL WS-THREAT > 3
+               DISPLAY "NIVEL " WS-THREAT
+           END-PERFORM
+           STOP RUN.

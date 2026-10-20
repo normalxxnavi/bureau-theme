@@ -1,0 +1,33 @@
+// Archivo de prueba del tema: Less.
+@import (reference) "bureau.less";
+
+@fbc-red: #e0352b;
+@concrete: #2a2b2e;
+@gutter: 16px;
+
+.card(@color: @fbc-red) {
+  border-left: 4px solid @color;
+  padding: @gutter / 2;
+}
+
+.object-card {
+  .card();
+  background: darken(@concrete, 5%);
+
+  &:hover,
+  &.breach {
+    color: fade(@fbc-red, 80%);
+  }
+
+  > h2 {
+    font: 600 1.25rem/1.4 "Overpass", sans-serif;
+  }
+
+  @media (max-width: 600px) {
+    padding: 0;
+  }
+}
+
+#hotline when (@mode = dark) {
+  color: ~"var(--hotline)";
+}

@@ -1,0 +1,22 @@
+// Archivo de prueba del tema: Stylus.
+fbc-red = #e0352b
+gutter = 16px
+
+card(color = fbc-red)
+  border-left 4px solid color
+  padding (gutter / 2)
+
+.object-card
+  card()
+  background darken(#2a2b2e, 5%)
+
+  &:hover
+  &.breach
+    color rgba(fbc-red, 0.8)
+
+  for i in 1..3
+    .floor-{i}
+      margin-top (i * 4px)
+
+  if gutter > 8px
+    border-radius 0
