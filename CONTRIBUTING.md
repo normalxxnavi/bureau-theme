@@ -67,11 +67,19 @@ The extension code lives in `src/extension/`: `extension.js` only registers comm
 | `develop` | Development. Every change lands here, directly or through a pull request. |
 | `release` | Production: the default branch on GitHub and what users get. It only receives merges from `develop` and the release commit. |
 
-Pull requests go to `develop`. The only GitHub Actions workflow is *Release*: pushing commits runs nothing, so run `npm run check` (and `npm run test:integration` for bigger changes) locally before pushing. All the checks run again when releasing.
+Pull requests go to `develop`. The only GitHub Actions workflow is *Release*: pushing commits runs nothing, so run `npm run check` (and `npm run test:integration` for bigger changes) locally before pushing. All the checks run again when releasing; to run them on Windows, macOS and Linux while you work, without publishing anything, push a release candidate tag (see below).
 
 ### Releases (maintainer)
 
 Pushing commits never creates a release; only a `vX.Y.Z` tag **on `release`** starts one (a tag anywhere else fails).
+
+**Release candidates:** a `vX.Y.Z.rc-N` tag (for example `v0.7.720102026.rc-1`, then `.rc-2`…) on `develop` or `release` runs everything a release runs — the checks, the integration test on the three systems and the `.vsix`, which you can download from the artifacts of the run — but never publishes. It does not count as an attempt, and `X.Y.Z` must still match `package.json`. `npm run version:next -- --rc` prints the next one:
+
+```sh
+git push origin develop
+git tag -a v0.7.720102026.rc-1 -m "Release candidate"
+git push origin v0.7.720102026.rc-1
+```
 
 The version is set on `develop`, so `release` only receives merges and tags:
 
@@ -89,7 +97,7 @@ git push origin vX.Y.Z               # starts the Release workflow
 git switch develop
 ```
 
-If the release slips to another day, run `npm run version:next` on `develop` again: while the version has no tag, it only updates the date.
+If the release slips to another day, run `npm run version:next` on `develop` again: while the version has no tag, it only updates the date. If a tagged attempt was not published (the workflow failed or you rejected it), `npm run version:next -- --retry` retries the same attempt with today's date (0.7.716102026 → 0.7.720102026) and moves its CHANGELOG section to it.
 
 The *Release* workflow checks everything (tests and the integration test in a real VS Code on Windows, macOS and Linux, every language sample, dependencies, generated files), builds the `.vsix` and waits for approval in the **release** environment (Actions → the run → *Review deployments* → *Approve and deploy*). Once approved it **publishes the version on the VS Code Marketplace** and creates the GitHub release with the `.vsix`, its SHA-256 and a provenance attestation. Approving is the last check: to stop a release, *Reject* it and delete the tag (`git push origin :refs/tags/vX.Y.Z`). The Marketplace does not allow removing a version, so a published mistake is fixed with a new version (the next attempt) from `develop`.
 
@@ -172,11 +180,19 @@ Los **mensajes del Consejo** (`src/extension/board-lines.js`) son textos origina
 | `develop` | Desarrollo. Todo cambio entra aquí, directamente o con un pull request. |
 | `release` | Producción: la rama por defecto en GitHub y lo que reciben los usuarios. Solo recibe merges desde `develop` y el commit de la versión. |
 
-Los pull requests van a `develop`. El único workflow de GitHub Actions es *Release*: subir commits no ejecuta nada, así que lanza `npm run check` (y `npm run test:integration` en cambios grandes) en local antes de subir. Todas las comprobaciones se repiten al sacar la versión.
+Los pull requests van a `develop`. El único workflow de GitHub Actions es *Release*: subir commits no ejecuta nada, así que lanza `npm run check` (y `npm run test:integration` en cambios grandes) en local antes de subir. Todas las comprobaciones se repiten al sacar la versión; para pasarlas en Windows, macOS y Linux mientras trabajas, sin publicar nada, sube un tag de candidata (abajo).
 
 ### Releases (mantenedor)
 
 Subir commits nunca crea una release; solo la empieza un tag `vX.Y.Z` **en `release`** (un tag en otra rama falla).
+
+**Candidatas:** un tag `vX.Y.Z.rc-N` (por ejemplo `v0.7.720102026.rc-1`, luego `.rc-2`…) en `develop` o en `release` pasa todo lo que pasa una versión —las comprobaciones, el test de integración en los tres sistemas y el `.vsix`, que se descarga de los artefactos de la ejecución— pero nunca publica. No cuenta como intento, y `X.Y.Z` tiene que coincidir con `package.json`. `npm run version:next -- --rc` te dice la siguiente:
+
+```sh
+git push origin develop
+git tag -a v0.7.720102026.rc-1 -m "Candidata"
+git push origin v0.7.720102026.rc-1
+```
 
 La versión se pone en `develop`, así que `release` solo recibe merges y tags:
 
@@ -194,7 +210,7 @@ git push origin vX.Y.Z               # arranca el workflow Release
 git switch develop
 ```
 
-Si la subida se retrasa a otro día, vuelve a lanzar `npm run version:next` en `develop`: mientras la versión no tenga tag, solo cambia la fecha.
+Si la subida se retrasa a otro día, vuelve a lanzar `npm run version:next` en `develop`: mientras la versión no tenga tag, solo cambia la fecha. Si un intento con tag no llegó a publicarse (falló el workflow o lo rechazaste), `npm run version:next -- --retry` repite el mismo intento con la fecha de hoy (0.7.716102026 → 0.7.720102026) y le pasa su sección del CHANGELOG.
 
 El workflow *Release* lo comprueba todo (tests y test de integración en un VS Code real en Windows, macOS y Linux, las muestras de todos los lenguajes, dependencias y archivos generados), compila el `.vsix` y espera tu aprobación en el entorno **release** (Actions → la ejecución → *Review deployments* → *Approve and deploy*). Al aprobarlo **publica la versión en el Marketplace de VS Code** y crea la release de GitHub con el `.vsix`, su SHA-256 y el certificado de procedencia. Aprobar es la última comprobación: para parar una versión, recházala (*Reject*) y borra el tag (`git push origin :refs/tags/vX.Y.Z`). El Marketplace no deja retirar una versión, así que un error publicado se arregla con una versión nueva (el intento siguiente) desde `develop`.
 

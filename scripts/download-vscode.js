@@ -16,6 +16,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { downloadAndUnzipVSCode } = require('@vscode/test-electron');
+const { ciError } = require('./lib/ci');
 
 /**
  * Carpeta de la instalación que contiene `resources/app`:
@@ -32,5 +33,6 @@ downloadAndUnzipVSCode(process.argv[2] || 'stable')
   })
   .catch((err) => {
     console.error(err);
+    ciError(`Download VS Code (${process.platform})`, String(err?.stack || err));
     process.exit(1);
   });

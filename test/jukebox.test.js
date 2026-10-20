@@ -40,6 +40,8 @@ test('macOS: el AppleScript solo pregunta a las apps abiertas (no las arranca)',
   const script = macReadScript(['Spotify', 'Music']);
   assert.match(script, /if application "Spotify" is running then/);
   assert.match(script, /if application "Music" is running then/);
+  // «st» es palabra reservada en AppleScript: con ella el script no compilaba (lo vio la CI de macOS).
+  assert.doesNotMatch(script, /\bset (st|out) to\b/);
   assert.equal(macCommandScript('Spotify', 'next'), 'if application "Spotify" is running then tell application "Spotify" to next track');
 });
 

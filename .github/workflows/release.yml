@@ -14,6 +14,10 @@
 #      firma la procedencia del .vsix y se crea la release de GitHub con el
 #      .vsix y su SHA-256.
 #
+# Candidatas: un tag vX.Y.Z.rc-N (en develop o en release) pasa «build» e
+# «integration» igual que una versión, con el .vsix en los artefactos de la
+# ejecución, pero «publish» no se ejecuta: así se prueba todo sin publicar.
+#
 # Publicación en el Marketplace sin secretos: Microsoft Entra ID con OIDC. GitHub
 # da al trabajo aprobado un token de corta duración que una app de Entra ID
 # acepta gracias a su credencial federada (repo:normalxxnavi@123770217/bureau-theme@1416781499,
@@ -39,20 +43,28 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Tag is a plain version (vX.Y.Z)
+      # VERSION (sin la «v» ni el «.rc-N») y RC (true en una candidata) para los demás pasos.
+      - name: Tag is a version (vX.Y.Z) or a release candidate (vX.Y.Z.rc-N)
         env:
           TAG: ${{ github.ref_name }}
-        run: '[[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]'
+        run: |
+          if [[ ! "$TAG" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)(\.rc-[0-9]+)?$ ]]; then
+            echo "::error::$TAG is neither vX.Y.Z nor vX.Y.Z.rc-N."
+            exit 1
+          fi
+          echo "VERSION=${BASH_REMATCH[1]}" >> "$GITHUB_ENV"
+          if [ -n "${BASH_REMATCH[2]}" ]; then echo "RC=true" >> "$GITHUB_ENV"; else echo "RC=false" >> "$GITHUB_ENV"; fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0 # historial completo para comprobar la rama del tag
-      - name: Tag is on the release branch
+      # Una versión sale de release; una candidata también se puede probar desde develop.
+      - name: Tag is on the release branch (a release candidate may also be on develop)
         run: |
-          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/release; then
-            echo "::error::$GITHUB_REF_NAME is not on the release branch. Merge develop into release and tag the release branch."
-            exit 1
-          fi
+          if git merge-base --is-ancestor "$GITHUB_SHA" origin/release; then exit 0; fi
+          if [ "$RC" = true ] && git merge-base --is-ancestor "$GITHUB_SHA" origin/develop; then exit 0; fi
+          echo "::error::$GITHUB_REF_NAME is not on the release branch. Merge develop into release and tag the release branch (a release candidate vX.Y.Z.rc-N may also be on develop)."
+          exit 1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
@@ -64,10 +76,10 @@ jobs:
           npm audit signatures
           npm audit --audit-level=moderate
       - name: Tag matches package.json
-        run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
+        run: test "$(node -p "require('./package.json').version")" = "$VERSION"
       # Hasta la 1.0.0: 0.<intento>.<intento><DDMMAAAA> (scripts/version.js).
       - name: Version follows the beta scheme
-        run: node scripts/version.js --check "${GITHUB_REF_NAME#v}"
+        run: node scripts/version.js --check "$VERSION"
       - run: npm run check
       - name: Generated files are up to date
         run: |
@@ -81,13 +93,19 @@ jobs:
           base="https://github.com/${GITHUB_REPOSITORY}"
           npx vsce package --out "bureau-theme-${GITHUB_REF_NAME#v}.vsix" --baseImagesUrl "$base/raw/$GITHUB_REF_NAME/" --baseContentUrl "$base/blob/$GITHUB_REF_NAME/"
       - run: sha256sum bureau-theme-*.vsix > SHA256SUMS.txt
-      - run: node scripts/release-notes.js "${GITHUB_REF_NAME#v}" > release-notes.md
+      - run: node scripts/release-notes.js "$VERSION" > release-notes.md
       - name: Summary
         run: |
           {
-            echo "### Release $GITHUB_REF_NAME ready for review"
-            echo
-            echo "Approve the **publish** job to publish it on the VS Code Marketplace and create the GitHub release."
+            if [ "$RC" = true ]; then
+              echo "### Release candidate $GITHUB_REF_NAME"
+              echo
+              echo "Nothing is published: the checks and the integration test run as for a release, and the .vsix is in the artifacts of this run. To publish $VERSION, push the tag v$VERSION on release."
+            else
+              echo "### Release $GITHUB_REF_NAME ready for review"
+              echo
+              echo "Approve the **publish** job to publish it on the VS Code Marketplace and create the GitHub release."
+            fi
             echo
             echo '```'
             cat SHA256SUMS.txt
@@ -165,6 +183,8 @@ jobs:
           run
 
   publish:
+    # Una candidata (vX.Y.Z.rc-N) nunca se publica.
+    if: ${{ !contains(github.ref_name, '.rc-') }}
     needs: [build, integration]
     runs-on: ubuntu-latest
     # Revisor obligatorio: el trabajo espera aquí hasta que lo apruebes. La
