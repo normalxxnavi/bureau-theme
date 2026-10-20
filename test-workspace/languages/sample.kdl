@@ -1,0 +1,12 @@
+// Archivo de prueba del tema: KDL.
+bureau version="0.6.0" {
+    director "Jesse Faden" clearance=7
+    sector "research" floor=-3 open=#true
+    object "OOP-0001" {
+        name "Hotline"
+        threat 7
+        tags "red" "phone"
+    }
+    /- object "OOP-9999" // desactivado
+    notes #null
+}

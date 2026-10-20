@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { normalizeCustomFolder, resolveSoundFile } = require('../src/extension/soundbank');
-const { which } = require('../src/extension/player');
+const { which, linuxPlayer } = require('../src/extension/player');
 const { isFilePath } = require('../src/extension/player/windows');
 
 test('normalizeCustomFolder', () => {
@@ -56,4 +56,16 @@ test('which encuentra ejecutables en el PATH indicado', () => {
   const rel = path.relative(process.cwd(), path.dirname(process.execPath));
   if (rel && !path.isAbsolute(rel)) assert.equal(which(path.basename(process.execPath), rel), null);
   assert.equal(which(path.basename(process.execPath), '.'), null);
+});
+
+test('Linux: elige paplay, pw-play o aplay y, en Flatpak, el reproductor del sistema', () => {
+  const only = (/** @type {string[]} */ names) => (/** @type {string} */ n) => (names.includes(n) ? `/usr/bin/${n}` : null);
+  assert.equal(linuxPlayer(only(['paplay', 'aplay']), false)?.bin, '/usr/bin/paplay');
+  assert.deepEqual(linuxPlayer(only(['aplay']), false)?.args('/s/a.wav'), ['-q', '/s/a.wav']);
+  assert.equal(linuxPlayer(only([]), false), null);
+  // Fuera de Flatpak, flatpak-spawn no se usa aunque exista.
+  assert.equal(linuxPlayer(only(['flatpak-spawn']), false), null);
+  const flatpak = linuxPlayer(only(['flatpak-spawn']), true);
+  assert.equal(flatpak?.bin, '/usr/bin/flatpak-spawn');
+  assert.deepEqual(flatpak?.args('/home/j/.vscode/a.wav'), ['--host', 'paplay', '/home/j/.vscode/a.wav']);
 });

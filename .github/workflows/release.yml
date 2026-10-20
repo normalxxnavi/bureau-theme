@@ -65,11 +65,14 @@ jobs:
           npm audit --audit-level=moderate
       - name: Tag matches package.json
         run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
+      # Hasta la 1.0.0: 0.<intento>.<intento><DDMMAAAA> (scripts/version.js).
+      - name: Version follows the beta scheme
+        run: node scripts/version.js --check "${GITHUB_REF_NAME#v}"
       - run: npm run check
       - name: Generated files are up to date
         run: |
           npm run generate
-          git diff --exit-code -- themes icons product-icons package.json
+          git diff --exit-code -- themes icons product-icons media package.json
       # Las imágenes y enlaces del README apuntan a ESTE tag, no a la rama por defecto:
       # así cambiar o borrar una captura más adelante no rompe la página de una
       # versión ya publicada (el Marketplace y VS Code las leen de GitHub).
@@ -99,9 +102,16 @@ jobs:
             release-notes.md
           retention-days: 7
 
+  # Windows, macOS y Linux: los tests unitarios y el test de integración en un
+  # VS Code real (sonidos con el reproductor de cada sistema, tipografías en la
+  # carpeta de fuentes de cada sistema, terminal, depurador, Git…).
   integration:
-    name: Integration test in VS Code (windows)
-    runs-on: windows-latest
+    name: Integration test in VS Code (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -111,16 +121,48 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --ignore-scripts
+      - run: npm test
+      # Linux: pantalla virtual (xvfb) y un servidor de sonido sin tarjeta (PulseAudio
+      # con una salida nula), para que paplay reproduzca de verdad.
+      - name: Linux display and audio
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -yq --no-install-recommends xvfb pulseaudio pulseaudio-utils fontconfig
+          # Sin servidor de sonido paplay falla al reproducir, pero el test sigue
+          # comprobando que cada evento lanza el reproductor: no es un error.
+          pulseaudio --start --exit-idle-time=-1 || echo "::warning::PulseAudio did not start"
+          pactl load-module module-null-sink sink_name=bureau || true
+      # La gramola contra el sistema de verdad (scripts/jukebox-check.js). Linux:
+      # un reproductor de prueba (mpv con MPRIS, en un D-Bus propio) con el que se
+      # comprueban la canción, la portada, pausar y reanudar. macOS: los AppleScript
+      # compilan con el diccionario real de Música. Windows: el PowerShell lee la
+      # sesión multimedia sin fallar.
+      - name: Songmaster jukebox against the system
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = Linux ]; then
+            sudo apt-get install -yq --no-install-recommends dbus libglib2.0-bin mpv mpv-mpris ffmpeg
+            npm run test:jukebox -- --test-player
+          else
+            npm run test:jukebox
+          fi
       - run: npm run download-vscode
+      # Todos los lenguajes de VS Code tienen muestra y ningún token se queda sin
+      # color (con las gramáticas del VS Code recién descargado).
+      - name: Every language sample is fully coloured
+        if: runner.os == 'Linux'
+        run: npm run preview -- --check
       # El test maneja un VS Code real con tiempos límite (servidor de TypeScript,
       # depurador, sonidos): en un runner lento puede fallar sin motivo. Se repite
       # una vez; un fallo real falla las dos veces.
       - name: Integration test (one retry)
         shell: bash
         run: |
-          npm run test:integration && exit 0
+          run() { if [ "$RUNNER_OS" = Linux ]; then xvfb-run -a npm run test:integration; else npm run test:integration; fi; }
+          run && exit 0
           echo "::warning::Integration test failed on the first attempt; retrying once."
-          npm run test:integration
+          run
 
   publish:
     needs: [build, integration]

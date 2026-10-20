@@ -290,12 +290,19 @@ function limit(b, ceiling, { lookahead = 0.002, release = 0.06 } = {}) {
  *
  * Antes se normalizaba al pico y los sonidos quedaban 10-15 dB por debajo de
  * cualquier música: con Spotify sonando no se oían.
- * @param {Float32Array} b @param {{rmsDb: number, ceilingDb?: number, maxReductionDb?: number}} o
+ * Con `lowCutHz` quita los graves profundos (24 dB/octava), que los altavoces
+ * de un portátil o unos auriculares pequeños no reproducen y solo gastan
+ * margen; con `audibleBandHz` el nivel se mide por encima de esa frecuencia
+ * (lo que se oye en cualquier altavoz) y no con los graves.
+ * @param {Float32Array} b
+ * @param {{rmsDb: number, ceilingDb?: number, maxReductionDb?: number, lowCutHz?: number, audibleBandHz?: number}} o
  */
-function finish(b, { rmsDb, ceilingDb = -1, maxReductionDb = 6 }) {
+function finish(b, { rmsDb, ceilingDb = -1, maxReductionDb = 6, lowCutHz = 0, audibleBandHz = 0 }) {
   let out = filter(b, biquad('highpass', 25));
+  if (lowCutHz) out = filter(filter(out, biquad('highpass', lowCutHz)), biquad('highpass', lowCutHz));
   const ceiling = dbToGain(ceilingDb);
-  const gain = Math.min(dbToGain(rmsDb) / (rmsOf(out) || 1e-9), (ceiling * dbToGain(maxReductionDb)) / (peakOf(out) || 1e-9));
+  const level = audibleBandHz ? rmsOf(filter(out, biquad('highpass', audibleBandHz))) : rmsOf(out);
+  const gain = Math.min(dbToGain(rmsDb) / (level || 1e-9), (ceiling * dbToGain(maxReductionDb)) / (peakOf(out) || 1e-9));
   for (let i = 0; i < out.length; i++) out[i] *= gain;
   out = limit(out, ceiling);
   // Recorta el final por debajo de -50 dBFS.

@@ -1,0 +1,22 @@
+// Archivo de prueba del tema: Sass (sintaxis con sangría).
+@use "sass:math"
+
+$fbc-red: #e0352b
+$gutter: 16px
+
+=card($color: $fbc-red)
+  border-left: 4px solid $color
+  padding: math.div($gutter, 2)
+
+.object-card
+  +card
+  background: darken(#2a2b2e, 5%)
+
+  &:hover, &.breach
+    color: rgba($fbc-red, 0.8)
+
+  > h2
+    font: 600 1.25rem/1.4 "Overpass", sans-serif
+
+  @media (max-width: 600px)
+    padding: 0

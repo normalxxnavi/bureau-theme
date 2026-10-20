@@ -1,0 +1,26 @@
+---
+// Archivo de prueba del tema: Astro.
+import Layout from '../layouts/Layout.astro';
+
+interface Props {
+  title: string;
+  items: { code: string; threat: number }[];
+}
+
+const { title, items } = Astro.props as Props;
+const dangerous = items.filter((i) => i.threat > 2);
+---
+
+<Layout title={title}>
+  <h1>{title}</h1>
+  <ul>
+    {dangerous.map((item) => <li class:list={['item', { high: item.threat > 5 }]}>{item.code}</li>)}
+  </ul>
+  {dangerous.length === 0 && <p>Todo contenido</p>}
+</Layout>
+
+<style>
+  .high {
+    color: #e0352b;
+  }
+</style>

@@ -79,6 +79,51 @@ module.exports = function semantic(p) {
     regexOtherEscape: s.number,
     regexComment: italic(s.comment),
 
+    // --- Otros servidores de lenguaje ---------------------------------------
+    // Tipos propios de los más usados; los que no salen aquí usan su scope
+    // TextMate equivalente (semanticTokenScopes de cada extensión).
+    // rust-analyzer
+    'keyword.controlFlow': s.keyword,
+    lifetime: italic(s.storage),
+    selfKeyword: italic(s.storage),
+    selfTypeKeyword: s.type,
+    builtinType: s.storage,
+    typeAlias: s.type,
+    union: s.type,
+    attribute: s.attribute,
+    builtinAttribute: s.attribute,
+    derive: s.attribute,
+    formatSpecifier: s.number,
+    escapeSequence: s.number,
+    boolean: s.number,
+    character: s.string,
+    const: s.number,
+    // Pylance (Python)
+    selfParameter: italic(s.storage),
+    clsParameter: italic(s.storage),
+    magicFunction: s.function,
+    builtinConstant: s.number,
+    // Java (Red Hat), Dart, Kotlin
+    annotation: s.attribute,
+    annotationMember: s.attribute,
+    modifier: s.storage,
+    record: s.type,
+    recordComponent: s.property,
+    // C/C++ (cpptools y clangd)
+    templateFunction: s.function,
+    templateType: s.type,
+    operatorOverload: s.function,
+    memberOperatorOverload: s.function,
+    newOperator: s.keyword,
+    numberLiteral: s.number,
+    customLiteral: s.number,
+    stringLiteral: s.string,
+    genericType: s.type,
+    referenceType: s.type,
+    valueType: s.type,
+    cliProperty: s.property,
+    concept: s.type,
+
     // --- Razor --------------------------------------------------------------
     razorTransition: s.keyword,
     razorDirective: s.keyword,

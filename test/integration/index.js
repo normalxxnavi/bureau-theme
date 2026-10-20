@@ -110,8 +110,8 @@ async function run() {
   await step('los sonidos están desactivados por defecto y sin listeners', async () => {
     assert.equal(sounds.get('enabled'), false);
     assert.equal(api.soundsStarted, false);
-    // El icono de la barra de estado está visible por defecto, con la resonancia apagada.
-    await waitFor(() => api.soundStatusText === '$(bureau-resonance-off)', 'icono de sonido apagado');
+    // El icono de la Casa Inmemorial está visible por defecto.
+    await waitFor(() => api.statusText === '$(bureau-house)', 'icono de la Casa Inmemorial visible');
   });
 
   await step('los cuatro temas están registrados', async () => {
@@ -135,10 +135,8 @@ async function run() {
     await api.fontsIdle();
     assert.match(String(cfg().get('chat.fontFamily')), /Overpass/);
     assert.match(String(cfg().get('terminal.integrated.fontFamily')), /Overpass Mono/);
-    if (process.platform === 'win32') {
-      const dir = path.join(process.env.LOCALAPPDATA || '', 'Microsoft', 'Windows', 'Fonts');
-      assert.ok(fs.existsSync(path.join(dir, 'BureauTheme-OverpassMono-Variable.ttf')), 'fuente instalada para el usuario');
-    }
+    // En la carpeta de fuentes del usuario de cada sistema (Windows, ~/Library/Fonts, ~/.local/share/fonts).
+    assert.ok(fs.existsSync(path.join(userFontsDir(), 'BureauTheme-OverpassMono-Variable.ttf')), 'fuente instalada para el usuario');
 
     await cfg().update('bureauTheme.font', 'auto', G);
     await setTheme('CONTROL Resonant');
@@ -163,13 +161,12 @@ async function run() {
     await waitFor(() => api.soundsStarted === true, 'controller.started');
   });
 
-  await step('icono de sonido: refleja el estado y se puede ocultar y volver a mostrar', async () => {
-    await waitFor(() => api.soundStatusText === '$(bureau-resonance)', 'icono de resonancia encendido');
-    await vscode.commands.executeCommand('bureauTheme.toggleSoundStatusBar');
-    await waitFor(() => api.soundStatusText === undefined, 'icono oculto');
-    assert.equal(vscode.workspace.getConfiguration('bureauTheme.sounds').get('statusBarItem'), false);
-    await vscode.commands.executeCommand('bureauTheme.toggleSoundStatusBar');
-    await waitFor(() => api.soundStatusText === '$(bureau-resonance)', 'icono visible otra vez');
+  await step('icono de la Casa Inmemorial: se puede ocultar y volver a mostrar', async () => {
+    await vscode.commands.executeCommand('bureauTheme.toggleStatusBarItem');
+    await waitFor(() => api.statusText === undefined, 'icono oculto');
+    assert.equal(vscode.workspace.getConfiguration('bureauTheme').get('statusBarItem'), false);
+    await vscode.commands.executeCommand('bureauTheme.toggleStatusBarItem');
+    await waitFor(() => api.statusText === '$(bureau-house)', 'icono visible otra vez');
   });
 
   await step('cambiar a CONTROL Resonant → tema activado con el pack Resonant', async () => {
@@ -313,6 +310,122 @@ async function run() {
     await runTask('ok-disabled', 0);
     await sleep(800);
     assert.equal(history().length, before);
+  });
+
+  // --- Protocolos de la Agencia y guía de bienvenida ---------------------------
+  const alertCfg = () => vscode.workspace.getConfiguration('bureauTheme.alertLevel');
+  const classifiedCfg = () => vscode.workspace.getConfiguration('bureauTheme.classified');
+  const boardCfg = () => vscode.workspace.getConfiguration('bureauTheme.board');
+
+  await step('nivel de alerta: con los errores de errors.ts es Alerta, con umbral 1 es Incursión del Siseo', async () => {
+    assert.equal(api.alertLevelText, undefined, 'apagado por defecto');
+    await vscode.window.showTextDocument(doc);
+    await waitFor(() => errorCount() >= 3, 'errores de errors.ts', 30000);
+    await alertCfg().update('enabled', true, G);
+    await waitFor(() => api.alertLevelText === '$(bureau-alert) ALERT', `nivel Alerta (${api.alertLevelText})`, 20000);
+    await alertCfg().update('incursionThreshold', 1, G);
+    await waitFor(() => api.alertLevelText === '$(bureau-alert) HISS INCURSION', `Incursión del Siseo (${api.alertLevelText})`);
+    await alertCfg().update('enabled', false, G);
+    await waitFor(() => api.alertLevelText === undefined, 'nivel de alerta oculto');
+  });
+
+  await step('Modo Clasificado: tapa los 8 valores de sample.env y el icono los revela', async () => {
+    const editor = await vscode.window.showTextDocument(vscode.Uri.joinPath(folder.uri, 'languages', 'sample.env'));
+    const key = editor.document.uri.toString();
+    assert.equal(api.classifiedBars(key), 0, 'apagado por defecto');
+    await classifiedCfg().update('enabled', true, G);
+    await waitFor(() => api.classifiedBars(key) === 8, `8 barras (${api.classifiedBars(key)})`);
+    // Un salto por comando (no con el teclado ni el ratón) no revela ninguna línea.
+    editor.selection = new vscode.Selection(3, 0, 3, 0);
+    await sleep(400);
+    assert.equal(api.classifiedBars(key), 8);
+    await vscode.commands.executeCommand('bureauTheme.declassify');
+    await waitFor(() => api.classifiedBars(key) === 0, 'desclasificado');
+    await vscode.commands.executeCommand('bureauTheme.declassify');
+    await waitFor(() => api.classifiedBars(key) === 8, 'clasificado otra vez');
+    await classifiedCfg().update('enabled', false, G);
+    await waitFor(() => api.classifiedBars(key) === 0, 'barras quitadas al desactivarlo');
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+  });
+
+  await step('Consejo: saluda una vez al día y comenta una tarea en la barra de estado', async () => {
+    assert.deepEqual(api.boardComments, [], 'apagado por defecto');
+    await boardCfg().update('comments', true, G);
+    await waitFor(() => api.boardComments.some((/** @type {{moment: string}} */ c) => c.moment === 'startup' || c.moment === 'lateNight'), 'saludo del día', 10000);
+    assert.equal(await runTask('board-ok', 0), 0);
+    await waitFor(() => api.boardComments.some((/** @type {{moment: string}} */ c) => c.moment === 'buildOk'), 'comentario de la tarea');
+    for (const c of api.boardComments) assert.match(c.text, /^<<[^<>]+>>$/);
+    await boardCfg().update('comments', false, G);
+  });
+
+  await step('Consejo al azar: se activa y enseña un mensaje propio en la barra de estado', async () => {
+    const mine = '<<PRUEBA DE INTEGRACIÓN, AGENTE.>>';
+    await boardCfg().update('customMessages', [mine], G);
+    await boardCfg().update('source', 'custom', G);
+    await boardCfg().update('display', 'statusBar', G);
+    await boardCfg().update('random', true, G);
+    await waitFor(() => api.boardRandomStarted === true, 'mensajes al azar activados');
+    api.boardRandomShowNow();
+    await waitFor(() => api.boardRandomHistory.includes(mine), 'mensaje propio mostrado');
+    await boardCfg().update('random', false, G);
+    await waitFor(() => api.boardRandomStarted === false, 'mensajes al azar desactivados');
+    for (const key of ['customMessages', 'source', 'display']) await boardCfg().update(key, undefined, G);
+  });
+
+  await step('gramola: se activa sin cuentas, su menú se abre y se cierra, y se apaga', async () => {
+    // Solo lee lo que suena: nunca toca la reproducción de quien ejecuta el test.
+    const music = vscode.workspace.getConfiguration('bureauTheme.music');
+    await music.update('enabled', true, G);
+    await waitFor(() => api.musicStarted === true, 'gramola en marcha');
+    const menu = vscode.commands.executeCommand('bureauTheme.musicMenu');
+    await sleep(800);
+    await vscode.commands.executeCommand('workbench.action.closeQuickOpen');
+    await menu;
+    await music.update('enabled', false, G);
+    await waitFor(() => api.musicStarted === false, 'gramola apagada');
+  });
+
+  await step('guía: el set completo aplica tema, iconos de archivo e iconos de producto', async () => {
+    const cfg = () => vscode.workspace.getConfiguration();
+    vscode.commands.executeCommand('bureauTheme.applyFullSet'); // espera a la notificación con «Deshacer»
+    await sleep(600);
+    await vscode.commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem'); // CONTROL Dark
+    await sleep(600);
+    await vscode.commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem'); // iconos a color
+    await waitFor(() => cfg().get('workbench.productIconTheme') === 'bureau-product-icons-color', 'iconos de producto a color');
+    assert.equal(cfg().get('workbench.iconTheme'), 'bureau-icons');
+    assert.equal(cfg().inspect('workbench.colorTheme')?.globalValue, 'CONTROL Dark');
+  });
+
+  await step('guía: seguir el modo claro/oscuro del sistema con Astral de día', async () => {
+    const cfg = () => vscode.workspace.getConfiguration();
+    vscode.commands.executeCommand('bureauTheme.followSystem');
+    await sleep(600);
+    await vscode.commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem'); // CONTROL Dark de noche
+    await waitFor(() => cfg().get('window.autoDetectColorScheme') === true, 'detección del modo del sistema');
+    assert.equal(cfg().get('workbench.preferredLightColorTheme'), 'CONTROL Astral');
+    assert.equal(cfg().get('workbench.preferredDarkColorTheme'), 'CONTROL Dark');
+    await cfg().update('window.autoDetectColorScheme', false, G);
+  });
+
+  await step('Casa Inmemorial: activa un protocolo, vuelve a la Casa y Esc la cierra', async () => {
+    const panel = vscode.commands.executeCommand('bureauTheme.openOldestHouse');
+    await sleep(600);
+    // La primera opción es «Tema de color»; «Modo Clasificado» es la décima (los
+    // separadores no cuentan): 6 de apariencia, sonidos, gramola, bandas sonoras.
+    for (let i = 0; i < 9; i++) await vscode.commands.executeCommand('workbench.action.quickOpenSelectNext');
+    await vscode.commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
+    await waitFor(() => classifiedCfg().get('enabled') === true, 'Modo Clasificado activado desde el panel');
+    await sleep(600); // el panel se vuelve a abrir solo
+    await vscode.commands.executeCommand('workbench.action.closeQuickOpen');
+    await panel; // con Esc el panel se cierra y el comando termina
+    await classifiedCfg().update('enabled', false, G);
+  });
+
+  await step('guía: el comando abre la guía de bienvenida', async () => {
+    await vscode.commands.executeCommand('bureauTheme.openWelcome');
+    await waitFor(() => vscode.window.tabGroups.all.some((g) => g.tabs.some((t) => /welcome|bienvenid|bureau/i.test(t.label))), 'pestaña de la guía');
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
   });
 
   // Restaurar la copia temporal (no es el test-workspace real, pero por limpieza).

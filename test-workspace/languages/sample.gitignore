@@ -1,0 +1,9 @@
+# Archivo de prueba del tema: .gitignore (lenguaje «ignore»).
+# Solo se llama .gitignore la copia real: git no lee este archivo.
+node_modules/
+dist/
+*.log
+!important.log
+/.vscode-test/
+**/secrets/*.json
+[Bb]in/

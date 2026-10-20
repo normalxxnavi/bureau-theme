@@ -492,13 +492,26 @@ for (const [i, pitch] of /** @type {Array<[number, number]>} */ ([[1, 1], [2, 1.
 
 const PACKS = { control, resonant };
 
+/**
+ * Masterizado para cualquier altavoz. Antes, varios sonidos del pack Control
+ * (guardar, arranque, breakpoint, teclas) tenían casi toda su energía por
+ * debajo de 200 Hz: en un portátil o con auriculares pequeños apenas se oían
+ * aunque el archivo midiera fuerte. Ahora se quitan los graves por debajo de
+ * 120 Hz, el nivel se mide por encima de 200 Hz y todo sube 5 dB sobre su
+ * nivel de diseño (`rmsDb`); las teclas, 3 dB, para seguir siendo discretas.
+ * El limitador puede quitar hasta 12 dB de los picos (solo los ataques).
+ * @param {number} rmsDb
+ */
+const boostDb = (rmsDb) => (rmsDb <= -19 ? 3 : 5);
+const MASTERING = { maxReductionDb: 12, lowCutHz: 120, audibleBandHz: 200 };
+
 function main() {
   const rows = [];
   for (const [pack, sounds] of Object.entries(PACKS)) {
     const dir = path.join(ROOT, 'sounds', pack);
     fs.mkdirSync(dir, { recursive: true });
     for (const [file, spec] of Object.entries(sounds)) {
-      const audio = D.finish(spec.render(), { rmsDb: spec.rmsDb });
+      const audio = D.finish(spec.render(), { rmsDb: spec.rmsDb + boostDb(spec.rmsDb), ...MASTERING });
       fs.writeFileSync(path.join(dir, file), D.toWav(audio));
       const peak = 20 * Math.log10(D.peakOf(audio));
       const rms = 20 * Math.log10(D.rmsOf(audio));

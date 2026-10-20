@@ -1,0 +1,19 @@
+# Archivo de prueba del tema: just.
+set dotenv-load := true
+
+sector := env_var_or_default("SECTOR", "research")
+version := `node -p "require('./package.json').version"`
+
+# Compila y comprueba todo.
+default: check
+
+check:
+    npm run check
+
+# Empaqueta la versión {{version}}.
+package target="vsix": check
+    @echo "Empaquetando {{version}} para {{sector}}"
+    npx vsce package --out bureau-{{version}}.{{target}}
+
+clean:
+    rm -rf dist .preview

@@ -1,0 +1,17 @@
+# Archivo de prueba del tema: HTTP (REST Client).
+@baseUrl = https://oldest-house.example.invalid/api
+@token = not-a-real-token
+
+### Lista los Objetos de Poder
+GET {{baseUrl}}/objects?threat=high&limit=10 HTTP/1.1
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Contiene un objeto
+POST {{baseUrl}}/objects/OOP-0001/contain HTTP/1.1
+Content-Type: application/json
+
+{
+  "force": true,
+  "sector": "research"
+}

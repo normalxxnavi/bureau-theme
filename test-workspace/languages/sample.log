@@ -1,0 +1,8 @@
+2026-10-16 09:00:00.123 [info] Bureau systems online. Sector: research
+2026-10-16 09:00:01.456 [debug] Hotline volume set to 0.7
+2026-10-16 09:00:02.789 [warning] Resonance above threshold in OOP-0001 (12.5)
+2026-10-16 09:00:03.001 [error] Containment breach in sector containment: Hiss detected
+2026-10-16 09:00:04.202 INFO  Control Point cleansed at 10.0.0.42
+2026-10-16 09:00:05.303 ERROR java.lang.IllegalStateException: Board unreachable
+    at gov.fbc.Board.connect(Board.java:42)
+2026-10-16 09:00:06.404 [trace] GUID 3f2504e0-4f89-11d3-9a0c-0305e82c3301 resolved in 12ms

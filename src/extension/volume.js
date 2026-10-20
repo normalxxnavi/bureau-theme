@@ -60,19 +60,40 @@ function parseWav(buf) {
   throw new Error('WAV sin chunk "data"');
 }
 
+/** Volumen máximo: por encima de 100 el sonido se amplifica (hasta +6 dB a 200). */
+const MAX_VOLUME = 200;
+
 /**
- * Curva de volumen perceptiva (0–100 → ganancia 0–1). Con una curva lineal,
- * casi todo el recorrido del control sonaría igual de fuerte.
+ * Curva de volumen: perceptiva de 0 a 100 (ganancia 0–1; con una curva lineal
+ * casi todo el recorrido sonaría igual de fuerte) y amplificación de 100 a 200
+ * (ganancia 1–2, es decir, hasta +6 dB).
  * @param {number} volume
  */
 function gainForVolume(volume) {
-  const v = Math.min(100, Math.max(0, volume)) / 100;
-  return v * v;
+  const v = Math.min(MAX_VOLUME, Math.max(0, volume)) / 100;
+  return v <= 1 ? v * v : v;
+}
+
+/** Desde aquí (0,7 = -3 dBFS) el limitador suave empieza a redondear los picos. */
+const KNEE = 0.7;
+const SOFT_CEILING = 0.98;
+
+/**
+ * Limitador suave para el sonido amplificado: por debajo de la rodilla no
+ * cambia nada; por encima, los picos se redondean hacia el techo en vez de
+ * recortarse en seco (lo que sonaría rasgado).
+ * @param {number} x muestra normalizada (-1…1 o más)
+ */
+function softLimit(x) {
+  const a = Math.abs(x);
+  if (a <= KNEE) return x;
+  return Math.sign(x) * (KNEE + (SOFT_CEILING - KNEE) * Math.tanh((a - KNEE) / (SOFT_CEILING - KNEE)));
 }
 
 /**
  * Devuelve una copia del WAV con las muestras multiplicadas por `gain`.
- * Soporta PCM de 8, 16, 24 y 32 bits y float de 32 bits.
+ * Soporta PCM de 8, 16, 24 y 32 bits y float de 32 bits. Si `gain` es mayor
+ * que 1 (volumen por encima de 100), pasa por el limitador suave.
  * @param {Buffer} buf @param {number} gain
  */
 function scaleWav(buf, gain) {
@@ -81,9 +102,11 @@ function scaleWav(buf, gain) {
   const { dataOffset, dataLength, bitsPerSample, format } = info;
   const end = dataOffset + dataLength;
   const bytes = bitsPerSample / 8;
+  /** Aplica la ganancia a una muestra cuyo fondo de escala es `full`. */
+  const apply = gain > 1 ? (/** @type {number} */ v, /** @type {number} */ full) => softLimit((v * gain) / full) * full : (/** @type {number} */ v) => v * gain;
 
   if (format === WAVE_FORMAT_IEEE_FLOAT && bitsPerSample === 32) {
-    for (let i = dataOffset; i + 4 <= end; i += 4) out.writeFloatLE(buf.readFloatLE(i) * gain, i);
+    for (let i = dataOffset; i + 4 <= end; i += 4) out.writeFloatLE(apply(buf.readFloatLE(i), 1), i);
     return out;
   }
   if (format !== WAVE_FORMAT_PCM) throw new Error(`Formato WAV no soportado (${format})`);
@@ -95,16 +118,16 @@ function scaleWav(buf, gain) {
   for (let i = dataOffset; i + bytes <= end; i += bytes) {
     switch (bitsPerSample) {
       case 8: // sin signo, centrado en 128
-        out.writeUInt8(Math.max(0, Math.min(255, Math.round((buf.readUInt8(i) - 128) * gain + 128))), i);
+        out.writeUInt8(Math.max(0, Math.min(255, Math.round(apply(buf.readUInt8(i) - 128, 128) + 128))), i);
         break;
       case 16:
-        out.writeInt16LE(clampInt(buf.readInt16LE(i) * gain, 16), i);
+        out.writeInt16LE(clampInt(apply(buf.readInt16LE(i), 32768), 16), i);
         break;
       case 24:
-        out.writeIntLE(clampInt(buf.readIntLE(i, 3) * gain, 24), i, 3);
+        out.writeIntLE(clampInt(apply(buf.readIntLE(i, 3), 8388608), 24), i, 3);
         break;
       case 32:
-        out.writeInt32LE(clampInt(buf.readInt32LE(i) * gain, 32), i);
+        out.writeInt32LE(clampInt(apply(buf.readInt32LE(i), 2147483648), 32), i);
         break;
       default:
         throw new Error(`Profundidad de bits no soportada (${bitsPerSample})`);
@@ -115,14 +138,14 @@ function scaleWav(buf, gain) {
 
 /**
  * Ruta de una copia del WAV con el volumen aplicado (la crea si no existe).
- * Con volumen 100 devuelve el original.
+ * Con volumen 100 devuelve el original; por encima, una copia amplificada.
  * @param {string} source @param {number} volume @param {string} cacheDir
  */
 function getScaledFile(source, volume, cacheDir) {
   const stat = fs.statSync(source);
   if (!stat.isFile()) throw new Error(`${path.basename(source)} is not a regular file`);
   if (stat.size > MAX_WAV_BYTES) throw new Error(`${path.basename(source)} is too large (${Math.round(stat.size / 1048576)} MB; maximum 16 MB)`);
-  if (volume >= 100) return source;
+  if (volume === 100) return source;
   const key = crypto.createHash('sha1').update(`${path.resolve(source)}|${stat.size}|${stat.mtimeMs}`).digest('hex').slice(0, 16);
   const target = path.join(cacheDir, `${key}-v${volume}.wav`);
   if (!fs.existsSync(target)) {
@@ -150,4 +173,4 @@ function pruneCache(cacheDir, keepVolume) {
   return removed;
 }
 
-module.exports = { parseWav, gainForVolume, scaleWav, getScaledFile, pruneCache, MAX_WAV_BYTES };
+module.exports = { parseWav, gainForVolume, softLimit, scaleWav, getScaledFile, pruneCache, MAX_WAV_BYTES, MAX_VOLUME };
