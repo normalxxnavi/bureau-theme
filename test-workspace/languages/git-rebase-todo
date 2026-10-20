@@ -1,0 +1,12 @@
+pick 8ce0dfe Contain the Hotline
+reword d8b646c Seal the Oldest House
+squash 0934a09 Fix the resonance check
+fixup 8407b26 Typo in the Board message
+drop b94e971 Experimental Hiss sample
+exec npm test
+
+# Rebase 1a2b3c4..8ce0dfe onto 1a2b3c4 (6 commands)
+#
+# Commands:
+# p, pick <commit> = use commit
+# r, reword <commit> = use commit, but edit the commit message

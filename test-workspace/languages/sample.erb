@@ -1,0 +1,10 @@
+<%# Archivo de prueba del tema: ERB. %>
+<section class="registry">
+  <h1><%= @title.upcase %></h1>
+  <% @objects.select { |o| o.threat > 2 }.each_with_index do |item, i| %>
+    <p class="<%= item.breach? ? 'breach' : 'sealed' %>" data-index="<%= i %>">
+      <%= link_to item.code, object_path(item) %>
+    </p>
+  <% end %>
+  <%== raw @board_message %>
+</section>

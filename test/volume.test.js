@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { parseWav, gainForVolume, scaleWav, getScaledFile, pruneCache, MAX_WAV_BYTES } = require('../src/extension/volume');
+const { parseWav, gainForVolume, softLimit, scaleWav, getScaledFile, pruneCache, MAX_WAV_BYTES } = require('../src/extension/volume');
 
 /**
  * WAV mínimo con las muestras dadas.
@@ -76,11 +76,13 @@ test('parseWav rechaza cabeceras incompletas o con formatos imposibles', () => {
   assert.throws(() => parseWav(noChannels), /no soportado/);
 });
 
-test('gainForVolume usa una curva perceptiva', () => {
+test('gainForVolume usa una curva perceptiva hasta 100 y amplifica hasta 200 (+6 dB)', () => {
   assert.equal(gainForVolume(0), 0);
   assert.equal(gainForVolume(100), 1);
   assert.equal(gainForVolume(50), 0.25);
-  assert.equal(gainForVolume(150), 1);
+  assert.equal(gainForVolume(150), 1.5);
+  assert.equal(gainForVolume(200), 2);
+  assert.equal(gainForVolume(500), 2, 'nunca más de 200');
 });
 
 test('scaleWav 16 bits', () => {
@@ -100,12 +102,23 @@ test('scaleWav 24 bits y float 32', () => {
   assert.deepEqual(samplesOf(f32, (b, o) => b.readFloatLE(o), 4), [0.25, -0.5]);
 });
 
-test('scaleWav no modifica el original y satura sin desbordar', () => {
-  const original = makeWav({ bits: 16, samples: [30000] });
+test('scaleWav no modifica el original y, amplificado, redondea los picos sin desbordar', () => {
+  const original = makeWav({ bits: 16, samples: [30000, 8000, -30000] });
   const copy = Buffer.from(original);
   const out = scaleWav(original, 2);
   assert.deepEqual(original, copy);
-  assert.deepEqual(samplesOf(out, (b, o) => b.readInt16LE(o), 2), [32767]);
+  const [peak, quiet, negative] = samplesOf(out, (b, o) => b.readInt16LE(o), 2);
+  assert.equal(quiet, 16000, 'por debajo de la rodilla solo se amplifica');
+  assert.ok(peak > 0.95 * 32768 && peak < 32767, `pico redondeado bajo el techo (${peak})`);
+  assert.equal(negative, -peak, 'simétrico');
+});
+
+test('softLimit: transparente bajo la rodilla, nunca pasa del techo y es continuo', () => {
+  assert.equal(softLimit(0.5), 0.5);
+  assert.equal(softLimit(-0.7), -0.7);
+  assert.ok(softLimit(10) <= 0.98 && softLimit(10) > 0.97);
+  assert.ok(Math.abs(softLimit(0.7001) - 0.7001) < 1e-3);
+  for (let x = 0; x < 3; x += 0.05) assert.ok(softLimit(x + 0.05) >= softLimit(x), 'creciente');
 });
 
 test('getScaledFile usa la caché y pruneCache borra otros volúmenes', () => {
@@ -116,6 +129,9 @@ test('getScaledFile usa la caché y pruneCache borra otros volúmenes', () => {
     const cache = path.join(dir, 'cache');
 
     assert.equal(getScaledFile(src, 100, cache), src, 'volumen 100 = original');
+    const loud = getScaledFile(src, 150, cache);
+    assert.notEqual(loud, src, 'por encima de 100 es una copia amplificada');
+    assert.deepEqual(samplesOf(fs.readFileSync(loud), (b, o) => b.readInt16LE(o), 2), [1500, 3000]);
     const a = getScaledFile(src, 50, cache);
     assert.notEqual(a, src);
     assert.ok(fs.existsSync(a));
@@ -123,7 +139,7 @@ test('getScaledFile usa la caché y pruneCache borra otros volúmenes', () => {
     const b = getScaledFile(src, 30, cache);
     assert.notEqual(a, b);
 
-    assert.equal(pruneCache(cache, 30), 1);
+    assert.equal(pruneCache(cache, 30), 2);
     assert.ok(!fs.existsSync(a));
     assert.ok(fs.existsSync(b));
   } finally {

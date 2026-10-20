@@ -44,7 +44,7 @@ module.exports = function tokens(p) {
     ['Disabled code (#if false)', ['support.other.excluded'], { foreground: p.fg.disabled }],
 
     // --- Strings ------------------------------------------------------------
-    ['Strings', ['string', 'punctuation.definition.string', 'string.quoted', 'string.template', 'string.interpolated'], { foreground: s.string }],
+    ['Strings', ['string', 'punctuation.definition.string', 'string.quoted', 'string.template', 'string.interpolated', 'property.value.dotenv'], { foreground: s.string }],
     [
       'Escapes and placeholders',
       [
@@ -168,6 +168,9 @@ module.exports = function tokens(p) {
         'meta.brace',
         'meta.delimiter',
         'punctuation.definition.tag',
+        // Nombres propios de algunas gramáticas de VS Code (genéricos de Dart, `=` de los atributos de Pug).
+        'other.source.dart',
+        'attribute_value',
       ],
       { foreground: s.punctuation },
     ],
@@ -253,6 +256,7 @@ module.exports = function tokens(p) {
         'variable.argument.css',
         'entity.other.attribute-name.table.toml',
         'support.type.property-name.toml',
+        'support.other.proto',
       ],
       { foreground: s.property },
     ],
@@ -313,6 +317,45 @@ module.exports = function tokens(p) {
     ['Diff deleted', ['markup.deleted', 'meta.diff.header.from-file', 'punctuation.definition.from-file.diff', 'punctuation.definition.deleted'], { foreground: git.deleted }],
     ['Diff changed', ['markup.changed', 'punctuation.definition.changed'], { foreground: git.modified }],
     ['Diff ranges and headers', ['meta.diff.range', 'meta.diff.header', 'meta.diff.index', 'meta.separator.diff'], { foreground: s.attribute }],
+
+    // --- Cualquier lenguaje: familias estándar de TextMate --------------------
+    // Reglas de respaldo para las gramáticas que no usan los nombres de arriba
+    // (test/languages.test.js las comprueba con las gramáticas de unos 240
+    // lenguajes). Las de arriba son más específicas y ganan siempre.
+    ['Constants (any language)', ['constant', 'constant.character', 'constant.enum', 'constant.variable'], { foreground: s.number }],
+    ['Named entities (any language)', ['entity.name', 'support.other.protocol', 'entity.name.trait', 'entity.name.impl'], { foreground: s.type }],
+    ['Other entities (any language)', ['entity.other', 'entity.other.attribute-selector', 'support.other.attribute', 'support.attribute', 'entity.name.tag.custom'], { foreground: s.attribute }],
+    [
+      'Sections, modules and imports (any language)',
+      [
+        'entity.name.section',
+        'entity.name.module',
+        'entity.name.import',
+        'entity.name.alias',
+        'entity.name.scope-resolution',
+        'entity.other.alias',
+        'entity.other.namespace-prefix',
+        'support.package',
+        'support.module',
+        'support.other.module',
+        'support.other.package',
+        'standard.library.language',
+      ],
+      { foreground: s.namespace },
+    ],
+    ['Labels (goto, loops)', ['entity.name.label', 'entity.name.goto-label', 'entity.name.tag.label', 'entity.label', 'support.other.php'], { foreground: s.operator }],
+    ['Built-in names (__name__, $PATH…)', ['support.variable.magic', 'support.variable.language', 'support.variable.automatic'], { foreground: s.storage, fontStyle: 'italic' }],
+    ['Built-in variables', ['support.variable', 'support.other.variable'], { foreground: s.text }],
+    ['Preprocessor macros', ['entity.name.other.preprocessor', 'entity.name.function.preprocessor', 'entity.name.macro', 'support.macro', 'support.other.directive'], { foreground: s.storage }],
+    [
+      'Regular expression internals',
+      ['support.other.parenthesis.regexp', 'punctuation.definition.group.regexp', 'punctuation.definition.character-class.regexp', 'support.other.match'],
+      { foreground: s.regexp },
+    ],
+    ['Regular expression escapes', ['support.other.escape', 'constant.character.set.regexp', 'constant.other.character-class.regexp'], { foreground: s.number }],
+    ['Strong (any language)', ['strong'], { fontStyle: 'bold' }],
+    ['Emphasis (any language)', ['emphasis'], { fontStyle: 'italic' }],
+    ['Underline', ['markup.underline'], { fontStyle: 'underline' }],
 
     // --- Errores en el propio código ----------------------------------------
     ['Invalid', ['invalid', 'invalid.illegal'], { foreground: status.error }],

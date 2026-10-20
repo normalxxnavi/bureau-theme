@@ -1,0 +1,14 @@
+{# Archivo de prueba del tema: Jinja. #}
+{% extends "layout.html" %}
+{% from "macros.html" import badge %}
+
+{% block content %}
+  <h1>{{ title | upper }}</h1>
+  {% for item in objects if item.threat > 2 %}
+    <p class="{{ 'breach' if item.breach else 'sealed' }}">{{ badge(item.code) }} {{ loop.index }}</p>
+  {% else %}
+    <p>Todo contenido</p>
+  {% endfor %}
+  {% set total = objects | length %}
+  {{ "Total: %d" | format(total) }}
+{% endblock %}

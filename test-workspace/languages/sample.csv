@@ -1,0 +1,4 @@
+code,name,threat,contained,notes
+OOP-0001,Hotline,7,true,"El teléfono rojo"
+OOP-0002,Slide Projector,3,false,
+AI-0042,Rubber Duck,1.5,true,"Se teletransporta, a veces"

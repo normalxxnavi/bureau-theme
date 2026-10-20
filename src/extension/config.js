@@ -10,7 +10,7 @@ const SECTION = 'bureauTheme.sounds';
  * @typedef {Object} SoundConfig
  * @property {boolean} enabled
  * @property {'auto'|'control'|'resonant'} pack
- * @property {number} volume 0–100
+ * @property {number} volume 0–200 (por encima de 100 se amplifica)
  * @property {boolean} onlyWithControlTheme
  * @property {'onSave'|'live'} errorTrigger
  * @property {number} cooldownMs
@@ -35,7 +35,7 @@ function normalizeConfig(get) {
   return {
     enabled: get('enabled') === true,
     pack: pack === 'control' || pack === 'resonant' ? pack : 'auto',
-    volume: Math.round(clamp(/** @type {number} */ (get('volume')), 0, 100, 70)),
+    volume: Math.round(clamp(/** @type {number} */ (get('volume')), 0, 200, 80)),
     onlyWithControlTheme: get('onlyWithControlTheme') !== false,
     errorTrigger: trigger === 'live' ? 'live' : 'onSave',
     cooldownMs: clamp(/** @type {number} */ (get('cooldownMs')), 0, 10000, 1500),
@@ -51,6 +51,24 @@ function normalizeConfig(get) {
  */
 const FONT_SETTING = 'bureauTheme.font';
 const FONT_APPLIED_KEY = 'fontApplied';
-const FONT_OFFER_KEY = 'fontOfferShown';
 
-module.exports = { SECTION, normalizeConfig, FONT_SETTING, FONT_APPLIED_KEY, FONT_OFFER_KEY };
+/** Protocolos de la Agencia: Modo Clasificado, nivel de alerta y comentarios del Consejo. */
+const CLASSIFIED = 'bureauTheme.classified';
+const ALERT = 'bureauTheme.alertLevel';
+const BOARD = 'bureauTheme.board';
+/** Interruptor de cada protocolo (están todos apagados por defecto). */
+const PROTOCOL_SWITCHES = {
+  classified: `${CLASSIFIED}.enabled`,
+  alertLevel: `${ALERT}.enabled`,
+  board: `${BOARD}.comments`,
+  boardRandom: `${BOARD}.random`,
+};
+
+/** La gramola Songmaster (la música que suena en el ordenador). */
+const MUSIC = 'bureauTheme.music';
+
+/** Icono CONTROL de la barra de estado (abre el panel). Antes era solo de sonido y se llamaba así: */
+const STATUS_BAR_ITEM = 'bureauTheme.statusBarItem';
+const LEGACY_STATUS_BAR_ITEM = 'bureauTheme.sounds.statusBarItem';
+
+module.exports = { SECTION, normalizeConfig, FONT_SETTING, FONT_APPLIED_KEY, CLASSIFIED, ALERT, BOARD, PROTOCOL_SWITCHES, MUSIC, STATUS_BAR_ITEM, LEGACY_STATUS_BAR_ITEM };

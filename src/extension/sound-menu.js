@@ -3,10 +3,11 @@
 
 /**
  * La consola de sonido: un menú (QuickPick) para configurarlo todo sin abrir
- * settings.json. Se carga la primera vez que se abre (icono de la barra de
- * estado o comando «CONTROL: Abrir la consola de sonido…»).
+ * settings.json. Se carga la primera vez que se abre (opción «Sonidos» del
+ * Casa Inmemorial o comando «CONTROL: Abrir la consola de sonido…»).
  *
- * Cada opción vuelve a la consola al terminar; Esc la cierra.
+ * Cada opción vuelve a la consola al terminar; Esc la cierra (y, si se abrió
+ * desde la Casa Inmemorial, vuelve a ella).
  */
 
 const vscode = require('vscode');
@@ -17,7 +18,7 @@ const { eventLabel } = require('./labels');
 const Global = vscode.ConfigurationTarget.Global;
 
 /** Pasos del menú de volumen y de la pausa entre sonidos. */
-const VOLUMES = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+const VOLUMES = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 125, 150, 175, 200];
 const COOLDOWNS = [0, 500, 1000, 1500, 3000, 5000];
 
 /** @param {number} ms */
@@ -47,11 +48,8 @@ async function pick(title, options, current) {
   return choice?.value;
 }
 
-/**
- * @param {InstanceType<typeof import('./controller').SoundController>} controller
- * @param {InstanceType<typeof import('./sound-status').SoundStatus>} status
- */
-async function openSoundMenu(controller, status) {
+/** @param {InstanceType<typeof import('./controller').SoundController>} controller */
+async function openSoundMenu(controller) {
   for (;;) {
     const c = vscode.workspace.getConfiguration(SECTION);
     const cfg = controller.readConfig();
@@ -82,9 +80,6 @@ async function openSoundMenu(controller, status) {
       { label: `$(history) ${vscode.l10n.t('Pause between sounds')}`, description: seconds(cfg.cooldownMs), action: 'cooldown' },
       { label: `$(bureau-dossier) ${vscode.l10n.t('My own sounds')}`, description: cfg.customFolder || vscode.l10n.t('Not set'), action: 'folder' },
       { label: '', kind: vscode.QuickPickItemKind.Separator },
-      status.visible()
-        ? { label: `$(eye-closed) ${vscode.l10n.t('Hide this icon from the status bar')}`, action: 'statusBar' }
-        : { label: `$(eye) ${vscode.l10n.t('Show the icon in the status bar')}`, action: 'statusBar' },
       { label: `$(bureau-hexnut) ${vscode.l10n.t('All sound settings')}`, action: 'settings' },
     ];
     const choice = await vscode.window.showQuickPick(items, {
@@ -140,12 +135,6 @@ async function openSoundMenu(controller, status) {
       case 'folder':
         await chooseFolder(c, cfg.customFolder);
         break;
-      case 'statusBar': {
-        const show = !status.visible();
-        await status.setVisible(show);
-        if (!show) vscode.window.showInformationMessage(vscode.l10n.t('Sound icon hidden. Bring it back with "CONTROL: Show/Hide Sound Icon in Status Bar".'));
-        break;
-      }
       case 'settings':
         await controller.openSettings();
         return;

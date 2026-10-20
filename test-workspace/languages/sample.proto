@@ -1,0 +1,33 @@
+// Archivo de prueba del tema: Protocol Buffers.
+syntax = "proto3";
+
+package fbc.research.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/fbc/research/v1;researchv1";
+
+// Nivel de amenaza de un Objeto de Poder.
+enum Threat {
+  THREAT_UNSPECIFIED = 0;
+  THREAT_LOW = 1;
+  THREAT_HIGH = 2;
+}
+
+message ObjectOfPower {
+  string code = 1;
+  Threat threat = 2;
+  double resonance = 3 [deprecated = true];
+  repeated string tags = 4;
+  map<string, string> notes = 5;
+  google.protobuf.Timestamp contained_at = 6;
+  oneof location {
+    string sector = 7;
+    int32 floor = 8;
+  }
+}
+
+service Registry {
+  rpc Contain(ObjectOfPower) returns (ObjectOfPower);
+  rpc Watch(stream ObjectOfPower) returns (stream ObjectOfPower);
+}

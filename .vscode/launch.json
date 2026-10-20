@@ -1,10 +1,23 @@
 {
-  // F5 abre una segunda ventana de VS Code (Extension Development Host) con
-  // los tres temas y el módulo de sonido cargados, y la carpeta test-workspace.
+  // F5 abre una segunda ventana de VS Code (Extension Development Host) con la
+  // extensión cargada y la carpeta test-workspace.
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Probar la extensión (test-workspace)",
+      // Perfil temporal: ajustes por defecto, sin tus otras extensiones (ni sus
+      // avisos en la consola) y sin tocar tus ajustes de verdad. Se descarta al
+      // cerrar la ventana. Lo más parecido a una instalación nueva.
+      "name": "Probar desde cero (perfil temporal)",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": ["--profile-temp", "--extensionDevelopmentPath=${workspaceFolder}", "${workspaceFolder}/test-workspace"],
+      "preLaunchTask": "npm: build"
+    },
+    {
+      // Tu perfil: con tus extensiones (C# para los semantic tokens, las de
+      // otros lenguajes…). Ojo: lo que cambien los comandos (set completo,
+      // tipografía, protocolos) se guarda en TUS ajustes de usuario.
+      "name": "Probar con mi perfil (test-workspace)",
       "type": "extensionHost",
       "request": "launch",
       "args": ["--extensionDevelopmentPath=${workspaceFolder}", "${workspaceFolder}/test-workspace"],

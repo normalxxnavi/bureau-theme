@@ -1,0 +1,16 @@
+# Archivo de prueba del tema: unidad de systemd.
+[Unit]
+Description=Bureau Hotline
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/node /opt/bureau/dist/server.js --sector research
+Restart=on-failure
+RestartSec=5s
+Environment=NODE_ENV=production
+User=bureau
+
+[Install]
+WantedBy=multi-user.target

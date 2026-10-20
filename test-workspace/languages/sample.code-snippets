@@ -1,0 +1,16 @@
+{
+  // Archivo de prueba del tema: fragmentos de VS Code.
+  "Board message": {
+    "scope": "javascript,typescript",
+    "prefix": "board",
+    "body": [
+      "// <<${1:THE BOARD} ${2|APPROVES,OBSERVES,REMEMBERS|}.>>",
+      "console.log('${3:message}', ${4:0});$0"
+    ],
+    "description": "Inserta un mensaje del Consejo"
+  },
+  "Containment": {
+    "prefix": ["contain", "oop"],
+    "body": "contain(${1:item}, { threat: ${2:1} });\n$TM_FILENAME_BASE"
+  }
+}

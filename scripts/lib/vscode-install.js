@@ -10,7 +10,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
 
-const APP = path.join('resources', 'app');
+/** `resources/app` en Windows y Linux; `Resources/app` en macOS (su disco puede distinguir mayúsculas). */
+const APPS = [path.join('resources', 'app'), path.join('Resources', 'app')];
 
 function candidates() {
   const dirs = [];
@@ -33,10 +34,12 @@ function candidates() {
 function findAppRoot() {
   for (const dir of candidates()) {
     if (!fs.existsSync(dir)) continue;
-    if (fs.existsSync(path.join(dir, APP, 'package.json'))) return path.join(dir, APP);
+    for (const app of APPS) if (fs.existsSync(path.join(dir, app, 'package.json'))) return path.join(dir, app);
     for (const sub of fs.readdirSync(dir)) {
-      const nested = path.join(dir, sub, APP);
-      if (fs.existsSync(path.join(nested, 'package.json'))) return nested;
+      for (const app of APPS) {
+        const nested = path.join(dir, sub, app);
+        if (fs.existsSync(path.join(nested, 'package.json'))) return nested;
+      }
     }
   }
   return null;

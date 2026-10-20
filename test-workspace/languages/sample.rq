@@ -1,0 +1,16 @@
+# Archivo de prueba del tema: SPARQL.
+PREFIX fbc: <https://example.invalid/fbc#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?code ?name (COUNT(?tag) AS ?tags)
+WHERE {
+  ?object a fbc:ObjectOfPower ;
+          fbc:code ?code ;
+          rdfs:label ?name ;
+          fbc:threat ?threat .
+  OPTIONAL { ?object fbc:tag ?tag }
+  FILTER (?threat > 2 && LANG(?name) = "es")
+}
+GROUP BY ?code ?name
+ORDER BY DESC(?tags)
+LIMIT 10

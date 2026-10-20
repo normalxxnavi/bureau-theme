@@ -378,16 +378,23 @@ function folderIcon(/** @type {ColorName} */ color, /** @type {string | null} */
   return svg(path_(back, [K.poly([1, 2], [6, 2], [8, 4], [15, 4], [15, 6], [1, 6])]) + path_(body, [K.rect(1, 6, 14, 8), ...cutout]));
 }
 
-/** Carpeta raíz: la Casa Inmemorial, torre brutalista con su remate volado y la línea roja del FBC. */
+/**
+ * Carpeta raíz: la Casa Inmemorial como se ve en el juego, el monolito de
+ * hormigón sin ventanas (cara frontal a la luz, lateral en sombra) con sus
+ * rejillas y la antena roja. Abierta, las rejillas se encienden en rojo.
+ */
+const HOUSE = {
+  front: ['#D9D4CA', '#3A3A40'],
+  side: ['#8D8880', '#1A1A1C'],
+  slots: ['#0D0E0F', '#FAF9F6'],
+};
 function oldestHouse(/** @type {boolean} */ open, /** @type {number} */ v) {
-  /** @param {number} i grosor del contorno */
-  const tower = (i) => [K.poly([1 + i, 1 + i], [15 - i, 1 + i], [15 - i, 5 - i], [12 - i, 5 - i], [12 - i, 13], [4 + i, 13], [4 + i, 5 - i], [1 + i, 5 - i])];
-  const windows = [K.rect(6, 7, 1, 5), K.rect(9, 7, 1, 5)];
+  const slots = [K.rect(5, 3, 1, 1), K.rect(8, 3, 1, 1), K.rect(11, 3, 1, 1), K.rect(11, 8, 1, 2)];
   return svg(
-    path_(BOARD.stroke[v], tower(0)) +
-      path_(BOARD.fill[v], tower(1)) +
-      path_(BOARD.windows[v], windows, open ? '' : ' fill-opacity=".45"') +
-      path_(BOARD.line[v], [K.rect(1, 13, 14, 2)])
+    path_(HOUSE.front[v], [K.rect(4, 2, 6, 14)]) +
+      path_(HOUSE.side[v], [K.rect(10, 2, 3, 14)]) +
+      path_(open ? BOARD.line[v] : HOUSE.slots[v], slots) +
+      path_(BOARD.line[v], [K.rect(7, 0, 1, 2)])
   );
 }
 

@@ -1,0 +1,40 @@
+# Archivo de prueba del tema: GraphQL.
+"""
+Un Objeto de Poder registrado.
+"""
+type ObjectOfPower @key(fields: "code") {
+  code: ID!
+  name: String
+  threat: Threat!
+  tags: [String!]!
+}
+
+enum Threat {
+  LOW
+  HIGH
+}
+
+input ContainInput {
+  code: ID!
+  force: Boolean = false
+}
+
+type Query {
+  objects(threat: Threat, first: Int = 10): [ObjectOfPower!]!
+}
+
+query Dangerous($threat: Threat = HIGH) {
+  objects(threat: $threat) {
+    code
+    ...ObjectFields
+  }
+}
+
+fragment ObjectFields on ObjectOfPower {
+  name
+  tags
+}
+
+mutation Contain($input: ContainInput!) {
+  contain(input: $input) { code }
+}
