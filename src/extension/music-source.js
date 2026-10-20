@@ -221,17 +221,22 @@ const MAC_APPS = [
 const macInstalled = (bundle) =>
   ['/Applications', '/System/Applications', path.join(os.homedir(), 'Applications')].some((d) => fs.existsSync(path.join(d, bundle)));
 
-/** @param {string[]} apps */
+/**
+ * Las variables llevan el prefijo «bureau»: con nombres cortos se choca con
+ * palabras reservadas de AppleScript («st», de 1st, no compila) o con términos
+ * del diccionario de la app.
+ * @param {string[]} apps
+ */
 function macReadScript(apps) {
   const blocks = apps.map(
     (app) => `if application "${app}" is running then
   tell application "${app}"
-    set st to player state as string
-    if st is not "stopped" then set out to out & "${app}" & tab & st & tab & (name of current track) & tab & (artist of current track) & tab & (album of current track) & linefeed
+    set bureauState to player state as string
+    if bureauState is not "stopped" then set bureauOut to bureauOut & "${app}" & tab & bureauState & tab & (name of current track) & tab & (artist of current track) & tab & (album of current track) & linefeed
   end tell
 end if`
   );
-  return `set out to ""\n${blocks.join('\n')}\nreturn out`;
+  return `set bureauOut to ""\n${blocks.join('\n')}\nreturn bureauOut`;
 }
 
 /** @param {string} app @param {MusicCommand} c */

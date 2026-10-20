@@ -14,13 +14,22 @@
  *   npm run version:next                                  # siguiente intento, con la fecha de hoy
  *   npm run version:next -- --dry-run                     # solo la enseña
  *   npm run version:next -- --attempt 8 --date 17/10/2026
+ *   npm run version:next -- --retry                       # el mismo intento, con la fecha de hoy
+ *   npm run version:next -- --rc                          # la etiqueta de la siguiente candidata
  *   node scripts/version.js --check 0.7.716102026         # (workflow de release)
  *
  * Sin --dry-run escribe la versión en package.json y package-lock.json y cambia
  * «## [Unreleased]» del CHANGELOG.md por «## [versión] — AAAA-MM-DD». Si no hay
  * «Unreleased» pero la versión de package.json aún no tiene tag, vuelve a
  * fechar esa sección (la versión se deja puesta en develop al acabar cada
- * ronda, y la subida puede ser otro día).
+ * ronda, y la subida puede ser otro día). --retry repite el intento de la
+ * versión actual con la fecha de hoy aunque tenga tag (0.7.716102026 →
+ * 0.7.720102026): es para cuando ese intento no llegó a publicarse (falló la
+ * CI o se rechazó).
+ *
+ * Candidatas: el tag vX.Y.Z.rc-N (v0.7.720102026.rc-1, .rc-2…) pasa todas las
+ * comprobaciones del workflow de release sin publicar nada, y no cuenta como
+ * intento.
  */
 
 const fs = require('node:fs');
@@ -100,6 +109,15 @@ function retitle(changelog, title, pending) {
   throw new Error(`El CHANGELOG.md no tiene la sección «## [Unreleased]»${pending ? ` ni la de la ${pending}` : ''}`);
 }
 
+/**
+ * La etiqueta de la siguiente candidata de una versión.
+ * @param {string} version @param {string[]} existing tags vX.Y.Z.rc-N que ya hay
+ */
+function nextRcTag(version, existing) {
+  const n = Math.max(0, ...existing.map((t) => Number(/\.rc-(\d+)$/.exec(t)?.[1] ?? 0)));
+  return `v${version}.rc-${n + 1}`;
+}
+
 /** @param {string} text */
 function parseDay(text) {
   const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(text);
@@ -110,8 +128,9 @@ function parseDay(text) {
 /**
  * @param {string} version
  * @param {Day} d
+ * @param {boolean} retry el intento actual no se publicó: su sección pasa a la versión nueva
  */
-function write(version, d) {
+function write(version, d, retry) {
   const files = {
     pkg: path.join(ROOT, 'package.json'),
     lock: path.join(ROOT, 'package-lock.json'),
@@ -124,7 +143,7 @@ function write(version, d) {
   lock.packages[''].version = version;
   const changelog = fs.readFileSync(files.changelog, 'utf8');
   const current = JSON.parse(pkgText).version;
-  const pending = changelog.includes('\n## [Unreleased]') || tags(`v${current}`).length ? null : current;
+  const pending = changelog.includes('\n## [Unreleased]') || (!retry && tags(`v${current}`).length) ? null : current;
   const nextChangelog = retitle(changelog, `## [${version}] — ${d.year}-${pad(d.month)}-${pad(d.day)}`, pending);
   // Todo se comprueba antes de escribir: o cambian los tres archivos o ninguno.
   fs.writeFileSync(files.pkg, pkg);
@@ -146,8 +165,14 @@ function main() {
     console.log(`${check} sigue el versionado de la beta`);
     return;
   }
+  const current = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).version;
+  if (args.includes('--rc')) {
+    console.log(nextRcTag(current, tags(`v${current}.rc-*`)));
+    return;
+  }
+  const retry = args.includes('--retry');
   const attemptArg = option('--attempt');
-  const attempt = attemptArg === undefined ? lastAttempt() + 1 : Number(attemptArg);
+  const attempt = attemptArg !== undefined ? Number(attemptArg) : retry ? Number(current.split('.')[1]) : lastAttempt() + 1;
   const dateArg = option('--date');
   const now = new Date();
   const d = dateArg === undefined ? { day: now.getDate(), month: now.getMonth() + 1, year: now.getFullYear() } : parseDay(dateArg);
@@ -156,7 +181,7 @@ function main() {
     console.log(version);
     return;
   }
-  write(version, d);
+  write(version, d, retry);
   console.log(`Versión ${version}: package.json, package-lock.json y CHANGELOG.md actualizados`);
 }
 
@@ -169,4 +194,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { betaVersion, versionProblem, retitle, MAX_PART };
+module.exports = { betaVersion, versionProblem, retitle, nextRcTag, MAX_PART };

@@ -6,7 +6,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { betaVersion, versionProblem, retitle, MAX_PART } = require('../scripts/version');
+const { betaVersion, versionProblem, retitle, nextRcTag, MAX_PART } = require('../scripts/version');
 
 test('el parche es el intento seguido de la fecha DDMMAAAA', () => {
   assert.equal(betaVersion(7, { day: 16, month: 10, year: 2026 }), '0.7.716102026');
@@ -39,4 +39,9 @@ test('CHANGELOG: «Unreleased» pasa a ser la versión, y una versión aún sin 
   assert.equal(redated, log.replace('## [Unreleased]', '## [0.7.717102026] — 2026-10-17'));
   assert.ok(redated.includes('## [0.6.0] — 2026-10-15'), 'las versiones publicadas no se tocan');
   assert.throws(() => retitle(v7, '## [0.8.817102026] — 2026-10-17', null), /Unreleased/);
+});
+
+test('candidatas: vX.Y.Z.rc-1, .rc-2… para cada versión', () => {
+  assert.equal(nextRcTag('0.7.720102026', []), 'v0.7.720102026.rc-1');
+  assert.equal(nextRcTag('0.7.720102026', ['v0.7.720102026.rc-1', 'v0.7.720102026.rc-3']), 'v0.7.720102026.rc-4');
 });
