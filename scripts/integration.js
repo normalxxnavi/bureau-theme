@@ -16,6 +16,9 @@ const os = require('node:os');
 const path = require('node:path');
 const { spawn, execFileSync } = require('node:child_process');
 const { findAppRoot } = require('./lib/vscode-install');
+const { ciError } = require('./lib/ci');
+
+const CI_TITLE = `Integration test (${process.platform})`;
 
 const ROOT = path.resolve(__dirname, '..');
 
@@ -93,13 +96,17 @@ function main() {
   const child = spawn(exe, args, { env, stdio: 'inherit' });
   const timer = setTimeout(() => {
     console.error('✘ Tiempo agotado (4 min)');
+    ciError(CI_TITLE, 'Tiempo agotado (4 min)');
     child.kill();
   }, 240000);
   child.on('exit', (code) => {
     clearTimeout(timer);
-    if (fs.existsSync(report)) console.log(fs.readFileSync(report, 'utf8'));
+    const lines = fs.existsSync(report) ? fs.readFileSync(report, 'utf8') : '';
+    if (lines) console.log(lines);
     if (code !== 0) {
       console.log(`✘ Test de integración fallido (código ${code}). Logs: ${path.join(tmp, 'user-data', 'logs')}`);
+      const failed = lines.split('\n').filter((l) => l.trim().startsWith('✘'));
+      ciError(CI_TITLE, failed.length ? failed.map((l) => l.trim()).join('\n') : `VS Code salió con el código ${code}${lines ? '' : ' sin escribir el informe'}`);
       process.exit(code ?? 1);
     }
     console.log('✔ Test de integración superado');
