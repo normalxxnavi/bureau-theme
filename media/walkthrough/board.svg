@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300">
+<style>body.vscode-light .on-dark,body.vscode-high-contrast-light .on-dark{display:none}
+body:not(.vscode-light):not(.vscode-high-contrast-light) .on-light{display:none}</style>
+<rect x="1" y="1" width="478" height="298" rx="3" fill="var(--vscode-editor-background, #16171a)" stroke="var(--vscode-foreground, #e6e2d8)" stroke-opacity=".2"/>
+<rect x="1" y="1" width="478" height="6" fill="#E0352B"/>
+<rect x="150" y="44" width="180" height="212" fill="none" stroke="var(--vscode-foreground, #e6e2d8)" stroke-opacity="0.2"/><rect x="132" y="34" width="216" height="232" fill="none" stroke="var(--vscode-foreground, #e6e2d8)" stroke-opacity="0.2"/><rect x="114" y="24" width="252" height="252" fill="none" stroke="var(--vscode-foreground, #e6e2d8)" stroke-opacity="0.1"/><path d="M98 110 L64 150 L98 190" fill="none" stroke="#E0352B" stroke-width="8"/><path d="M74 110 L40 150 L74 190" fill="none" stroke="#E0352B" stroke-width="8"/><path d="M382 110 L416 150 L382 190" fill="none" stroke="#E0352B" stroke-width="8"/><path d="M406 110 L440 150 L406 190" fill="none" stroke="#E0352B" stroke-width="8"/><g transform="translate(168 66) scale(9)"><path fill="#E0352B" d="M4 1L12 1L12 3L4 3Z"/><path fill="#8C6BC8" d="M1 5L15 5L8 15ZM5 9L11 9L11 7L5 7Z"/></g>
+</svg>

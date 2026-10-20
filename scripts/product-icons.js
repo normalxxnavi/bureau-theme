@@ -74,6 +74,12 @@ const REAL = {
   violet: '#8C6BC8', // lo paranatural: el Consejo, los Objetos de Poder
   paper: '#C9A15C', // los expedientes de la Agencia
   brass: '#C2953F', // la placa del FBC, cerraduras, la televisión Benicoff
+  concrete: '#A9A49B', // el hormigón de la Casa Inmemorial, a la luz
+  concreteShade: '#6D6964', // el lateral en sombra
+  wood: '#8B5A3A', // el mueble de la gramola Songmaster
+  neon: '#F1E4C3', // su tubo de neón
+  magenta: '#D24A9A', // sus remates
+  chrome: '#B7BEC6', // su rejilla y su peana
 };
 const R = REAL;
 
@@ -199,10 +205,14 @@ const DEFS = {
     [R.red, [poly([5, 0], [10, 5], [5, 10], [0, 5]), cutRect(4, 4, 2, 2)]],
     [R.brass, [...stroke([[8, 8], [14.3, 14.3]], 2), ...stroke([[10.5, 10.5], [13, 8]], 1.8), ...stroke([[12.8, 12.8], [15, 10.6]], 1.8)]],
   ],
-  // La Casa Inmemorial: torre brutalista con su remate volado (inicio).
+  // La Casa Inmemorial como se ve en el juego desde fuera: un monolito de
+  // hormigón liso y sin ventanas, con la cara frontal a la luz, el lateral en
+  // sombra, unas rejillas junto a la azotea, una ranura en el lateral y la
+  // antena roja (inicio e icono de la barra de estado).
   oldestHouse: () => [
-    [R.steel, [poly([1, 1], [15, 1], [15, 5], [12, 5], [12, 13], [4, 13], [4, 5], [1, 5]), cutRect(3, 3, 10, 1), cutRect(5, 7, 2, 5), cutRect(9, 7, 2, 5)]],
-    [R.red, [rect(1, 14, 14, 2)]],
+    [R.concrete, [rect(4, 2, 6, 14), cutRect(5, 3, 1, 1), cutRect(8, 3, 1, 1)]],
+    [R.concreteShade, [rect(10, 2, 3, 14), cutRect(11, 3, 1, 1), cutRect(11, 8, 1, 2)]],
+    [R.red, [rect(7, 0, 1, 2)]],
   ],
   // El Umbral (Threshold): la puerta entre mundos, conexiones remotas.
   threshold: () => [[R.steel, stroke([[4, 14], [4, 2], [12, 2], [12, 14]], 2)], [R.cyan, [poly([5, 3], [10, 4.5], [10, 14], [5, 12.5])]], [R.steel, [rect(1, 14, 14, 2)]]],
@@ -219,9 +229,22 @@ const DEFS = {
       ...stroke([[11.5, 1.5], [14, 4], [14, 12], [11.5, 14.5]], 2),
     ]),
   resonanceOff: () => [[R.steel, [poly([1, 6], [4, 6], [8, 2], [8, 14], [4, 10], [1, 10])]], [R.red, [cross(12.5, 8, 2.6, 1.8)]]],
-  // La gramola Songmaster (Objeto de Poder): música y packs de sonido.
-  jukebox: () =>
-    one(R.orange, [poly([2, 5], [5, 1], [11, 1], [14, 5], [14, 15], [2, 15]), cut([4, 6], [6, 3], [10, 3], [12, 6], [12, 8], [4, 8]), cutRect(4, 10, 8, 1), cutRect(4, 12, 8, 1)]),
+  // La gramola Songmaster como en el juego: el arco con su tubo de neón, el
+  // remate y las franjas magenta, el mueble de madera con la ventana de los
+  // discos, el rótulo, la rejilla con su estrella y la peana (música).
+  jukebox: () => [
+    [R.wood, [poly([5, 0], [11, 0], [15, 4], [15, 13], [1, 13], [1, 4]), cut([6, 3], [10, 3], [12, 5], [12, 6], [4, 6], [4, 5]), cutRect(4, 9, 8, 3)]],
+    [
+      R.neon,
+      [
+        ...stroke([[2.5, 9], [2.5, 4.6], [5.6, 1.5], [10.4, 1.5], [13.5, 4.6], [13.5, 9]], 1),
+        ...stroke([[3.5, 12], [3.5, 8.5], [12.5, 8.5], [12.5, 12]], 1),
+      ],
+    ],
+    [R.magenta, [rect(7, 0, 2, 1), rect(1, 7, 1, 1), rect(14, 7, 1, 1), rect(7, 9, 2, 2)]],
+    [R.amber, [rect(5, 6, 6, 2)]],
+    [R.chrome, [rect(5, 9, 1, 1), rect(10, 9, 1, 1), rect(5, 11, 1, 1), rect(10, 11, 1, 1), rect(2, 14, 12, 2)]],
+  ],
 
   // ── Terminal, puertos ─────────────────────────────────────────────────────────
   prompt: () => one(R.green, [...stroke([[2, 3], [7, 8], [2, 13]], 2), rect(9, 12, 6, 2)]),
@@ -339,6 +362,16 @@ const DEFS = {
   badgeBar: () => [[R.brass, frame(4, 2, 16, 20, 2)], [R.red, [poly([8, 6], [16, 6], [12, 11.5])]], [R.brass, [rect(8, 14, 8, 2), rect(8, 18, 5, 2)]]],
   hexNutBar: () => [[R.steel, nut(12, 12, 9, 3)], [R.brass, [nut(12, 12, 2)[0]]]],
   thresholdBar: () => [[R.steel, stroke([[6, 21], [6, 3], [18, 3], [18, 21]], 2)], [R.cyan, [poly([7, 4], [15, 6.5], [15, 21], [7, 18.5])]], [R.steel, [rect(2, 21, 20, 2)]]],
+
+  // ── Protocolos de la Agencia (al final: no cambian los puntos de código de los demás) ──
+  // Expediente clasificado: el documento con la esquina cortada y sus líneas tachadas (Modo Clasificado).
+  classified: () => [[R.paper, ring([[2, 1], [10, 1], [14, 5], [14, 15], [2, 15]], 2)], [R.red, [rect(5, 5, 4, 2), rect(5, 8, 6, 2), rect(5, 11, 5, 2)]]],
+  // La baliza de alerta de la Agencia: cúpula roja sobre su base, con destellos (nivel de alerta).
+  alarm: () => [
+    [R.red, [poly([4, 13], [4, 9], [6, 7], [10, 7], [12, 9], [12, 13]), cutRect(6, 9, 2, 3)]],
+    [R.steel, [rect(2, 13, 12, 2)]],
+    [R.amber, [rect(7, 1, 2, 4), rect(2, 3, 2, 2), rect(12, 3, 2, 2), rect(0, 8, 2, 2), rect(14, 8, 2, 2)]],
+  ],
 };
 
 /** Tamaño de rejilla de cada glifo (16 salvo los de la barra de actividad). */
@@ -485,6 +518,14 @@ const CONTRIBUTED = {
   'bureau-hexnut': ['hexNut', 'CONTROL: sound settings'],
   'bureau-safe': ['safe', 'CONTROL: only with CONTROL themes'],
   'bureau-polaris': ['polaris', 'CONTROL: Polaris'],
+  'bureau-board': ['board', 'CONTROL: the Board'],
+  'bureau-classified': ['classified', 'CONTROL: Classified mode (values hidden)'],
+  'bureau-declassified': ['unlock', 'CONTROL: Classified mode (values revealed)'],
+  'bureau-alert': ['alarm', 'CONTROL: Bureau alert level'],
+  'bureau-house': ['oldestHouse', 'CONTROL: the Oldest House (theme, icons, sounds, music and protocols)'],
+  'bureau-badge': ['badge', 'CONTROL: full set (Bureau badge)'],
+  'bureau-duck': ['duck', 'CONTROL: product icons (the rubber duck)'],
+  'bureau-threshold': ['threshold', 'CONTROL: follow the system light/dark mode (the Threshold)'],
 };
 
 // --- Generación ----------------------------------------------------------------

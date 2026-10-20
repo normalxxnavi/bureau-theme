@@ -2,7 +2,7 @@
 'use strict';
 
 /**
- * Tipografías de los juegos: oferta al instalar, comando para elegir, modo
+ * Tipografías de los juegos: comando para elegir (y paso de la guía de bienvenida), modo
  * «según el tema» y restauración de la tipografía anterior.
  *
  * Flujo: ajuste `bureauTheme.font` (none | bureau | resonant | auto) →
@@ -17,7 +17,7 @@ const { FONT_SETS, FONT_SETTINGS, settingsFor, resolveFontSet } = require('./fon
 // El instalador (child_process, registro de Windows) se carga solo al instalar o quitar.
 const { readActiveThemeLabel, THEME_SETTING_KEYS } = require('./theme-state');
 
-const { FONT_SETTING: SETTING, FONT_APPLIED_KEY: APPLIED_KEY, FONT_OFFER_KEY: OFFER_KEY } = require('./config');
+const { FONT_SETTING: SETTING, FONT_APPLIED_KEY: APPLIED_KEY } = require('./config');
 const BACKUP_KEY = 'fontBackup';
 const MODES = ['none', 'bureau', 'resonant', 'auto'];
 
@@ -44,11 +44,11 @@ class FontController {
         if (this.mode() === 'auto') this.sync({ quiet: true });
       })
     );
-    // La comprobación inicial y la oferta de la primera vez esperan al
-    // siguiente turno: así activate() vuelve en cuanto registra los listeners.
+    // La comprobación inicial espera al siguiente turno: así activate() vuelve
+    // en cuanto registra los listeners. (La tipografía se ofrece en la guía de
+    // bienvenida, no con una notificación al instalar.)
     this.queue = new Promise((resolve) => setTimeout(resolve, 0));
     this.sync({ quiet: true });
-    this.queue.then(() => this.offerOnce()).catch((err) => this.log.error(`Fonts: ${err.message}`));
   }
 
   /** @returns {import('./fontsets').FontMode} */
@@ -158,27 +158,6 @@ class FontController {
     for (const set of Object.values(FONT_SETS)) removed += uninstallFonts(set.files);
     this.log.info(`Fonts removed: ${removed}`);
     vscode.window.showInformationMessage(vscode.l10n.t('The CONTROL fonts have been removed. Some files are only deleted after restarting your computer if they are in use.'));
-  }
-
-  /** La primera vez que se activa la extensión, ofrece la tipografía. */
-  async offerOnce() {
-    if (this.context.globalState.get(OFFER_KEY)) return;
-    await this.context.globalState.update(OFFER_KEY, true);
-    if (this.mode() !== 'none') return;
-    const bureau = 'Bureau (Control)';
-    const resonant = 'Resonant';
-    const auto = vscode.l10n.t('Follow the theme');
-    const no = vscode.l10n.t('No, thanks');
-    const choice = await vscode.window.showInformationMessage(
-      vscode.l10n.t('CONTROL Theme: do you want to use a typography inspired by the games in the editor, terminal and chat? You can change it at any time with "CONTROL: Choose Typography".'),
-      bureau,
-      resonant,
-      auto,
-      no
-    );
-    if (choice === bureau) await this.setMode('bureau');
-    else if (choice === resonant) await this.setMode('resonant');
-    else if (choice === auto) await this.setMode('auto');
   }
 }
 

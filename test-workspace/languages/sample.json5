@@ -1,0 +1,16 @@
+// Archivo de prueba del tema: JSON5.
+{
+  title: 'Registro de la Agencia',
+  version: 0.6,
+  director: {
+    name: "Jesse Faden",
+    clearance: 7,
+    active: true,
+  },
+  objects: [
+    { code: 'OOP-0001', threat: 7, notes: null },
+    { code: 'AI-0042', threat: +1.5e0, hex: 0x1F },
+  ],
+  /* Infinito y NaN son válidos en JSON5 */
+  limit: Infinity,
+}

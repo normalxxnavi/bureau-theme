@@ -3,9 +3,37 @@
 All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-**Beta.** During the beta the version is **0.*day*.*build***: the minor number counts the days of development (day 1 = 2026-10-06; only days with changes count) and the patch number counts the builds of that day. Version 1.0.0 will be the first stable release. (The earliest builds, never published, were numbered 0.5.0–0.10.1; they are listed here with their new numbers.)
+**Beta.** Until 1.0.0 the version is **0.*attempt*.*attempt*DDMMYYYY**: the minor number counts the release attempts (every version tag pushed, continuing from 0.6.0) and the patch is that same number followed by the release date — day, month and year, without separators. For example, attempt 7 on 16/10/2026 is 0.7.716102026. Version 1.0.0 will be the first stable release. (Up to 0.6.0 the minor number counted the days of development and the patch the builds of that day; the earliest builds, never published, were numbered 0.5.0–0.10.1 and are listed here with their new numbers.)
 
-## [Unreleased]
+## [0.7.716102026] — 2026-10-16
+
+### Added
+
+- **The Oldest House**: the status bar icon is now the Oldest House — drawn as it looks in the game from outside: a plain windowless concrete monolith, the front in the light and the side in shadow, a few vents and the red antenna — and opens the whole theme in one place: colour theme, full set, file and product icons, light/dark mode, typography, the sound console, the Songmaster jukebox, the official soundtracks and the Bureau protocols, each with its current state. Also with **CONTROL: Open the Oldest House…**. The root folder of Bureau Icons uses the same drawing.
+- **Songmaster jukebox** (off by default): what is playing in Spotify or any player in the status bar, with previous, play/pause and next. It reads the system media session (Windows), Spotify and Music (macOS) or MPRIS (Linux): no account, no login, nothing leaves your computer. Settings `bureauTheme.music.*`.
+- **Official soundtracks**: links that open in Spotify *Control (Original Soundtrack)*, *CONTROL Resonant (Original Soundtrack)*, *Zoe's Mixtape* and Old Gods of Asgard's *Take Control* and *Rebirth – Greatest Hits*. Only links: no audio is included.
+- **Popups with a design**: the popups of the jukebox, the Oldest House, the alert level and Classified mode are small cards with a picture, coloured status labels and buttons you can click. The jukebox shows the album cover that your system provides (Windows, and local files on Linux; never downloaded), or the jukebox itself.
+- The Songmaster jukebox icon is redrawn as in the game: the arched cabinet with its neon tube, magenta trims, wooden body, grille with the star and chrome base.
+- **Random messages from the Board** (off by default): at random moments of the day — 3 a day, as a notification with *Another message* and *No more today* — never while debugging, and waiting while VS Code is in the background. Configurable times a day, hours, where they appear (notification, status bar or both), and your own messages mixed with the Board's or alone: **CONTROL: Configure the Board…**.
+- **Welcome guide** (*Welcome to the Bureau*): nine steps to choose a theme, apply the full set, follow the system light/dark mode, pick the typography and the sounds and turn on the Bureau protocols. Each step has its own picture, drawn with the Objects of Power of the product icons and the colours of the four themes, and a line from the Board. It opens after installing; open it again with **CONTROL: Open Welcome Guide**.
+- **CONTROL: Apply the Full Set (Theme and Icons)…** — a CONTROL theme, Bureau Icons and Bureau Product Icons in one step, with *Undo*.
+- **CONTROL: Follow the System Light/Dark Mode…** — CONTROL Astral in light mode and the dark CONTROL theme you choose in dark mode. **CONTROL: Choose a CONTROL Theme…** lists only the four themes, with their lore.
+- **Bureau protocols**, all off by default:
+  - **Classified mode** covers secrets with redaction bars to share your screen or stream safely: every value in `.env` files, PEM keys and certificates, values whose name looks like a secret in JSON, YAML, TOML, INI, `.npmrc` and XML, and passwords in connection strings and URLs. The line with the cursor is revealed; the status bar icon reveals the whole file. Settings: `bureauTheme.classified.enabled`, `.files` and `.keywords` (plain words, never regular expressions, so a workspace cannot slow VS Code down with them).
+  - **Bureau alert level** in the status bar: *Clear*, *Anomaly*, *Alert* or *Hiss Incursion*, from the errors and warnings of the workspace. Settings: `bureauTheme.alertLevel.enabled` and `.incursionThreshold`.
+  - **Messages from the Board**: **CONTROL: Message from the Board** and, with `bureauTheme.board.comments`, quiet comments in the status bar on commits, tasks, debugging, the last error fixed and the first start of the day. 87 original messages in English and Spanish.
+- New product icons for the status bar: the classified dossier and the Bureau alert beacon.
+- **Syntax colours for any language**: new general rules for the standard TextMate scopes (sections, labels, modules, character classes, built-in variables, macros…) and semantic token colours for rust-analyzer, Pylance, Java, C/C++ and Dart. Checked token by token against new samples of the 70 languages VS Code ships and 72 languages from extensions (`npm run preview -- --check`), and scope by scope against the grammars of about 240 languages (`test/languages.test.js`).
+- **macOS and Linux**: the release workflow runs the unit tests and the integration test in a real VS Code on Windows, macOS and Linux (with a real PulseAudio server on Linux). Sounds also work with VS Code installed as a Flatpak (through `flatpak-spawn --host`).
+
+### Changed
+
+- **Beta versioning**: until 1.0.0 the version is 0.*attempt*.*attempt*DDMMYYYY (see the top of this file). `npm run version:next` sets it and the release workflow rejects a tag that does not follow it.
+- The typography is offered in the welcome guide instead of a notification the first time the extension starts.
+- The *resonance* sound icon of the status bar is replaced by the Oldest House; the sound console is one of its options. The setting is now `bureauTheme.statusBarItem` (if you had hidden the old icon, the new one stays hidden) and the command **CONTROL: Show/Hide the Oldest House Icon in the Status Bar**.
+- **Louder sounds**: they are now mastered for the frequencies every speaker can play. Several sounds of the Control pack (save, startup, breakpoint, typing) had most of their energy below 200 Hz and could hardly be heard on a laptop or with small headphones; the quietest one is now about 10 dB louder there. The volume goes up to **200 %** (above 100, amplified up to +6 dB with a soft limiter) and the default is 80.
+
+## [0.6.0] — 2026-10-15
 
 ### Changed
 

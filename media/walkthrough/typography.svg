@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300">
+<style>body.vscode-light .on-dark,body.vscode-high-contrast-light .on-dark{display:none}
+body:not(.vscode-light):not(.vscode-high-contrast-light) .on-light{display:none}</style>
+<rect x="1" y="1" width="478" height="298" rx="3" fill="var(--vscode-editor-background, #16171a)" stroke="var(--vscode-foreground, #e6e2d8)" stroke-opacity=".2"/>
+<rect x="1" y="1" width="478" height="6" fill="#E0352B"/>
+<text x="56" y="168" font-family="Overpass, Interstate, 'Segoe UI', sans-serif" font-size="96" font-weight="700" fill="var(--vscode-foreground, #e6e2d8)">Aa</text><text x="56" y="214" font-family="'Overpass Mono', 'Interstate Mono', Consolas, monospace" font-size="22" fill="var(--vscode-foreground, #e6e2d8)" fill-opacity=".75">{ 0O 1lI }</text><rect x="239" y="40" width="1" height="220" fill="var(--vscode-foreground, #e6e2d8)" fill-opacity=".2"/><text x="270" y="168" font-family="'Space Grotesk', 'Segoe UI', sans-serif" font-size="96" font-weight="500" fill="var(--vscode-foreground, #e6e2d8)">Aa</text><text x="270" y="214" font-family="'Space Mono', Consolas, monospace" font-size="22" fill="var(--vscode-foreground, #e6e2d8)" fill-opacity=".75">{ 0O 1lI }</text><rect x="56" y="238" width="120" height="4" rx="1" fill="#E0352B"/><rect x="270" y="238" width="120" height="4" rx="1" fill="#2FA7B8"/>
+</svg>

@@ -1,0 +1,33 @@
+// Archivo de prueba del tema: Prisma.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Un Objeto de Poder registrado.
+model ObjectOfPower {
+  id        Int      @id @default(autoincrement())
+  code      String   @unique
+  threat    Threat   @default(LOW)
+  resonance Float    @default(0.0)
+  createdAt DateTime @default(now())
+  agent     Agent?   @relation(fields: [agentId], references: [id])
+  agentId   Int?
+
+  @@index([threat])
+}
+
+model Agent {
+  id      Int             @id @default(autoincrement())
+  name    String
+  objects ObjectOfPower[]
+}
+
+enum Threat {
+  LOW
+  HIGH
+}

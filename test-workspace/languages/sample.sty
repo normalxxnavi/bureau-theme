@@ -1,0 +1,16 @@
+% Archivo de prueba del tema: TeX (paquete .sty).
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{bureau}[2026/10/16 Estilo de la Agencia]
+
+\RequirePackage{xcolor}
+\definecolor{fbcred}{HTML}{E0352B}
+
+\newif\if@classified
+\@classifiedfalse
+\DeclareOption{classified}{\@classifiedtrue}
+\ProcessOptions\relax
+
+\def\redact#1{\colorbox{black}{\phantom{#1}}}
+\newcommand*{\hotline}{\textcolor{fbcred}{Hotline}}
+\let\oldsection\section
+\endinput

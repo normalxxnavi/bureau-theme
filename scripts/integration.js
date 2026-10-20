@@ -31,7 +31,11 @@ function codeExecutable() {
       if (fs.existsSync(exe)) return exe;
     }
   } else if (process.platform === 'darwin') {
-    return path.resolve(appRoot, '..', '..', 'MacOS', 'Electron');
+    // <app>/Contents/Resources/app → <app>/Contents/MacOS/Code (Electron en versiones antiguas)
+    for (const name of ['Code', 'Electron']) {
+      const exe = path.resolve(appRoot, '..', '..', 'MacOS', name);
+      if (fs.existsSync(exe)) return exe;
+    }
   } else {
     return path.resolve(appRoot, '..', '..', 'code');
   }
@@ -74,6 +78,9 @@ function main() {
     `--extensionTestsPath=${path.join(ROOT, 'test', 'integration', 'index.js')}`,
     workspace,
   ];
+  // Linux en la CI: Ubuntu 24.04 no deja a Electron crear su sandbox (AppArmor
+  // limita los user namespaces) y la pantalla virtual (xvfb) no tiene GPU.
+  if (process.platform === 'linux' && process.env.CI) args.unshift('--no-sandbox', '--disable-gpu');
 
   // Variables heredadas de la terminal integrada de VS Code que harían que el
   // ejecutable se comportara como Node o se conectara a la ventana actual.

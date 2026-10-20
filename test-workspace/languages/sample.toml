@@ -1,0 +1,23 @@
+# Archivo de prueba del tema: TOML.
+title = "Registro de la Agencia"
+version = 0.6
+released = 2026-10-16T09:00:00Z
+
+[director]
+name = "Jesse Faden"
+clearance = 7
+active = true
+
+[sectors]
+research = { floor = -3, open = true }
+containment = { floor = -2, open = false }
+
+[[objects]]
+code = "OOP-0001"
+tags = ["hotline", "red"]
+
+[[objects]]
+code = 'AI-0042'
+notes = """
+Patito de goma
+que se teletransporta."""

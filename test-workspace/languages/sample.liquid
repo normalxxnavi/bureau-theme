@@ -1,0 +1,11 @@
+{% comment %} Archivo de prueba del tema: Liquid. {% endcomment %}
+<section class="registry">
+  <h1>{{ page.title | upcase }}</h1>
+  {% assign dangerous = objects | where: "threat", "high" %}
+  {% for item in dangerous limit: 10 %}
+    <p class="{% if item.breach %}breach{% endif %}">{{ item.code }} — {{ item.resonance | round: 2 }}</p>
+  {% else %}
+    <p>Todo contenido</p>
+  {% endfor %}
+  {% render 'footer', year: 2026 %}
+</section>

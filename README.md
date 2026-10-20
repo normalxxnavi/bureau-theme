@@ -34,14 +34,21 @@ The light theme: a white void framed by black geometry. Body text reaches 16.8:1
 
 ![CONTROL Astral](images/screenshots/control-astral.png)
 
-Every theme covers 687 interface colours (including VS Code's *modern UI*), the 16 terminal colours, diff and merge editors, bracket pairs and semantic highlighting (C#, Razor, TypeScript, Python…). All text colours are checked against WCAG before each release.
+Every theme covers 687 interface colours (including VS Code's *modern UI*), the 16 terminal colours, diff and merge editors, bracket pairs and semantic highlighting (C#, Razor, TypeScript, Python, Rust, Java, C/C++, Dart…). All text colours are checked against WCAG before each release.
+
+**Any language.** Syntax colours are checked token by token against samples of the 70 languages that VS Code ships and 72 more that come with extensions (Kotlin, Scala, Elixir, Haskell, Zig, Vue, Svelte, Terraform, Solidity, COBOL, Fortran…), and scope by scope against the grammars of about 240 languages, so no part of your code is left in plain text colour.
 
 ## Install
 
-1. Install **Bureau — CONTROL Fan Theme** from the Marketplace.
-2. <kbd>Ctrl</kbd>+<kbd>K</kbd> <kbd>Ctrl</kbd>+<kbd>T</kbd> (<kbd>Cmd</kbd>+<kbd>K</kbd> <kbd>Cmd</kbd>+<kbd>T</kbd> on macOS) and pick a **CONTROL** theme.
-3. **Preferences: File Icon Theme** → **Bureau Icons**.
-4. **Preferences: Product Icon Theme** → **Bureau Product Icons** or **Bureau Product Icons (Color)**.
+1. Install **Bureau — CONTROL Fan Theme** from the Marketplace. The **welcome guide** opens: it sets everything up step by step (open it again with **CONTROL: Open Welcome Guide**).
+2. Or in one step: **CONTROL: Apply the Full Set (Theme and Icons)…** applies a CONTROL theme, Bureau Icons and Bureau Product Icons, and can be undone.
+3. Or by hand: <kbd>Ctrl</kbd>+<kbd>K</kbd> <kbd>Ctrl</kbd>+<kbd>T</kbd> (<kbd>Cmd</kbd>+<kbd>K</kbd> <kbd>Cmd</kbd>+<kbd>T</kbd> on macOS) for a **CONTROL** theme, **Preferences: File Icon Theme** → **Bureau Icons** and **Preferences: Product Icon Theme** → **Bureau Product Icons** or **Bureau Product Icons (Color)**.
+
+**Light by day, dark by night:** **CONTROL: Follow the System Light/Dark Mode…** uses CONTROL Astral while your system is in light mode and the dark CONTROL theme you choose in dark mode.
+
+## The Oldest House
+
+Everything in one place: click the **Oldest House** — the windowless monolith in the status bar — (or run **CONTROL: Open the Oldest House…**) to change the colour theme, apply the full set, pick the file and product icons, follow the system light/dark mode, choose the typography, open the sound console and the Songmaster jukebox, open the official soundtracks and set up the Bureau protocols. Each option shows its current state and takes you back to the Oldest House. Its popup — like the ones of the jukebox, the alert level and Classified mode — is a small card with the object, coloured status labels and buttons you can click. Hide the icon from the Oldest House itself, by right-clicking the status bar or with `bureauTheme.statusBarItem`.
 
 ## Icons
 
@@ -66,7 +73,7 @@ Every theme covers 687 interface colours (including VS Code's *modern UI*), the 
 
 ## Typography (optional)
 
-The first time the extension starts it offers free fonts inspired by the games, installed only for your user (no administrator rights). Change it any time with **CONTROL: Choose Typography…**.
+Free fonts inspired by the games, installed only for your user (no administrator rights) on Windows, macOS and Linux. Pick them in the welcome guide or any time with **CONTROL: Choose Typography…**.
 
 | Option | Code (editor, terminal) | Text (chat, Markdown preview) |
 |---|---|---|
@@ -80,7 +87,7 @@ If you own Interstate Mono or Interstate, the Bureau option uses them first. **K
 
 ![Sound console](images/screenshots/sounds.png)
 
-Short sound effects, **off by default**. Click the sound icon in the status bar (or run **CONTROL: Open Sound Console…**) to turn them on, pick the *Control* or *Resonant* pack, set the volume and choose which events play a sound:
+Short sound effects, **off by default**. Open **Sounds** in the Oldest House (or run **CONTROL: Open Sound Console…**) to turn them on, pick the *Control* or *Resonant* pack, set the volume and choose which events play a sound:
 
 | Event | Default |
 |---|---|
@@ -94,7 +101,23 @@ Short sound effects, **off by default**. Click the sound icon in the status bar 
 | Debugging started / breakpoint hit | on |
 | Git commit | on |
 
-All sounds are original recreations synthesized for this extension; no audio from the games is included. VS Code has no audio API, so the system player is used (PowerShell on Windows, `afplay` on macOS, `paplay`, `pw-play` or `aplay` on Linux).
+The volume goes up to **200 %**: above 100 the sounds are amplified (up to +6 dB) with a soft limiter, for loud music or small speakers. They are mastered for any speaker, so they can be heard on a laptop or with small headphones too.
+
+All sounds are original recreations synthesized for this extension; no audio from the games is included. VS Code has no audio API, so the system player is used (PowerShell on Windows, `afplay` on macOS, `paplay`, `pw-play` or `aplay` on Linux, also when VS Code is installed as a Flatpak).
+
+## Songmaster jukebox (optional)
+
+What is playing on your computer — in Spotify or **any player** (the browser, Apple Music, VLC…) — in the status bar, next to the Oldest House, with **previous, play/pause and next**. Hover over the song for the player: the album cover (from your system, never downloaded), the song, its state and clickable controls. It reads the music from the system itself: the Windows media session, Spotify and Music on macOS (macOS asks your permission the first time) and any MPRIS player on Linux. No Spotify account, no login and nothing leaves your computer. **Off by default**: **CONTROL: Turn the Songmaster Jukebox On/Off**, or from the Oldest House.
+
+It also opens the official music of both games in Spotify: [Control (Original Soundtrack)](https://open.spotify.com/album/0cS6rif4qDxklIaFKME68N), [CONTROL Resonant (Original Soundtrack)](https://open.spotify.com/album/5LxLCAfp8l1USzUOSIbgHP), [Zoe's Mixtape](https://open.spotify.com/album/3tvQ7tUbztcIdUMHQDXkT7) and Old Gods of Asgard's [Take Control](https://open.spotify.com/album/3Xcl0pytPYqJUSTi2S8jtI) and [Rebirth – Greatest Hits](https://open.spotify.com/album/0LZhC50aIf7O233yj7IH4Z). Only links: the music belongs to Remedy and its artists and is not included.
+
+## Bureau protocols (optional)
+
+Three extras from the lore that are actually useful, all **off by default** (turn them on in the Oldest House, in the welcome guide or with their commands):
+
+- **Classified mode** — covers secrets with redaction bars so you can share your screen or stream safely: every value in `.env` files, keys and certificates, and any value whose name looks like a secret (`password`, `token`, `apiKey`, connection strings…) in `appsettings.json`, `.npmrc`, `docker-compose.yml` and similar files. Put the cursor on a line to reveal it; the *Classified* icon in the status bar reveals the whole file until you click it again. The file is never changed. **CONTROL: Turn Classified Mode On/Off**.
+- **Bureau alert level** — a status bar indicator that goes from **Clear** to **Anomaly** (warnings), **Alert** (errors) and **Hiss Incursion** (10 errors or more). Click it to open the Problems panel. **CONTROL: Show/Hide Bureau Alert Level**.
+- **The Board** — speaks `<<IN ITS OWN VOICE.>>` at **random moments of the day** (3 a day by default, as a notification with *Another message* and *No more today*), never while you debug. Choose how many times a day, the hours (for example 09:00–18:00), where they appear (notification, status bar or both) and whether it uses its messages, **your own messages** or both: **CONTROL: Configure the Board…**. It can also comment quietly in the status bar on your commits, tasks, debugging sessions, the last error fixed and the first start of the day, and **CONTROL: Message from the Board** asks it at any time. Its 87 messages are original, written for this theme in English and Spanish.
 
 ## Settings
 
@@ -102,14 +125,29 @@ All sounds are original recreations synthesized for this extension; no audio fro
 |---|---|---|
 | `bureauTheme.font` | `none` | `bureau`, `resonant`, `auto` (follow the theme) or `none`. |
 | `bureauTheme.sounds.enabled` | `false` | Master switch for sounds. |
-| `bureauTheme.sounds.statusBarItem` | `true` | Show the sound icon in the status bar. |
+| `bureauTheme.statusBarItem` | `true` | Show the Oldest House icon in the status bar. |
 | `bureauTheme.sounds.pack` | `auto` | `auto`, `control` or `resonant`. |
-| `bureauTheme.sounds.volume` | `70` | 0–100. |
+| `bureauTheme.sounds.volume` | `80` | 0–200 (above 100, amplified with a soft limiter). |
 | `bureauTheme.sounds.onlyWithControlTheme` | `true` | Stay silent while another theme is active. |
 | `bureauTheme.sounds.errorTrigger` | `onSave` | `onSave` or `live`. |
 | `bureauTheme.sounds.cooldownMs` | `1500` | Minimum time between sounds. |
 | `bureauTheme.sounds.customFolder` | `""` | Folder with your own `.wav` files (user settings only). |
 | `bureauTheme.sounds.events.*` | see above | One switch per event. |
+| `bureauTheme.classified.enabled` | `false` | Classified mode. |
+| `bureauTheme.classified.files` | `.env`, `*.pem`, `appsettings*.json`… | Files where Classified mode applies (glob patterns). |
+| `bureauTheme.classified.keywords` | `password`, `token`, `apikey`… | Words that mark a value as secret (plain words, not regular expressions). |
+| `bureauTheme.alertLevel.enabled` | `false` | Bureau alert level in the status bar. |
+| `bureauTheme.alertLevel.incursionThreshold` | `10` | Errors from which the level is *Hiss Incursion*. |
+| `bureauTheme.board.comments` | `false` | Board comments in the status bar. |
+| `bureauTheme.board.random` | `false` | Random Board messages during the day (user settings only). |
+| `bureauTheme.board.timesPerDay` | `3` | How many random messages a day. |
+| `bureauTheme.board.hours` | `""` | Hours for them, for example `09:00-18:00` (empty: any time). |
+| `bureauTheme.board.display` | `notification` | `notification`, `statusBar` or `both`. |
+| `bureauTheme.board.source` | `all` | `all` (the Board's and yours), `board` or `custom`. |
+| `bureauTheme.board.customMessages` | `[]` | Your own messages (user settings only). |
+| `bureauTheme.music.enabled` | `false` | Songmaster jukebox (user settings only). |
+| `bureauTheme.music.source` | `any` | `any` player or only `spotify`. |
+| `bureauTheme.music.controls` | `true` | Previous, play/pause and next buttons next to the song. |
 
 Comments and parameters are *italic*. To turn italics off:
 
@@ -131,10 +169,12 @@ Comments and parameters are *italic*. To turn italics off:
 - Semantic colours depend on each language extension (for C# and Razor, the official C# extension).
 - Panels drawn by other extensions (web views) only use the theme colours they choose to.
 - On Linux, sounds need `paplay`, `pw-play` or `aplay`; the *terminal command failed* sound needs shell integration.
+- Classified mode draws bars over the editor: values can still be seen in places it does not reach (search results, the minimap as blocks, hovers of other extensions), and when a file is opened VS Code shows it for an instant before the bars are drawn. Turn it on before opening the file you want to protect.
+- The Songmaster jukebox shows what the system reports: on macOS only Spotify and Music, without album covers (the jukebox is shown instead); on Linux it needs `gdbus` (it comes with GLib on GNOME, KDE and most desktops) and shows the cover only when the player saves it as a local file of up to 48 KB.
 
 ## Privacy and security
 
-No network connections and no telemetry. The themes and icons are static files; the optional sounds and typography only use the system audio player and your user fonts folder. In untrusted workspaces, sound settings from the workspace are ignored. See [SECURITY.md](SECURITY.md) for details and how to report a vulnerability.
+No network connections and no telemetry. The themes and icons are static files; the optional sounds and typography only use the system audio player and your user fonts folder, Classified mode only reads the open file to know what to cover, and the jukebox only reads the title, artist and album your system reports. In untrusted workspaces, sound settings from the workspace are ignored. See [SECURITY.md](SECURITY.md) for details and how to report a vulnerability.
 
 ## Credits
 
@@ -159,14 +199,21 @@ Cuatro temas de color para Visual Studio Code inspirados en *Control* y *Control
 - **CONTROL Resonant** — el Manhattan alterado de *Control Resonant*: grises de asfalto mojado, azul acero y cian de resonancia. El rojo solo aparece en errores y borrados.
 - **CONTROL Astral** — el tema claro: vacío blanco enmarcado en geometría negra. El texto llega a 16,8:1 de contraste (WCAG AAA).
 
-Cada tema cubre 687 colores de la interfaz (incluida la *modern UI* de VS Code), los 16 colores de la terminal, los editores de diff y merge, los pares de corchetes y el resaltado semántico (C#, Razor, TypeScript, Python…). Todos los colores de texto se comprueban con WCAG antes de cada versión.
+Cada tema cubre 687 colores de la interfaz (incluida la *modern UI* de VS Code), los 16 colores de la terminal, los editores de diff y merge, los pares de corchetes y el resaltado semántico (C#, Razor, TypeScript, Python, Rust, Java, C/C++, Dart…). Todos los colores de texto se comprueban con WCAG antes de cada versión.
+
+**Cualquier lenguaje.** Los colores de la sintaxis se comprueban token a token con muestras de los 70 lenguajes que trae VS Code y de 72 más que llegan con extensiones (Kotlin, Scala, Elixir, Haskell, Zig, Vue, Svelte, Terraform, Solidity, COBOL, Fortran…), y scope a scope con las gramáticas de unos 240 lenguajes, para que ninguna parte de tu código se quede con el color de texto plano.
 
 ## Instalación
 
-1. Instala **Bureau — CONTROL Fan Theme** desde el Marketplace.
-2. <kbd>Ctrl</kbd>+<kbd>K</kbd> <kbd>Ctrl</kbd>+<kbd>T</kbd> (<kbd>Cmd</kbd>+<kbd>K</kbd> <kbd>Cmd</kbd>+<kbd>T</kbd> en macOS) y elige un tema **CONTROL**.
-3. **Preferencias: Tema de icono de archivo** → **Bureau Icons**.
-4. **Preferencias: Tema de icono de producto** → **Bureau Product Icons** o **Bureau Product Icons (Color)**.
+1. Instala **Bureau — CONTROL Fan Theme** desde el Marketplace. Se abre la **guía de bienvenida**, que lo configura todo paso a paso (vuelve a abrirla con **CONTROL: Abrir la guía de bienvenida**).
+2. O en un solo paso: **CONTROL: Aplicar el set completo (tema e iconos)…** aplica un tema CONTROL, Bureau Icons y Bureau Product Icons, y se puede deshacer.
+3. O a mano: <kbd>Ctrl</kbd>+<kbd>K</kbd> <kbd>Ctrl</kbd>+<kbd>T</kbd> (<kbd>Cmd</kbd>+<kbd>K</kbd> <kbd>Cmd</kbd>+<kbd>T</kbd> en macOS) para un tema **CONTROL**, **Preferencias: Tema de icono de archivo** → **Bureau Icons** y **Preferencias: Tema de icono de producto** → **Bureau Product Icons** o **Bureau Product Icons (Color)**.
+
+**Claro de día, oscuro de noche:** **CONTROL: Seguir el modo claro/oscuro del sistema…** usa CONTROL Astral cuando tu sistema está en modo claro y el tema CONTROL oscuro que elijas en modo oscuro.
+
+## La Casa Inmemorial
+
+Todo en un solo sitio: pulsa la **Casa Inmemorial** —el monolito sin ventanas de la barra de estado— (o ejecuta **CONTROL: Abrir la Casa Inmemorial…**) para cambiar el tema de color, aplicar el set completo, elegir los iconos de archivo y de producto, seguir el modo claro/oscuro del sistema, elegir la tipografía, abrir la consola de sonido y la gramola Songmaster, abrir las bandas sonoras oficiales y configurar los protocolos de la Agencia. Cada opción enseña su estado y te devuelve a la Casa. Su popup —como los de la gramola, el nivel de alerta y el Modo Clasificado— es una pequeña ficha con el objeto, etiquetas de estado de color y botones que se pueden pulsar. Oculta el icono desde la propia Casa, con el botón derecho sobre la barra de estado o con `bureauTheme.statusBarItem`.
 
 ## Iconos
 
@@ -187,7 +234,7 @@ Cada tema cubre 687 colores de la interfaz (incluida la *modern UI* de VS Code),
 
 ## Tipografía (opcional)
 
-La primera vez que arranca, la extensión ofrece fuentes libres inspiradas en los juegos, instaladas solo para tu usuario (sin permisos de administrador). Se cambia cuando quieras con **CONTROL: Elegir tipografía…**.
+Fuentes libres inspiradas en los juegos, instaladas solo para tu usuario (sin permisos de administrador) en Windows, macOS y Linux. Elígelas en la guía de bienvenida o cuando quieras con **CONTROL: Elegir tipografía…**.
 
 | Opción | Código (editor, terminal) | Texto (chat, vista previa de Markdown) |
 |---|---|---|
@@ -199,17 +246,41 @@ Si tienes Interstate Mono o Interstate, la opción Bureau las usa primero. **Man
 
 ## Efectos de sonido (opcionales)
 
-Sonidos cortos, **desactivados por defecto**. Pulsa el icono de sonido de la barra de estado (o ejecuta **CONTROL: Abrir la consola de sonido…**) para activarlos, elegir el pack *Control* o *Resonant*, ajustar el volumen y decidir qué eventos suenan: arrancar VS Code, cambiar a un tema CONTROL, guardar, escribir, errores nuevos o resueltos, tareas, comandos de terminal fallidos, depuración y commits de Git.
+Sonidos cortos, **desactivados por defecto**. Abre **Sonidos** en la Casa Inmemorial (o ejecuta **CONTROL: Abrir la consola de sonido…**) para activarlos, elegir el pack *Control* o *Resonant*, ajustar el volumen y decidir qué eventos suenan: arrancar VS Code, cambiar a un tema CONTROL, guardar, escribir, errores nuevos o resueltos, tareas, comandos de terminal fallidos, depuración y commits de Git.
 
-Todos los sonidos son recreaciones originales sintetizadas para esta extensión; no incluye audio de los juegos. VS Code no tiene API de audio, así que se usa el reproductor del sistema (PowerShell en Windows, `afplay` en macOS, `paplay`, `pw-play` o `aplay` en Linux).
+El volumen llega al **200 %**: por encima de 100 los sonidos se amplifican (hasta +6 dB) con un limitador suave, para música alta o altavoces pequeños. Están masterizados para cualquier altavoz, así que también se oyen en un portátil o con auriculares pequeños.
+
+Todos los sonidos son recreaciones originales sintetizadas para esta extensión; no incluye audio de los juegos. VS Code no tiene API de audio, así que se usa el reproductor del sistema (PowerShell en Windows, `afplay` en macOS, `paplay`, `pw-play` o `aplay` en Linux, también con VS Code instalado como Flatpak).
+
+## Gramola Songmaster (opcional)
+
+Lo que suena en tu ordenador —en Spotify o en **cualquier reproductor** (el navegador, Apple Music, VLC…)— en la barra de estado, junto a la Casa Inmemorial, con **anterior, reproducir/pausar y siguiente**. Pasa el ratón por la canción para ver el reproductor: la portada del álbum (de tu sistema, nunca se descarga), la canción, su estado y controles que se pueden pulsar. Lee la música del propio sistema: la sesión multimedia de Windows, Spotify y Música en macOS (macOS pide permiso la primera vez) y cualquier reproductor MPRIS en Linux. Sin cuenta de Spotify, sin iniciar sesión y sin que nada salga de tu ordenador. **Desactivada por defecto**: **CONTROL: Activar/desactivar la gramola Songmaster**, o desde la Casa Inmemorial.
+
+También abre en Spotify la música oficial de los dos juegos: [Control (Original Soundtrack)](https://open.spotify.com/album/0cS6rif4qDxklIaFKME68N), [CONTROL Resonant (Original Soundtrack)](https://open.spotify.com/album/5LxLCAfp8l1USzUOSIbgHP), [Zoe's Mixtape](https://open.spotify.com/album/3tvQ7tUbztcIdUMHQDXkT7) y, de Old Gods of Asgard, [Take Control](https://open.spotify.com/album/3Xcl0pytPYqJUSTi2S8jtI) y [Rebirth – Greatest Hits](https://open.spotify.com/album/0LZhC50aIf7O233yj7IH4Z). Solo enlaces: la música es de Remedy y de sus artistas y no se incluye.
+
+## Protocolos de la Agencia (opcionales)
+
+Tres extras del lore que sirven de verdad, todos **desactivados por defecto** (actívalos en la Casa Inmemorial, en la guía de bienvenida o con sus comandos):
+
+- **Modo Clasificado** — tapa los secretos con barras de censura para compartir pantalla o hacer streaming sin enseñarlos: todos los valores de los archivos `.env`, las claves y certificados, y cualquier valor cuyo nombre parezca un secreto (`password`, `token`, `apiKey`, cadenas de conexión…) en `appsettings.json`, `.npmrc`, `docker-compose.yml` y archivos parecidos. Pon el cursor en una línea para revelarla; el icono *Clasificado* de la barra de estado revela el archivo entero hasta que lo vuelves a pulsar. El archivo nunca cambia. **CONTROL: Activar/desactivar el Modo Clasificado**.
+- **Nivel de alerta de la Agencia** — un indicador en la barra de estado que va de **Despejado** a **Anomalía** (avisos), **Alerta** (errores) e **Incursión del Siseo** (10 errores o más). Al pulsarlo se abre el panel Problemas. **CONTROL: Mostrar/ocultar el nivel de alerta de la Agencia**.
+- **El Consejo** — habla `<<CON SU PROPIA VOZ.>>` en **momentos al azar del día** (3 al día por defecto, en una notificación con *Otro mensaje* y *Hoy no más*), nunca mientras depuras. Elige cuántas veces al día, el horario (por ejemplo 09:00–18:00), dónde aparecen (notificación, barra de estado o las dos) y si usa sus mensajes, **los tuyos** o los dos: **CONTROL: Configurar el Consejo…**. También puede comentar en voz baja en la barra de estado tus commits, tareas, sesiones de depuración, el último error corregido y el primer arranque del día, y **CONTROL: Mensaje del Consejo** le pregunta cuando quieras. Sus 87 mensajes son originales, escritos para este tema en inglés y en español.
 
 ## Ajustes
 
-Los mismos que en la [tabla en inglés](#settings): `bureauTheme.font` y `bureauTheme.sounds.*`. La carpeta de sonidos propios (`bureauTheme.sounds.customFolder`) solo se puede fijar en los ajustes de usuario.
+Los mismos que en la [tabla en inglés](#settings): `bureauTheme.statusBarItem`, `bureauTheme.font`, `bureauTheme.sounds.*` (volumen de 0 a 200), `bureauTheme.classified.*`, `bureauTheme.alertLevel.*`, `bureauTheme.board.*` y `bureauTheme.music.*`. La carpeta de sonidos propios, la gramola, los mensajes al azar del Consejo y tus mensajes solo se pueden fijar en los ajustes de usuario.
+
+## Limitaciones conocidas
+
+- Los colores semánticos dependen de la extensión de cada lenguaje (para C# y Razor, la extensión oficial de C#).
+- Los paneles de otras extensiones (web views) solo usan los colores del tema que ellas deciden.
+- En Linux, los sonidos necesitan `paplay`, `pw-play` o `aplay`; el sonido de *comando de terminal fallido* necesita la shell integration.
+- El Modo Clasificado pinta barras sobre el editor: los valores se pueden ver donde no llega (resultados de búsqueda, el minimapa como bloques, los hovers de otras extensiones) y, al abrir un archivo, VS Code lo enseña un instante antes de pintar las barras. Actívalo antes de abrir el archivo que quieras proteger.
+- La gramola Songmaster muestra lo que cuenta el sistema: en macOS solo Spotify y Música, sin portada (se ve la gramola); en Linux necesita `gdbus` (viene con GLib en GNOME, KDE y casi todos los escritorios) y solo enseña la portada si el reproductor la guarda como archivo local de 48 KB como mucho.
 
 ## Privacidad y seguridad
 
-Sin conexiones de red ni telemetría. Los temas y los iconos son archivos estáticos; los sonidos y la tipografía opcionales solo usan el reproductor de audio del sistema y tu carpeta de fuentes de usuario. En áreas de trabajo no confiables se ignoran los ajustes de sonido del área de trabajo. Los detalles y cómo informar de una vulnerabilidad están en [SECURITY.md](SECURITY.md).
+Sin conexiones de red ni telemetría. Los temas y los iconos son archivos estáticos; los sonidos y la tipografía opcionales solo usan el reproductor de audio del sistema y tu carpeta de fuentes de usuario, el Modo Clasificado solo lee el archivo abierto para saber qué tapar y la gramola solo lee el título, el artista y el álbum que da tu sistema. En áreas de trabajo no confiables se ignoran los ajustes de sonido del área de trabajo. Los detalles y cómo informar de una vulnerabilidad están en [SECURITY.md](SECURITY.md).
 
 ## Créditos
 

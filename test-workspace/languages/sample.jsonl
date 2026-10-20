@@ -1,0 +1,3 @@
+{"code": "OOP-0001", "name": "Hotline", "threat": 7, "contained": true}
+{"code": "OOP-0002", "name": "Slide Projector", "threat": 3, "contained": false, "notes": null}
+{"code": "AI-0042", "name": "Rubber Duck", "threat": 1.5, "tags": ["altered", "teleports"]}

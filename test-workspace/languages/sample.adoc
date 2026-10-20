@@ -1,0 +1,27 @@
+= Informe de contención
+Agencia Federal de Control
+:sector: research
+:toc:
+
+// Archivo de prueba del tema: AsciiDoc.
+
+== Resumen
+
+La *Hotline* mostró una resonancia de _12,5_ durante el `Siseo` en el sector {sector}.
+Véase https://example.invalid[el expediente].
+
+NOTE: El Consejo observa.
+
+[source,python]
+----
+def contain(item):
+    return item.threat < 3
+----
+
+* Sector: research
+* Amenaza: 7
+
+|===
+| Código | Amenaza
+| OOP-0001 | 7
+|===
