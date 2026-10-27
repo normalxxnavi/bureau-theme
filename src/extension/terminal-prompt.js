@@ -108,10 +108,14 @@ class TerminalPrompt {
   constructor(context, log) {
     this.context = context;
     this.log = log;
-    /** Evita que dos sincronizaciones se pisen. */
+    /** Evita que dos sincronizaciones (o instalar y quitar) se pisen. */
     this.queue = Promise.resolve();
+    /** Hay una sincronización en la cola que aún no ha empezado: las que se pidan hasta entonces van en ella. */
+    this.syncPending = false;
     /** @type {string[] | undefined} Tus colores de Git (se leen en cada sincronización). */
     this.ownGit = undefined;
+    /** @type {string | undefined} Huella de la fuente de iconos de la extensión (no cambia en la sesión). */
+    this.fontStamp = undefined;
   }
 
   init() {
@@ -124,9 +128,33 @@ class TerminalPrompt {
     this.sync();
   }
 
+  /**
+   * Sincroniza los scripts, la fuente y lo de fuera de VS Code. Cambiar de
+   * tema avisa dos veces (el ajuste y el tema activo) y elegir un estilo
+   * también: las peticiones que llegan antes de que empiece la siguiente
+   * sincronización se juntan en una.
+   */
   sync() {
-    this.queue = this.queue.then(() => this.syncNow()).catch((err) => this.log.error(`Terminal prompt: ${err.message}`));
-    return this.queue;
+    if (this.syncPending) return this.queue;
+    this.syncPending = true;
+    return this.serial(() => {
+      this.syncPending = false;
+      return this.syncNow();
+    });
+  }
+
+  /**
+   * En la cola, detrás de lo que haya: dos escrituras de installed.json o de
+   * prompt.conf nunca se mezclan.
+   * @template T @param {() => Promise<T>} fn @returns {Promise<T | undefined>}
+   */
+  serial(fn) {
+    const run = this.queue.then(fn);
+    this.queue = run.then(
+      () => undefined,
+      (err) => this.log.error(`Terminal prompt: ${err.message}`)
+    );
+    return run.catch(() => undefined);
   }
 
   /** Lo que reciben los scripts y lo de fuera de VS Code, según los ajustes y el tema. */
@@ -162,7 +190,7 @@ class TerminalPrompt {
     await this.syncDefaultProfile(on && cfg.newTerminals);
     if (installer.isInstalledOutside()) {
       try {
-        installer.refreshOutside({ cmdPrompt, fragment: this.fragment() });
+        await installer.refreshOutside({ cmdPrompt, fragment: this.fragment() });
       } catch (err) {
         this.log.warn(`Terminal prompt outside VS Code: ${/** @type {Error} */ (err).message}`);
       }
@@ -179,7 +207,8 @@ class TerminalPrompt {
    */
   async syncFont(on) {
     const fonts = path.join(this.context.extensionPath, 'fonts');
-    const stamp = on ? require('./font-installer').fingerprint(path.join(fonts, P.PROMPT_FONT.file)) : undefined;
+    if (on) this.fontStamp ??= require('./font-installer').fingerprint(path.join(fonts, P.PROMPT_FONT.file));
+    const stamp = on ? this.fontStamp : undefined;
     if (on && this.context.globalState.get(FONT_INSTALLED_KEY) !== stamp) {
       try {
         require('./font-installer').installFonts(fonts, [P.PROMPT_FONT]);
@@ -443,25 +472,30 @@ class TerminalPrompt {
       install
     );
     if (choice !== install) return;
-    const { conf, cmdPrompt, git } = this.data();
-    try {
-      installer.prepare(this.context.extensionPath, { conf, board: boardLines(), git });
-      const changed = installer.installOutside({ cmdPrompt, fragment: this.fragment() });
-      this.log.info(`Terminal prompt installed outside VS Code: ${changed.join(', ')}`);
-      vscode.window.showInformationMessage(vscode.l10n.t('<<THE PROTOCOL EXTENDS BEYOND THE HOUSE.>> Open a new terminal to see the Bureau prompt. Changed: {0}.', changed.map((f) => path.basename(f)).join(', ') || '—'));
-    } catch (err) {
-      vscode.window.showErrorMessage(vscode.l10n.t('The Bureau prompt could not be installed outside VS Code: {0}', /** @type {Error} */ (err).message));
-    }
+    // En la cola: una sincronización a medias no puede pisar installed.json.
+    await this.serial(async () => {
+      const { conf, cmdPrompt, git } = this.data();
+      try {
+        installer.prepare(this.context.extensionPath, { conf, board: boardLines(), git });
+        const changed = await installer.installOutside({ cmdPrompt, fragment: this.fragment() });
+        this.log.info(`Terminal prompt installed outside VS Code: ${changed.join(', ')}`);
+        vscode.window.showInformationMessage(vscode.l10n.t('<<THE PROTOCOL EXTENDS BEYOND THE HOUSE.>> Open a new terminal to see the Bureau prompt. Changed: {0}.', changed.map((f) => path.basename(f)).join(', ') || '—'));
+      } catch (err) {
+        vscode.window.showErrorMessage(vscode.l10n.t('The Bureau prompt could not be installed outside VS Code: {0}', /** @type {Error} */ (err).message));
+      }
+    });
   }
 
   async removeOutside() {
-    try {
-      const changed = installer.removeOutside();
-      this.log.info(`Terminal prompt removed from outside VS Code: ${changed.join(', ')}`);
-      vscode.window.showInformationMessage(vscode.l10n.t('The Bureau prompt has been removed from your shells outside VS Code.'));
-    } catch (err) {
-      vscode.window.showErrorMessage(vscode.l10n.t('The Bureau prompt could not be removed: {0}', /** @type {Error} */ (err).message));
-    }
+    await this.serial(async () => {
+      try {
+        const changed = installer.removeOutside();
+        this.log.info(`Terminal prompt removed from outside VS Code: ${changed.join(', ')}`);
+        vscode.window.showInformationMessage(vscode.l10n.t('The Bureau prompt has been removed from your shells outside VS Code.'));
+      } catch (err) {
+        vscode.window.showErrorMessage(vscode.l10n.t('The Bureau prompt could not be removed: {0}', /** @type {Error} */ (err).message));
+      }
+    });
   }
 
   /** Resumen para la Casa Inmemorial. */

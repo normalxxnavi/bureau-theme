@@ -72,6 +72,9 @@ class Jukebox {
     this.coverFor = '';
     /** Lo que muestra ahora el popup (para no rehacerlo si no cambia). */
     this.popupKey = '';
+    /** Hay una lectura en curso, y otra pedida mientras tanto. */
+    this.reading = false;
+    this.readAgain = false;
   }
 
   init() {
@@ -127,6 +130,7 @@ class Jukebox {
 
   stop() {
     this.started = false;
+    this.readAgain = false;
     clearTimeout(this.timer);
     this.focusListener?.dispose();
     this.focusListener = undefined;
@@ -140,14 +144,39 @@ class Jukebox {
     this.popupKey = '';
   }
 
+  /**
+   * Lee lo que suena y programa la siguiente lectura. Una sola a la vez: si
+   * llega otra petición (volver a la ventana, un control) mientras lee, se
+   * vuelve a leer al terminar. Sin esto, cada lectura solapada dejaba su
+   * propio temporizador y las lecturas se iban multiplicando.
+   */
   async poll() {
     clearTimeout(this.timer);
     if (!this.started || !this.source) return;
-    const track = await this.source.read().catch(() => null);
+    if (this.reading) {
+      this.readAgain = true;
+      return;
+    }
+    this.reading = true;
+    const source = this.source;
+    try {
+      const track = await source.read().catch(() => null);
+      // Apagada (o cambiada de fuente) mientras leía: esta lectura ya no cuenta.
+      if (this.started && this.source === source) {
+        this.track = track;
+        this.loadCover();
+        this.render();
+      }
+    } finally {
+      this.reading = false;
+    }
     if (!this.started) return;
-    this.track = track;
-    this.loadCover();
-    this.render();
+    if (this.readAgain) {
+      this.readAgain = false;
+      this.poll();
+      return;
+    }
+    clearTimeout(this.timer);
     if (vscode.window.state.focused) this.timer = setTimeout(() => this.poll(), POLL_MS);
   }
 

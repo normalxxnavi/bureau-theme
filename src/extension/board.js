@@ -225,6 +225,8 @@ class BoardComments {
     /** @type {NodeJS.Timeout | undefined} */
     this.errorTimer = undefined;
     this.checkPending = false;
+    /** Cuántas veces se ha empezado a vigilar los commits (ver watchGitCommits). */
+    this.gitRun = 0;
     /** Últimos comentarios (los lee el test de integración). @type {Array<{moment: string, text: string}>} */
     this.history = [];
   }
@@ -301,12 +303,14 @@ class BoardComments {
   }
 
   async watchGitCommits() {
+    // Apagar y encender mientras Git arranca: solo cuenta el último encendido (si no, cada commit se comentaría dos veces).
+    const run = ++this.gitRun;
     try {
       const ext = vscode.extensions.getExtension('vscode.git');
       if (!ext) return;
       const exports = ext.isActive ? ext.exports : await ext.activate();
       const api = exports?.getAPI?.(1);
-      if (!api || !this.started) return;
+      if (!api || !this.started || run !== this.gitRun) return;
       const watch = (/** @type {any} */ repo) => {
         if (typeof repo.onDidCommit === 'function') this.listeners.push(repo.onDidCommit(() => this.comment('commit')));
       };

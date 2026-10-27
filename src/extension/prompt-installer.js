@@ -39,8 +39,11 @@ const GIT_COLORS_FILE = 'bureau.gitconfig';
  *   env?: NodeJS.ProcessEnv,
  *   find?: (name: string) => string | null,
  *   run?: (cmd: string, args: string[], env?: NodeJS.ProcessEnv) => {status: number | null, stdout: string},
+ *   runAsync?: (cmd: string, args: string[], env?: NodeJS.ProcessEnv) => Promise<{status: number | null, stdout: string}>,
  * }} InstallerOptions
  *   Todo se puede cambiar en los tests (carpeta personal temporal, programas falsos).
+ *   `runAsync` es lo que se usa al cambiar de tema o de estilo, para no parar
+ *   el host de extensiones mientras arranca PowerShell; con solo `run`, se usa ese.
  */
 
 /** @param {InstallerOptions} o */
@@ -55,7 +58,20 @@ function resolve(o = {}) {
       const r = spawnSync(cmd, args, { encoding: 'utf8', windowsHide: true, timeout: 15000, env: extraEnv ? { ...process.env, ...extraEnv } : process.env });
       return { status: r.status, stdout: r.stdout ?? '' };
     });
-  return { platform, home, env, find, run, dir: P.dataDir(platform, env, home) };
+  const runAsync =
+    o.runAsync ??
+    (o.run
+      ? (/** @type {string} */ cmd, /** @type {string[]} */ args, /** @type {NodeJS.ProcessEnv | undefined} */ extraEnv) => Promise.resolve(run(cmd, args, extraEnv))
+      : (/** @type {string} */ cmd, /** @type {string[]} */ args, /** @type {NodeJS.ProcessEnv | undefined} */ extraEnv) =>
+          /** @type {Promise<{status: number | null, stdout: string}>} */ (
+            new Promise((done) => {
+              execFile(cmd, args, { encoding: 'utf8', windowsHide: true, timeout: 15000, env: extraEnv ? { ...process.env, ...extraEnv } : process.env }, (err, stdout) => {
+                const code = err ? (typeof (/** @type {any} */ (err).code) === 'number' ? /** @type {any} */ (err).code : 1) : 0;
+                done({ status: code, stdout: String(stdout ?? '') });
+              });
+            })
+          ));
+  return { platform, home, env, find, run, runAsync, dir: P.dataDir(platform, env, home) };
 }
 
 /** ¿Tienen los dos archivos el mismo contenido? @param {string} a @param {Buffer | string} content */
@@ -277,11 +293,25 @@ function windowsTerminalSettings(o = {}) {
  * @returns {string | null} el valor anterior
  */
 function userPromptVariable(r, value) {
+  return promptVariableResult(value, r.run(...promptVariableCall(r, value)));
+}
+
+/** Lo mismo sin parar el host de extensiones. @param {ReturnType<typeof resolve>} r @param {string | null} [value] */
+async function userPromptVariableAsync(r, value) {
+  return promptVariableResult(value, await r.runAsync(...promptVariableCall(r, value)));
+}
+
+/** @param {ReturnType<typeof resolve>} r @param {string | null} [value] @returns {[string, string[], NodeJS.ProcessEnv]} */
+function promptVariableCall(r, value) {
   const script =
     value === undefined
       ? "[Console]::Out.Write([Environment]::GetEnvironmentVariable('PROMPT', 'User'))"
       : "[Environment]::SetEnvironmentVariable('PROMPT', $(if ($env:BUREAU_NEW_PROMPT) { $env:BUREAU_NEW_PROMPT } else { $null }), 'User')";
-  const out = r.run(windowsPowerShell(r.env), ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command', script], { BUREAU_NEW_PROMPT: value ?? '' });
+  return [windowsPowerShell(r.env), ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command', script], { BUREAU_NEW_PROMPT: value ?? '' }];
+}
+
+/** @param {string | null | undefined} value @param {{status: number | null, stdout: string}} out */
+function promptVariableResult(value, out) {
   if (out.status !== 0) throw new Error('PowerShell could not change the PROMPT variable');
   return value === undefined ? out.stdout || null : null;
 }
@@ -291,9 +321,9 @@ function userPromptVariable(r, value) {
  * y lo que depende de los ajustes (`refreshOutside`).
  * @param {{cmdPrompt: string, fragment: object | null}} data
  * @param {InstallerOptions} [o]
- * @returns {string[]} los archivos y variables que se han tocado
+ * @returns {Promise<string[]>} los archivos y variables que se han tocado
  */
-function installOutside(data, o = {}) {
+async function installOutside(data, o = {}) {
   const r = resolve(o);
   const state = readState(r.dir);
   /** @type {string[]} */
@@ -310,30 +340,31 @@ function installOutside(data, o = {}) {
     if (!state.files.includes(t.file)) state.files.push(t.file);
   }
   writeState(r.dir, state);
-  return [...changed, ...refreshOutside(data, o, true)];
+  return [...changed, ...(await refreshOutside(data, o, true))];
 }
 
 /**
  * Lo de fuera de VS Code que depende de los ajustes y del tema: la variable
  * PROMPT de cmd y el fragmento de Windows Terminal (los shells leen
- * `prompt.conf` solos). No hace nada si no está instalado.
+ * `prompt.conf` solos). No hace nada si no está instalado. PowerShell (para
+ * PROMPT) va sin esperar en bloqueo: se llama en cada cambio de tema o de estilo.
  * @param {{cmdPrompt: string, fragment: object | null}} data
  * @param {InstallerOptions} [o]
  * @param {boolean} [installing]
- * @returns {string[]}
+ * @returns {Promise<string[]>}
  */
-function refreshOutside(data, o = {}, installing = false) {
+async function refreshOutside(data, o = {}, installing = false) {
   const r = resolve(o);
   const state = readState(r.dir);
   if (!installing && !(state.files.length > 0 || state.cmdPrompt !== undefined || state.windowsTerminal)) return [];
   /** @type {string[]} */
   const changed = [];
   if (r.platform === 'win32') {
-    if (state.cmdPrompt === undefined) state.cmdPrompt = { backup: userPromptVariable(r) };
+    if (state.cmdPrompt === undefined) state.cmdPrompt = { backup: await userPromptVariableAsync(r) };
     // Con el prompt apagado, cmd vuelve a tu PROMPT de antes.
     const wanted = data.cmdPrompt || state.cmdPrompt.backup;
     if (state.cmdPrompt.value !== wanted) {
-      userPromptVariable(r, wanted);
+      await userPromptVariableAsync(r, wanted);
       state.cmdPrompt.value = wanted;
       changed.push('PROMPT');
     }

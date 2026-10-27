@@ -305,9 +305,9 @@ __bureau_foot() {
   __bf=$'\e[90m──\e[0m \e[1;'"${color}m$mark$label"$'\e[0m\e[90m'"$info ${rule// /─}"$'\e[0m'
 }
 
-# PS0 runs it in a subshell: it can only write.
+# PS0 runs it in a subshell (only with frames on: __bureau_fon), with the
+# prompt.conf read for the prompt; it can only write.
 __bureau_frame_head() {
-  __bureau_conf
   __bureau_framing && __bureau_frame_line || return 0
   local now
   printf -v now '%(%H:%M)T' -1
@@ -337,9 +337,9 @@ __bureau_status() {
       [ "$code" = 130 ] && __bureau_stopped=1
     fi
   fi
-  # The closing line, if PS0 wrote the header (it already says how long it took).
+  # The closing line, if PS0 wrote the header (it already says how long it
+  # took), with the same prompt.conf as the header: the one read for the prompt.
   if [ "$ran" = 1 ] && [ -n "$__bureau_ps0" ]; then
-    __bureau_conf
     if __bureau_framing && __bureau_frame_line; then
       __bureau_foot "$__bureau_ok" "$__bureau_stopped" "$__bureau_code" "$__bureau_dur" "${COLUMNS:-80}"
       printf '%s\n' "$__bf"
@@ -365,6 +365,8 @@ __bureau_prompt() {
   esac
   # The history number before the next line: if it grows, that line went into the history.
   __bureau_hc=${HISTCMD:-0}
+  # With frames off, PS0 does not even start its subshell.
+  if __bureau_framing; then __bureau_fon=1; else __bureau_fon=''; fi
   return "$code"
 }
 
@@ -377,7 +379,7 @@ if [ "${BASH_VERSINFO[0]}" -ge 5 ] || { [ "${BASH_VERSINFO[0]}" -eq 4 ] && [ "${
   else
     __bureau_ps0='${BASH_VERSION:0:$((__bureau_t0=SECONDS*1000000, 0))}'
   fi
-  PS0="${PS0:-}"'$(__bureau_frame_head)'"$__bureau_ps0"
+  PS0="${PS0:-}"'${__bureau_fon:+$(__bureau_frame_head)}'"$__bureau_ps0"
 fi
 PROMPT_COMMAND="__bureau_status${PROMPT_COMMAND:+;$PROMPT_COMMAND};__bureau_prompt"
 
