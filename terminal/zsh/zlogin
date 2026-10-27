@@ -1,0 +1,3 @@
+# Bureau prompt: loads your .zlogin (login shells) and leaves your ZDOTDIR. See zshenv.
+ZDOTDIR=$BUREAU_USER_ZDOTDIR
+[[ -f $ZDOTDIR/.zlogin ]] && builtin source $ZDOTDIR/.zlogin

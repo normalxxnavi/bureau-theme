@@ -162,12 +162,12 @@ const noIcons = (s) => s.replace(/\$\(/g, '$\u200B(');
 const isSpotify = (app) => /spotify/i.test(app);
 
 /**
- * «Artista — Título» para la barra de estado, recortado y sin que el texto de
+ * «Título — Artista» para la barra de estado, recortado y sin que el texto de
  * la canción pueda colar iconos (`$(…)`).
  * @param {Track} t @param {number} [max]
  */
 function statusText(t, max = 42) {
-  return noIcons(clip(t.artist ? `${t.artist} — ${t.title}` : t.title, max));
+  return noIcons(clip(t.artist ? `${t.title} — ${t.artist}` : t.title, max));
 }
 
 /** Texto recortado a `max` caracteres con «…». @param {string} s @param {number} max */

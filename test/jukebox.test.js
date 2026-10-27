@@ -62,9 +62,9 @@ test('Linux: reproductores MPRIS y sus datos en la salida de gdbus (GVariant)', 
   assert.equal(P.parseGdbusPlayer("({'PlaybackStatus': <'Stopped'>},)", 'x'), null, 'parado no cuenta');
 });
 
-test('barra de estado: «Artista — Título» recortado y sin iconos colados', () => {
+test('barra de estado: «Título — Artista» recortado y sin iconos colados', () => {
   const t = { app: 'Spotify', title: 'Take Control', artist: 'Old Gods of Asgard', album: '', playing: true };
-  assert.equal(P.statusText(t), 'Old Gods of Asgard — Take Control');
+  assert.equal(P.statusText(t), 'Take Control — Old Gods of Asgard', 'primero la canción y después el artista');
   assert.equal(P.statusText({ ...t, artist: '' }), 'Take Control');
   const long = P.statusText({ ...t, title: 'A'.repeat(80) });
   assert.ok(long.length <= 42 && long.endsWith('…'));

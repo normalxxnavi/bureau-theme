@@ -18,7 +18,7 @@ const path = require('node:path');
 const { decodePng, encodePng, cropRgba } = require('../lib/png');
 
 const [, , rawDir, outDir, only] = process.argv;
-const IMAGES = ['control-dark', 'control-black', 'control-resonant', 'control-astral', 'sounds', 'icons-dark', 'icons-astral'];
+const IMAGES = ['control-dark', 'control-black', 'control-resonant', 'control-astral', 'sounds', 'icons-dark', 'icons-astral', 'oldest-house', 'jukebox', 'classified', 'welcome', 'terminal'];
 const wanted = (/** @type {string} */ name) => !only || only.split(',').includes(name);
 
 fs.mkdirSync(outDir, { recursive: true });

@@ -1,0 +1,4 @@
+# Bureau prompt: loads your .zprofile (login shells). See zshenv.
+ZDOTDIR=$BUREAU_USER_ZDOTDIR
+[[ -f $ZDOTDIR/.zprofile ]] && builtin source $ZDOTDIR/.zprofile
+ZDOTDIR=$BUREAU_ZDOTDIR

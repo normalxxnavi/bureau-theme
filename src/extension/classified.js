@@ -23,7 +23,6 @@ const H = require('./hover');
 
 /** Comandos que se pueden pulsar desde los popups. */
 const POPUP_COMMANDS = ['bureauTheme.declassify', 'bureauTheme.toggleClassified'];
-const RED = '#E0352B';
 const AMBER = '#C98A1E';
 
 /** Pausa tras una edición antes de volver a buscar secretos. */
@@ -101,7 +100,7 @@ class ClassifiedMode {
     this.item.command = 'bureauTheme.declassify';
     // El popup de cada barra: la pastilla, cómo revelarla y un botón para desclasificar el archivo.
     this.hover = new vscode.MarkdownString(
-      `${H.pill(vscode.l10n.t('CLASSIFIED'), RED)} &nbsp;${H.escapeHtml(vscode.l10n.t('Put the cursor on this line to reveal it.'))}\n\n${H.button('bureau-declassified', vscode.l10n.t('Reveal this file'), 'bureauTheme.declassify')}`,
+      `${H.pill(vscode.l10n.t('CLASSIFIED'), H.ACCENT.background, H.ACCENT.color)} &nbsp;${H.escapeHtml(vscode.l10n.t('Put the cursor on this line to reveal it.'))}\n\n${H.button('bureau-declassified', vscode.l10n.t('Reveal this file'), 'bureauTheme.declassify')}`,
       true
     );
     this.hover.supportHtml = true;
@@ -231,7 +230,7 @@ class ClassifiedMode {
         imageSize: 64,
         title: vscode.l10n.t('CONTROL Classified Mode'),
         lines: [
-          open ? H.pill(vscode.l10n.t('DECLASSIFIED'), AMBER) : H.pill(vscode.l10n.t('CLASSIFIED'), RED),
+          open ? H.pill(vscode.l10n.t('DECLASSIFIED'), AMBER) : H.pill(vscode.l10n.t('CLASSIFIED'), H.ACCENT.background, H.ACCENT.color),
           H.escapeHtml(open ? vscode.l10n.t('The values of this file are visible.') : vscode.l10n.t('The secret values of this file are covered.')),
         ],
         rows: [

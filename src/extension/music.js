@@ -24,10 +24,6 @@ const POLL_MS = 3000;
 const POPUP_TEXT = 120;
 /** Comandos que se pueden pulsar desde el popup. */
 const POPUP_COMMANDS = ['bureauTheme.musicPrevious', 'bureauTheme.musicPlayPause', 'bureauTheme.musicNext', 'bureauTheme.openSoundtrack'];
-/** Colores de las pastillas del popup. */
-const RED = '#E0352B';
-const BADGE = { background: 'var(--vscode-badge-background)', color: 'var(--vscode-badge-foreground)' };
-
 /** @returns {{enabled: boolean, onlySpotify: boolean, controls: boolean}} */
 function readMusicConfig() {
   const c = vscode.workspace.getConfiguration(MUSIC);
@@ -191,8 +187,8 @@ class Jukebox {
         t.artist ? H.escapeHtml(parse.clip(t.artist, POPUP_TEXT)) : '',
         t.album ? `<i>${H.escapeHtml(parse.clip(t.album, POPUP_TEXT))}</i>` : '',
         [
-          playing ? H.pill(`● ${vscode.l10n.t('PLAYING')}`, RED) : H.pill(`❚❚ ${vscode.l10n.t('PAUSED')}`, BADGE.background, BADGE.color),
-          H.pill(parse.appName(t.app).toUpperCase(), BADGE.background, BADGE.color),
+          playing ? H.pill(`● ${vscode.l10n.t('PLAYING')}`, H.ACCENT.background, H.ACCENT.color) : H.pill(`❚❚ ${vscode.l10n.t('PAUSED')}`, H.NEUTRAL.background, H.NEUTRAL.color),
+          H.pill(parse.appName(t.app).toUpperCase(), H.NEUTRAL.background, H.NEUTRAL.color),
         ].join(' '),
       ].filter(Boolean),
       rows: [
@@ -226,7 +222,7 @@ class Jukebox {
     }
     H.setItem(title, {
       text: `$(bureau-jukebox) ${parse.statusText(t)}`,
-      accessibilityInformation: { label: `${vscode.l10n.t('Songmaster Jukebox')}: ${t.artist} ${t.title}`, role: 'button' },
+      accessibilityInformation: { label: `${vscode.l10n.t('Songmaster Jukebox')}: ${[t.title, t.artist].filter(Boolean).join(', ')}`, role: 'button' },
       visible: true,
     });
     const controls = readMusicConfig().controls;

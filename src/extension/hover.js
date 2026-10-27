@@ -22,6 +22,14 @@ const path = require('node:path');
 const COLOR = /^(#[0-9a-fA-F]{3,8}|var\(--vscode(-[a-zA-Z0-9]+)+\))$/;
 
 /**
+ * Colores de pastilla que siguen al tema activo: el acento (el de sus botones:
+ * rojo en CONTROL Dark, Black y Astral; cian de la Hedron en CONTROL Resonant,
+ * donde el rojo es solo del Siseo) y uno neutro.
+ */
+const ACCENT = { background: 'var(--vscode-button-background)', color: 'var(--vscode-button-foreground)' };
+const NEUTRAL = { background: 'var(--vscode-keybindingLabel-background)', color: 'var(--vscode-keybindingLabel-foreground)' };
+
+/**
  * VS Code corta el Markdown de un popup a los 100 000 caracteres: una imagen
  * `data:` cortada deja el HTML roto y el popup sale vacío.
  */
@@ -136,4 +144,4 @@ function setItem(item, props) {
   }
 }
 
-module.exports = { escapeHtml, pill, button, card, hoverImage, setItem, COLOR, MAX_MARKDOWN };
+module.exports = { escapeHtml, pill, button, card, hoverImage, setItem, COLOR, ACCENT, NEUTRAL, MAX_MARKDOWN };
