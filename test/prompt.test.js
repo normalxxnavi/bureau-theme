@@ -288,7 +288,7 @@ test('settings.json de Windows Terminal: JSON con comentarios y comas finales', 
 });
 
 // Solo en Windows: las rutas son de Windows (path.win32) y en Linux o macOS no llevan a la carpeta temporal.
-test('settings.json de Windows Terminal: se lee sin escribirlo', { skip: process.platform !== 'win32' && 'rutas de Windows' }, () => {
+test('settings.json de Windows Terminal: se lee sin escribirlo', { skip: process.platform !== 'win32' && 'rutas de Windows' }, () =>
   withHome(({ home, env }) => {
     const o = { platform: /** @type {NodeJS.Platform} */ ('win32'), home, env };
     assert.equal(installer.windowsTerminalSettings(o), null);
@@ -298,8 +298,7 @@ test('settings.json de Windows Terminal: se lee sin escribirlo', { skip: process
     fs.writeFileSync(file, text);
     assert.equal(installer.windowsTerminalSettings(o).profiles.defaults.font.face, 'Consolas');
     assert.equal(fs.readFileSync(file, 'utf8'), text);
-  });
-});
+  }));
 
 test('la fuente Bureau Prompt Icons tiene un glifo en cada punto de código, de una celda de ancho', () => {
   const { cmapLookup } = require('../scripts/lib/colr');
@@ -373,18 +372,19 @@ test('los cuatro scripts llevan los mismos iconos que la fuente y todos los esti
 
 /**
  * Carpeta personal temporal con programas falsos.
- * @param {(o: {home: string, env: NodeJS.ProcessEnv, calls: string[][]}) => void} fn
+ * La carpeta se borra al terminar, también si `fn` es asíncrona.
+ * @param {(o: {home: string, env: NodeJS.ProcessEnv, calls: string[][]}) => void | Promise<void>} fn
  */
-function withHome(fn) {
+async function withHome(fn) {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'bureau-home-'));
   try {
-    fn({ home, env: { LOCALAPPDATA: path.join(home, 'AppData', 'Local'), SHELL: '/bin/zsh', SystemRoot: path.join(home, 'Windows') }, calls: [] });
+    await fn({ home, env: { LOCALAPPDATA: path.join(home, 'AppData', 'Local'), SHELL: '/bin/zsh', SystemRoot: path.join(home, 'Windows') }, calls: [] });
   } finally {
     fs.rmSync(home, { recursive: true, force: true });
   }
 }
 
-test('prepare: copia los scripts (los de zsh con su punto), prompt.conf y los mensajes del Consejo', () => {
+test('prepare: copia los scripts (los de zsh con su punto), prompt.conf y los mensajes del Consejo', () =>
   withHome(({ home, env }) => {
     const o = { platform: /** @type {NodeJS.Platform} */ ('linux'), home, env };
     const dir = installer.prepare(ROOT, { conf: 'style=signage\n', board: ['<<A.>>', '<<B.>>'] }, o);
@@ -403,24 +403,23 @@ test('prepare: copia los scripts (los de zsh con su punto), prompt.conf y los me
     assert.equal(installer.writeConf('style=off\n', o), true);
     assert.equal(installer.writeConf('style=off\n', o), false, 'sin cambios no se reescribe');
     assert.equal(installer.isInstalledOutside(o), false);
-  });
-});
+  }));
 
-test('fuera de VS Code en Linux/macOS: bloque en .bashrc y .zshrc, archivo de fish, y al quitarlo todo vuelve a estar como antes', () => {
-  withHome(({ home, env }) => {
+test('fuera de VS Code en Linux/macOS: bloque en .bashrc y .zshrc, archivo de fish, y al quitarlo todo vuelve a estar como antes', () =>
+  withHome(async ({ home, env }) => {
     const bin = (/** @type {string} */ name) => (['bash', 'zsh', 'fish'].includes(name) ? `/usr/bin/${name}` : null);
     const o = { platform: /** @type {NodeJS.Platform} */ ('linux'), home, env, find: bin, run: () => ({ status: 1, stdout: '' }) };
     fs.writeFileSync(path.join(home, '.bashrc'), 'alias ll="ls -l"\n');
     // Sin .zshrc, pero zsh es su shell: se crea.
     installer.prepare(ROOT, { conf: 'style=signage\n', board: [] }, o);
-    const changed = installer.installOutside({ cmdPrompt: '', fragment: null }, o);
+    const changed = await installer.installOutside({ cmdPrompt: '', fragment: null }, o);
     const fish = path.join(home, '.config', 'fish', 'conf.d', 'bureau-theme.fish');
     assert.deepEqual(changed.sort(), [path.join(home, '.bashrc'), path.join(home, '.zshrc'), fish].sort());
     assert.ok(fs.readFileSync(path.join(home, '.bashrc'), 'utf8').startsWith('alias ll="ls -l"\n\n# >>> Bureau prompt'));
     assert.ok(P.hasBlock(fs.readFileSync(path.join(home, '.zshrc'), 'utf8')));
     assert.ok(fs.readFileSync(fish, 'utf8').includes('bureau-prompt.fish'));
     assert.equal(installer.isInstalledOutside(o), true);
-    assert.deepEqual(installer.installOutside({ cmdPrompt: '', fragment: null }, o), [], 'instalar dos veces no cambia nada');
+    assert.deepEqual(await installer.installOutside({ cmdPrompt: '', fragment: null }, o), [], 'instalar dos veces no cambia nada');
 
     installer.removeOutside(o);
     assert.equal(fs.readFileSync(path.join(home, '.bashrc'), 'utf8'), 'alias ll="ls -l"\n');
@@ -430,12 +429,11 @@ test('fuera de VS Code en Linux/macOS: bloque en .bashrc y .zshrc, archivo de fi
 
     installer.removeEverything(o);
     assert.ok(!fs.existsSync(P.dataDir('linux', env, home)), 'al desinstalar se borra la carpeta de datos');
-  });
-});
+  }));
 
 // Solo en Windows: con las rutas de Windows (path.win32), en Linux o macOS el fragmento sería un archivo suelto en la carpeta actual.
-test('fuera de VS Code en Windows: profile.ps1, la variable PROMPT (con su valor anterior) y el fragmento de Windows Terminal', { skip: process.platform !== 'win32' && 'rutas de Windows' }, () => {
-  withHome(({ home, env, calls }) => {
+test('fuera de VS Code en Windows: profile.ps1, la variable PROMPT (con su valor anterior) y el fragmento de Windows Terminal', { skip: process.platform !== 'win32' && 'rutas de Windows' }, () =>
+  withHome(async ({ home, env, calls }) => {
     const pwsh = path.join(home, 'pwsh.exe');
     fs.writeFileSync(pwsh, '');
     const profile = path.join(home, 'Documents', 'PowerShell', 'profile.ps1');
@@ -457,7 +455,7 @@ test('fuera de VS Code en Windows: profile.ps1, la variable PROMPT (con su valor
     const dir = P.dataDir('win32', env, home);
     const fragment = P.windowsTerminalFragment({ dir, palettes, theme: 'CONTROL Dark', powershell: 'pwsh.exe', font: 'Cascadia Mono' });
     const cmd = P.cmdPrompt({ ...defaults(), style: 'signage' }, 'dark');
-    installer.installOutside({ cmdPrompt: cmd, fragment }, o);
+    await installer.installOutside({ cmdPrompt: cmd, fragment }, o);
     assert.ok(P.hasBlock(fs.readFileSync(profile, 'utf8')));
     assert.equal(userPrompt.value, cmd);
     const fragmentFile = path.win32.join(env.LOCALAPPDATA ?? '', 'Microsoft', 'Windows Terminal', 'Fragments', 'BureauTheme', 'bureau-theme.json');
@@ -466,18 +464,17 @@ test('fuera de VS Code en Windows: profile.ps1, la variable PROMPT (con su valor
     assert.ok(calls.every(([, script]) => !script.includes(cmd)));
 
     // Con el prompt apagado, cmd vuelve a tu PROMPT de antes.
-    installer.refreshOutside({ cmdPrompt: '', fragment }, o);
+    await installer.refreshOutside({ cmdPrompt: '', fragment }, o);
     assert.equal(userPrompt.value, '$P$G');
-    installer.refreshOutside({ cmdPrompt: cmd, fragment }, o);
+    await installer.refreshOutside({ cmdPrompt: cmd, fragment }, o);
     assert.equal(userPrompt.value, cmd);
 
     installer.removeOutside(o);
     assert.equal(userPrompt.value, '$P$G', 'PROMPT vuelve a su valor anterior');
     assert.ok(!fs.existsSync(fragmentFile));
     assert.equal(fs.readFileSync(profile, 'utf8'), '');
-    assert.deepEqual(installer.refreshOutside({ cmdPrompt: cmd, fragment }, o), [], 'sin instalar, no se toca nada');
-  });
-});
+    assert.deepEqual(await installer.refreshOutside({ cmdPrompt: cmd, fragment }, o), [], 'sin instalar, no se toca nada');
+  }));
 
 test('la fuente de iconos se instala con las demás y se borra al desinstalar (o se queda con la terminal Bureau encendida)', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bureau-fonts-'));

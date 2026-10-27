@@ -141,57 +141,103 @@ function powershellPath() {
   return path.join(root, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
 }
 
-/** @param {{onlySpotify: boolean}} o @returns {MusicSource} */
-function windowsSource({ onlySpotify }) {
-  /** @type {import('node:child_process').ChildProcessWithoutNullStreams | null} */
+/** Espera m\u00E1xima a una respuesta, y a la primera (PowerShell tarda en arrancar y cargar la API). */
+const ANSWER_MS = 8000;
+const FIRST_ANSWER_MS = 20000;
+/** Tras un fallo, la siguiente vez que se arranca PowerShell: cada vez el doble, hasta 5 minutos. */
+const RETRY_MS = 4000;
+const MAX_RETRY_MS = 5 * 60_000;
+
+/**
+ * @typedef {{p: import('node:child_process').ChildProcessWithoutNullStreams, waiting: Array<(line: string) => void>, buffer: string, ready: boolean, dead: boolean}} WindowsChild
+ *   Un proceso de PowerShell con sus peticiones en espera, en orden: responde una l\u00EDnea a cada una.
+ */
+
+/**
+ * @param {{onlySpotify: boolean}} o
+ * @param {{spawn?: (...args: any[]) => any, now?: () => number, answerMs?: number, firstAnswerMs?: number}} [deps] para los tests
+ * @returns {MusicSource}
+ */
+function windowsSource({ onlySpotify }, deps = {}) {
+  const run = deps.spawn ?? spawn;
+  const now = deps.now ?? Date.now;
+  const answerMs = deps.answerMs ?? ANSWER_MS;
+  const firstAnswerMs = deps.firstAnswerMs ?? FIRST_ANSWER_MS;
+  /** @type {WindowsChild | null} */
   let child = null;
-  let buffer = '';
-  /** @type {Array<(line: string) => void>} */
-  let waiting = [];
   let disposed = false;
   let failures = 0;
+  let retryAt = 0;
 
+  /**
+   * Este proceso ya no vale (no responde o se ha cerrado): se cierra con sus
+   * peticiones y el siguiente se arranca m\u00E1s tarde. Si siguiera, una respuesta
+   * que llega tarde se la llevar\u00EDa la petici\u00F3n siguiente, y todas ir\u00EDan
+   * desfasadas (la canci\u00F3n como portada, la portada como canci\u00F3n\u2026).
+   * @param {WindowsChild} c
+   */
+  const drop = (c) => {
+    if (c.dead) return;
+    c.dead = true;
+    if (child === c) child = null;
+    if (!disposed) {
+      failures++;
+      retryAt = now() + Math.min(MAX_RETRY_MS, RETRY_MS * 2 ** (failures - 1));
+    }
+    c.p.kill();
+    for (const w of c.waiting.splice(0)) w('{}');
+  };
+
+  /** @returns {WindowsChild} */
   const start = () => {
     const encoded = Buffer.from(WINDOWS_SCRIPT, 'utf16le').toString('base64');
-    const p = spawn(powershellPath(), ['-NoLogo', '-NoProfile', '-NonInteractive', '-EncodedCommand', encoded], {
-      windowsHide: true,
-      env: { ...process.env, BUREAU_ONLY_SPOTIFY: onlySpotify ? '1' : '0' },
-    });
+    const p = /** @type {import('node:child_process').ChildProcessWithoutNullStreams} */ (
+      run(powershellPath(), ['-NoLogo', '-NoProfile', '-NonInteractive', '-EncodedCommand', encoded], {
+        windowsHide: true,
+        // Sin leer stderr, un error largo llenar\u00EDa la tuber\u00EDa y PowerShell se quedar\u00EDa parado.
+        stdio: ['pipe', 'pipe', 'ignore'],
+        env: { ...process.env, BUREAU_ONLY_SPOTIFY: onlySpotify ? '1' : '0' },
+      })
+    );
+    /** @type {WindowsChild} */
+    const c = { p, waiting: [], buffer: '', ready: false, dead: false };
     p.stdout.setEncoding('utf8');
     p.stdout.on('data', (chunk) => {
-      buffer += chunk;
+      // Lo que diga un proceso ya descartado (una respuesta tardía) no cuenta.
+      if (c.dead) return;
+      c.buffer += chunk;
       let i;
-      while ((i = buffer.indexOf('\n')) !== -1) {
-        const line = buffer.slice(0, i).replace(/^\uFEFF/, '').trim();
-        buffer = buffer.slice(i + 1);
-        if (line && !line.startsWith('{"ready"')) waiting.shift()?.(line);
+      while ((i = c.buffer.indexOf('\n')) !== -1) {
+        const line = c.buffer.slice(0, i).replace(/^\uFEFF/, '').trim();
+        c.buffer = c.buffer.slice(i + 1);
+        if (!line) continue;
+        if (line.startsWith('{"ready"')) c.ready = true;
+        else {
+          failures = 0;
+          c.waiting.shift()?.(line);
+        }
       }
     });
-    p.on('error', () => {});
-    p.on('exit', () => {
-      if (child === p) child = null;
-      for (const w of waiting.splice(0)) w('{}');
-    });
-    child = p;
+    // Escribir a un proceso que acaba de cerrarse da EPIPE: sin este listener, el error saltar\u00EDa en el host de extensiones.
+    p.stdin.on('error', () => {});
+    p.on('error', () => drop(c));
+    p.on('exit', () => drop(c));
+    child = c;
+    return c;
   };
 
   /** @param {string} cmd @returns {Promise<string>} */
   const send = (cmd) =>
     new Promise((resolve) => {
-      if (disposed || failures > 3) return resolve('{}');
-      if (!child) start();
-      const timer = setTimeout(() => {
-        failures++;
-        waiting = waiting.filter((w) => w !== done);
-        resolve('{}');
-      }, 8000);
+      if (disposed || now() < retryAt) return resolve('{}');
+      const c = child ?? start();
       const done = (/** @type {string} */ line) => {
         clearTimeout(timer);
-        failures = 0;
         resolve(line);
       };
-      waiting.push(done);
-      child?.stdin.write(`${cmd}\n`);
+      const timer = setTimeout(() => drop(c), c.ready ? answerMs : firstAnswerMs);
+      c.waiting.push(done);
+      c.p.stdin.write(`${cmd}\n`);
     });
 
   return {
@@ -203,8 +249,7 @@ function windowsSource({ onlySpotify }) {
     },
     dispose() {
       disposed = true;
-      child?.kill();
-      child = null;
+      if (child) drop(child);
     },
   };
 }
@@ -348,4 +393,4 @@ function createMusicSource(options, platform = process.platform) {
   return linuxSource(options);
 }
 
-module.exports = { createMusicSource, WINDOWS_SCRIPT, macReadScript, macCommandScript, macApps };
+module.exports = { createMusicSource, windowsSource, WINDOWS_SCRIPT, macReadScript, macCommandScript, macApps };

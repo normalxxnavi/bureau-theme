@@ -79,6 +79,8 @@ class SoundController {
     this.typingFiles = new Map();
     this.lastThemeLabel = this.activeThemeLabel();
     this.playerWarned = false;
+    /** Cuántas veces se ha empezado a vigilar los commits (ver watchGitCommits). */
+    this.gitRun = 0;
     /**
      * Últimos sonidos reproducidos. Lo usa el test de integración a través
      * de la API que devuelve `activate()`.
@@ -266,11 +268,13 @@ class SoundController {
   // --- Git ------------------------------------------------------------------
 
   async watchGitCommits() {
+    // Apagar y encender mientras Git arranca: solo cuenta el último encendido (si no, cada commit sonaría dos veces).
+    const run = ++this.gitRun;
     try {
       const ext = vscode.extensions.getExtension('vscode.git');
       if (!ext) return;
       const exports = ext.isActive ? ext.exports : await ext.activate();
-      if (!this.started) return;
+      if (!this.started || run !== this.gitRun) return;
       const api = exports?.getAPI?.(1);
       if (!api) return;
       const watch = (/** @type {any} */ repo) => {

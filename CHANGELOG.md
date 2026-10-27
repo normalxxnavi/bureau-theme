@@ -33,6 +33,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **Songmaster jukebox on Windows**:
+  - After an answer that came too late (the cover of a song, for example), every later answer went to the wrong request — the song could disappear or its cover never show — until VS Code was restarted. Now each request gets its own answer: a PowerShell that does not answer in time is closed and replaced.
+  - If PowerShell could not start, it was started again on every read, every 3 seconds. After a failure it now waits longer each time, up to 5 minutes. After four slow answers it used to stop for the rest of the session; now it recovers by itself.
+- **Songmaster jukebox**: going back to the VS Code window or pressing a control while it was reading added another round of reads every 3 seconds, and they piled up over the day. Now there is only one read at a time.
+- **Sounds on Windows**: the audio player gave up for the rest of the session once it had closed four times, even hours apart. Now only failures in a row count.
+- **Git commits** could sound, or get a comment from the Board, twice if the sounds or the comments were turned off and on again while Git was starting.
 - **Updating a font on Windows while it is open**: installing a new copy of a font the extension installs (a typography, or the terminal icons) failed when a program — the terminal itself — had the previous one open, because Windows does not let it be replaced. The new copy now goes next to it and the old one is removed as soon as it is closed.
 - **Typography on older versions of VS Code** (and on editors based on them): choosing a typography stopped halfway with an error, because `chat.fontFamily` does not exist there. Settings that do not exist are now skipped.
 - **CONTROL Resonant**: the popups showed *Playing*, the active protocols and *Classified* in red, which in Resonant belongs only to the Hiss. Those labels now use the accent of the active theme, and the neutral ones (*Off*, *Paused*, the player's name) are grey in every theme.
