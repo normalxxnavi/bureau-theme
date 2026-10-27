@@ -120,7 +120,7 @@ async function main() {
       }
       if (!track.playing) fail('el reproductor de prueba no está sonando');
     }
-    console.log(track ? `✔ Suena: ${track.artist} — ${track.title} (${track.album}) en ${track.app}, ${track.playing ? 'sonando' : 'en pausa'}` : '✔ Lectura correcta (no suena nada)');
+    console.log(track ? `✔ Suena: ${track.title} — ${track.artist} (${track.album}) en ${track.app}, ${track.playing ? 'sonando' : 'en pausa'}` : '✔ Lectura correcta (no suena nada)');
 
     const cover = track ? await inTime(source.cover(), 'portada') : null;
     if (cover !== null && !/^data:image\/(png|jpeg|gif|webp|bmp);base64,/.test(cover)) fail(`portada no válida: ${cover.slice(0, 40)}`);
@@ -149,8 +149,13 @@ async function main() {
   console.log(process.exitCode ? '✘ Gramola: hay fallos' : '✔ Gramola correcta');
 }
 
-main().catch((e) => {
-  console.error(e);
-  ciError(CI_TITLE, String(e?.stack || e));
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch((e) => {
+    console.error(e);
+    ciError(CI_TITLE, String(e?.stack || e));
+    process.exit(1);
+  });
+}
+
+// El reproductor de prueba lo usa también la prueba de los popups (scripts/popup-check.js).
+module.exports = { startTestPlayer, TEST_TRACK };

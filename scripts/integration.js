@@ -15,35 +15,12 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { spawn, execFileSync } = require('node:child_process');
-const { findAppRoot } = require('./lib/vscode-install');
+const { codeExecutable } = require('./lib/vscode-install');
 const { ciError } = require('./lib/ci');
 
 const CI_TITLE = `Integration test (${process.platform})`;
 
 const ROOT = path.resolve(__dirname, '..');
-
-function codeExecutable() {
-  // En la CI se descarga un VS Code limpio (scripts/download-vscode.js).
-  if (process.env.VSCODE_EXECUTABLE) return process.env.VSCODE_EXECUTABLE;
-  const appRoot = findAppRoot();
-  if (!appRoot) throw new Error('No se encontró VS Code. Define VSCODE_PATH o VSCODE_EXECUTABLE (npm run download-vscode).');
-  if (process.platform === 'win32') {
-    // <instalación>/<hash>/resources/app → <instalación>/Code.exe (o <hash>/Code.exe)
-    for (const up of ['../../..', '../..']) {
-      const exe = path.resolve(appRoot, up, 'Code.exe');
-      if (fs.existsSync(exe)) return exe;
-    }
-  } else if (process.platform === 'darwin') {
-    // <app>/Contents/Resources/app → <app>/Contents/MacOS/Code (Electron en versiones antiguas)
-    for (const name of ['Code', 'Electron']) {
-      const exe = path.resolve(appRoot, '..', '..', 'MacOS', name);
-      if (fs.existsSync(exe)) return exe;
-    }
-  } else {
-    return path.resolve(appRoot, '..', '..', 'code');
-  }
-  throw new Error('No se encontró el ejecutable de VS Code');
-}
 
 function main() {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'bureau-it-'));

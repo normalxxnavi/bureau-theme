@@ -18,9 +18,7 @@ const H = require('./hover');
 
 /** Accesos directos que se pueden pulsar desde el popup. */
 const POPUP_COMMANDS = ['bureauTheme.openOldestHouse', 'bureauTheme.soundMenu', 'bureauTheme.musicMenu', 'bureauTheme.boardSettings'];
-const RED = '#E0352B';
 const TEAL = '#2E9C8E';
-const BADGE = { background: 'var(--vscode-badge-background)', color: 'var(--vscode-badge-foreground)' };
 
 class ControlStatus {
   /** @param {vscode.ExtensionContext} context */
@@ -74,7 +72,7 @@ class ControlStatus {
     const soundsOn = c.get(`${SECTION}.enabled`) === true;
     const musicOn = c.get(`${MUSIC}.enabled`) === true;
     const state = (/** @type {string} */ name, /** @type {boolean} */ on) =>
-      on ? H.pill(`${name} · ${vscode.l10n.t('ON')}`, TEAL) : H.pill(`${name} · ${vscode.l10n.t('OFF')}`, BADGE.background, BADGE.color);
+      on ? H.pill(`${name} · ${vscode.l10n.t('ON')}`, TEAL) : H.pill(`${name} · ${vscode.l10n.t('OFF')}`, H.NEUTRAL.background, H.NEUTRAL.color);
     const protocols = /** @type {const} */ ([
       ['classified', vscode.l10n.t('Classified mode')],
       ['alertLevel', vscode.l10n.t('Alert level')],
@@ -82,7 +80,7 @@ class ControlStatus {
       ['boardRandom', vscode.l10n.t('Board messages')],
     ])
       .filter(([key]) => c.get(PROTOCOL_SWITCHES[key]) === true)
-      .map(([, name]) => H.pill(name, RED));
+      .map(([, name]) => H.pill(name, H.ACCENT.background, H.ACCENT.color));
     const tooltip = new vscode.MarkdownString(
       H.card({
         image: H.hoverImage(this.context.extensionPath, 'oldest-house'),

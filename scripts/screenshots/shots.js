@@ -10,14 +10,27 @@ const { spawn, execFileSync } = require('child_process');
 const [, , repo, outDir, profile, vsixPath, probeVsix] = process.argv;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const { vscode, cleanEnv } = require('./env');
+const { connect } = require('./cdp');
+const { TRACK, writeCover } = require('./cover');
 const env = cleanEnv();
 const { exe, cliJs } = vscode();
 const cli = (args) => execFileSync(exe, [cliJs, ...args], { env: { ...env, ELECTRON_RUN_AS_NODE: '1' }, encoding: 'utf8' }).trim();
 const ud = path.join(profile, 'user-data');
 const ext = path.join(profile, 'extensions');
 const ws = path.join(profile, 'oldest-house');
+// Sin ventana de consola: quitaría el foco a VS Code y cerraría los popups.
 const ps = (args) =>
-  execFileSync('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', path.join(__dirname, 'capture.ps1'), ...args], { encoding: 'utf8' }).trim();
+  execFileSync('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', path.join(__dirname, 'capture.ps1'), ...args], { encoding: 'utf8', windowsHide: true }).trim();
+
+/**
+ * La sesión multimedia de prueba de la gramola (media-session.ps1): una
+ * canción inventada que suena en silencio, para no tocar la música del usuario.
+ */
+function startMediaSession() {
+  const { cover, wav } = writeCover(path.join(profile, 'jukebox'));
+  const args = ['-Cover', cover, '-Wav', wav, '-Title', TRACK.title, '-Artist', TRACK.artist, '-Album', TRACK.album, '-Seconds', '120'];
+  return spawn('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', path.join(__dirname, 'media-session.ps1'), ...args], { stdio: 'ignore', windowsHide: true });
+}
 
 const NL = String.fromCharCode(10);
 const put = (rel, content) => {
@@ -46,6 +59,23 @@ const SHOTS = [
   { theme: 'CONTROL Dark', out: 'icons-dark.png', file: 'package.json', line: 2, dpr: 2, workspace: 'dossiers', extra: { ...CLOSE_UP, ...COLOR_ICONS } },
   // Con el explorador arriba: las carpetas y sus emblemas (el de CONTROL Dark muestra los archivos).
   { theme: 'CONTROL Astral', out: 'icons-astral.png', file: 'package.json', line: 2, dpr: 2, workspace: 'dossiers', extra: { ...CLOSE_UP, 'explorer.autoReveal': false } },
+  // Lo que no tiene ningún otro tema, cada uno en un tema distinto.
+  { theme: 'CONTROL Dark', out: 'oldest-house.png', file: 'src/archive.ts', line: 18, extra: { 'cmdProbe.command': 'bureauTheme.openOldestHouse' } },
+  // La gramola con la sesión de prueba; el popup sale con el ratón virtual (cdp.js), sin mover el del usuario.
+  { theme: 'CONTROL Resonant', out: 'jukebox.png', file: 'src/sectors.py', line: 17, extra: { ...COLOR_ICONS, 'bureauTheme.music.enabled': true }, mediaSession: true, hover: 'bureauTheme.music' },
+  // Modo Clasificado: el cursor baja una línea «con el teclado» y solo esa se revela.
+  { theme: 'CONTROL Black', out: 'classified.png', file: '.env', line: 2, extra: { ...COLOR_ICONS, 'bureauTheme.classified.enabled': true }, keys: ['ArrowDown'] },
+  // La guía cambia el título de la ventana: se busca por la carpeta.
+  { theme: 'CONTROL Astral', out: 'welcome.png', file: 'src/hotline.js', line: 18, title: '- oldest-house', extra: { 'cmdProbe.command': 'bureauTheme.openWelcome' } },
+  // La terminal Bureau con el prompt Señalética: tres comandos escritos «con el teclado», el último falla.
+  {
+    theme: 'CONTROL Dark',
+    out: 'terminal.png',
+    file: 'src/archive.ts',
+    line: 18,
+    extra: { 'bureauTheme.terminal.prompt': 'signage', 'cmdProbe.command': 'bureauTheme.newBureauTerminal' },
+    keys: [{ text: 'git status --short' }, 'Enter', { text: 'npm test' }, 'Enter', { text: 'git checkout release' }, 'Enter'],
+  },
 ];
 
 const fontsFor = (t) =>
@@ -95,8 +125,9 @@ function settings(theme, extra = {}) {
   );
 }
 
-async function launch(file, line, dpr = 1, folder = ws) {
+async function launch(file, line, dpr = 1, folder = ws, port = 0) {
   const args = [`--user-data-dir=${ud}`, `--extensions-dir=${ext}`, `--force-device-scale-factor=${dpr}`, '--new-window', folder];
+  if (port) args.push(`--remote-debugging-port=${port}`);
   if (file) args.push('--goto', `${path.join(folder, file)}:${line}:5`);
   const child = spawn(exe, args, { env, detached: true, stdio: 'ignore' });
   child.unref();
@@ -117,24 +148,49 @@ async function waitForWindow(title) {
   throw new Error(`no aparece la ventana ${title}`);
 }
 
-/** Arranca VS Code con los ajustes de la captura, espera a que cargue y guarda la ventana. */
-async function shoot(s) {
+/**
+ * Arranca VS Code con los ajustes de la captura, espera a que cargue y guarda
+ * la ventana. Con `keys` o `hover`, VS Code arranca con el puerto de depuración
+ * y las teclas y el ratón llegan por él (cdp.js).
+ */
+async function shoot(s, i) {
   const folder = s.workspace ? path.join(profile, s.workspace) : ws;
   if (!fs.existsSync(folder)) fs.cpSync(ws, folder, { recursive: true });
   settings(s.theme, s.extra);
-  await launch(s.file, s.line, s.dpr, folder);
-  const title = titleOf(s.file, folder);
-  await waitForWindow(title);
-  await sleep(11000); // servidor de lenguaje y semantic tokens
-  console.log(s.out, ps(['-TitleContains', title, '-OutFile', path.join(outDir, s.out), '-Width', '1600', '-Height', '1000']));
-  ps(['-TitleContains', title, '-OutFile', 'x', '-Close']);
+  const session = s.mediaSession ? startMediaSession() : null;
+  const port = s.keys || s.hover ? 9333 + i : 0;
+  try {
+    await launch(s.file, s.line, s.dpr, folder, port);
+    const title = s.title ?? titleOf(s.file, folder);
+    await waitForWindow(titleOf(s.file, folder));
+    await sleep(11000); // servidor de lenguaje y semantic tokens
+    if (port) {
+      ps(['-TitleContains', title, '-OutFile', 'x', '-ParkCursor']);
+      const cdp = await connect(port);
+      try {
+        // Una tecla, o texto escrito donde esté el foco ({text}); tras Enter, tiempo para el comando.
+        for (const key of s.keys ?? []) {
+          if (typeof key === 'string') await cdp.press(key);
+          else await cdp.type(key.text);
+          if (key === 'Enter') await sleep(2500);
+        }
+        if (s.hover) await cdp.hoverStatusItem(s.hover);
+      } finally {
+        cdp.close();
+      }
+    }
+    console.log(s.out, ps(['-TitleContains', title, '-OutFile', path.join(outDir, s.out), '-Width', '1600', '-Height', '1000']));
+    ps(['-TitleContains', title, '-OutFile', 'x', '-Close']);
+  } finally {
+    session?.kill();
+  }
   await sleep(3500);
 }
 
 const ONLY = process.env.ONLY;
 (async () => {
   if (ONLY) {
-    for (const s of SHOTS.filter((x) => ONLY.split(',').includes(x.out))) await shoot(s);
+    for (const [i, s] of SHOTS.entries()) if (ONLY.split(',').includes(s.out)) await shoot(s, i);
     return;
   }
   fs.rmSync(profile, { recursive: true, force: true });
@@ -177,7 +233,21 @@ const ONLY = process.env.ONLY;
   put('tsconfig.json', '{ "compilerOptions": { "strict": true, "target": "ES2022", "experimentalDecorators": true } }' + NL);
   put('README.md', '# Bureau Archive' + NL);
   put('LICENSE', 'MIT' + NL);
-  put('.env', 'FBC_CLEARANCE=5' + NL);
+  // Valores inventados: en la captura del Modo Clasificado salen tapados.
+  put(
+    '.env',
+    [
+      '# Bureau Archive: local settings',
+      'SECTOR=research',
+      'FBC_CLEARANCE=5',
+      'PORT=8080',
+      'DATABASE_URL=postgres://archivist:astral-plane-42@localhost:5432/bureau',
+      'HOTLINE_TOKEN=ring-ring-0117',
+      "API_KEY='sk-fbc-0000-not-a-real-key'",
+      'BOARD_SECRET=<<THE_BOARD_SEES_ALL>>',
+      '',
+    ].join(NL)
+  );
   put('.gitignore', 'node_modules/' + NL);
   put('Dockerfile', 'FROM node:22' + NL);
   put('docker-compose.yml', 'services:' + NL + '  archive:' + NL + '    build: .' + NL);
@@ -227,7 +297,7 @@ const ONLY = process.env.ONLY;
   await sleep(4000);
 
   // --- Un arranque por captura -------------------------------------------------
-  for (const s of SHOTS) await shoot(s);
+  for (const [i, s] of SHOTS.entries()) await shoot(s, i);
 })().catch((e) => {
   console.error(e.message);
   process.exit(1);

@@ -16,11 +16,12 @@
  *     {}…) o un pictograma en el color del lenguaje, sobre la franja de
  *     clasificación con su muesca. Sin hoja de fondo, para que a 16 px se lea.
  *   - CARPETAS: carpeta sólida del color de su categoría con un EMBLEMA (</> en
- *     src, check en test, montaña en images, onda en sounds, laberinto en .git…).
+ *     src, check en test, montaña en images, onda en sounds, la rama de cinta de
+ *     los Puntos de Control en .git…).
  *   - Carpeta raíz: la Casa Inmemorial (torre brutalista).
  * Guiños de lore: los .env son un documento clasificado (tachado), los tests
  * llevan el hexágono de la Hedron y los archivos de IA (CLAUDE.md, AGENTS.md,
- * *.prompt.md…) llevan a Polaris, la luz que guía a Jesse.
+ * *.prompt.md…) llevan a Polaris, los cristales que guían a Jesse.
  *
  * Cada icono tiene dos variantes: temas oscuros y temas claros (CONTROL Astral).
  * Todo es original: no se usan logos de terceros.
@@ -90,7 +91,8 @@ const PICTO = {
       ..7##########F..`), 0, 1 + y)),
   }),
   lock: () => ({ fill: [...K.stroke([[5, 7], [5, 2], [11, 2], [11, 7]], 2), K.rect(3, 6, 10, 6), K.cutRect(7, 8, 2, 2)] }),
-  git: () => ({ fill: K.stroke([[3, 12], [3, 2], [13, 2], [13, 11], [7, 11], [7, 6], [10, 6]], 2) }),
+  // La rama de Git de los iconos de producto: la cinta con su escalón entre dos Puntos de Control, sin la cola del tronco.
+  git: () => ({ fill: [...K.frame(1, 1, 6, 6), ...K.frame(9, 1, 6, 6), K.rect(3, 7, 2, 5), K.rect(3, 10, 6, 2), K.rect(7, 8, 6, 2), K.rect(11, 7, 2, 1)] }),
   config: () => ({ fill: [K.rect(9, 1, 3, 3), K.rect(3, 5, 3, 3), K.rect(6, 9, 3, 3)], dim: [K.rect(1, 2, 14, 1), K.rect(1, 6, 14, 1), K.rect(1, 10, 14, 1)] }),
   archive: () => ({ fill: [K.rect(1, 1, 14, 3), K.rect(2, 5, 12, 7), K.cutRect(6, 7, 4, 2)] }),
   license: () => ({
@@ -107,7 +109,14 @@ const PICTO = {
   }),
   key: () => ({ fill: [...K.frame(1, 1, 7, 7, 2), ...K.stroke([[7, 7], [11.6, 11.6]], 2), ...K.stroke([[9.2, 9.2], [11.2, 7.2]], 2), ...K.stroke([[11, 11], [13, 9]], 2)] }),
   docker: () => ({ fill: [K.rect(6, 1, 3, 2), K.rect(2, 4, 3, 2), K.rect(6, 4, 3, 2), K.rect(10, 4, 3, 2), K.poly([1, 7], [15, 7], [13, 12], [3, 12])] }),
-  polaris: () => ({ fill: [K.star(8, 6.5, 8, 6.4, 2.2, 4.4)] }),
+  // Polaris como en el primer juego: cristales afilados alrededor de un ojo.
+  polaris: () => ({
+    fill: [
+      ...[45, 135, 225, 315].map((d) => K.shard(8, 6, d, 4.2, 5.8, 1.2)),
+      ...[-90, 0, 90, 180].map((d) => K.shard(8, 6, d, 4, 6, 1.6)),
+      ...K.octRing(5, 3, 6, 6, 2, 2),
+    ],
+  }),
   shield: () => ({ fill: [K.poly([8, 1], [14, 3], [14, 7], [8, 12], [2, 7], [2, 3]), K.cutRect(7, 4, 2, 5)] }),
   workspace: () => ({ fill: [...K.frame(1, 1, 14, 11, 1), K.rect(1, 1, 14, 3), K.rect(6, 4, 1, 8)] }),
   vector: () => ({
@@ -171,13 +180,14 @@ const EMBLEM = {
     .##.##.##.
     ....##....`),
   play: () => [K.poly([3, 0], [8, 3], [3, 6])],
-  maze: () => K.art(`
-    ##########
-    .........#
-    #######..#
-    #.....#..#
-    #.###.####
-    #.#.......`),
+  // La rama de Git como la cinta del Bureau entre Puntos de Control (como en los iconos de producto).
+  branch: () => K.art(`
+    ###....###
+    #.#....#.#
+    ###....###
+    .#......#.
+    .#..#####.
+    .####.....`),
   gear: () => [K.poly([3, 0], [7, 0], [9, 3], [7, 6], [3, 6], [1, 3]), K.cutRect(4, 2, 2, 2)],
   cube: () => K.art(`
     ...J##L...
@@ -268,10 +278,13 @@ const EMBLEM = {
     ..J#..#L..
     .J######L.
     ##########`),
-  // Polaris y su destello: los asistentes de IA.
+  // Polaris: el ojo con sus cristales (los asistentes de IA).
   polaris: () => [
-    K.poly([4, 0], [4.9, 2.1], [7.5, 3], [4.9, 3.9], [4, 6], [3.1, 3.9], [0.5, 3], [3.1, 2.1]),
-    K.poly([8.5, 0], [8.9, 1.1], [10, 1.5], [8.9, 1.9], [8.5, 3], [8.1, 1.9], [7, 1.5], [8.1, 1.1]),
+    ...K.frame(3, 1, 4, 4, 1),
+    K.poly([3, 2], [3, 4], [0, 3]),
+    K.poly([7, 2], [10, 3], [7, 4]),
+    K.poly([4, 1], [5, 0], [6, 1]),
+    K.poly([4, 5], [6, 5], [5, 6]),
   ],
   loop: () => K.art(`
     7#L..7#L..
@@ -428,7 +441,7 @@ const S = {
   binary: L('01', 'dim'), nupkg: P('archive', 'violet'), vsix: P('archive', 'red'), whl: P('archive', 'ice'), key: P('key', 'amber'), signature: P('key', 'green'),
   lock: P('lock', 'dim'), diff: P('diff', 'green'), db: P('database', 'paper'), env: P('classified', 'amber'), license: P('license', 'amber'),
   readme: P('readme', 'steel'), changelog: P('changelog', 'teal'), contributing: P('changelog', 'green'), conduct: P('changelog', 'violet'),
-  security: P('shield', 'red'), todo: P('changelog', 'amber'), test: P('test', 'cyan'), ai: P('polaris', 'amber'), docker: P('docker', 'ice'),
+  security: P('shield', 'red'), todo: P('changelog', 'amber'), test: P('test', 'cyan'), ai: P('polaris', 'cyan'), docker: P('docker', 'ice'),
   git: P('git', 'orange'), npm: P('cube', 'red'), project: P('cube', 'violet'), dotnetConfig: P('config', 'violet'), npmConfig: P('config', 'red'),
   tsconfig: P('config', 'steel'), jsconfig: P('config', 'amber'), vite: L('VT', 'violet'), webpack: L('WP', 'ice'), rollup: L('RL', 'red'),
   babel: L('BB', 'amber'), eslint: L('ES', 'violet'), prettier: L('PR', 'teal'), stylelint: L('SL', 'bone'), jest: L('JE', 'red'),
@@ -546,11 +559,11 @@ const LANGUAGE_IDS = {
 /** @type {Record<string, [ColorName, keyof typeof EMBLEM]>} */
 const FOLDER_KINDS = {
   source: ['red', 'code'], test: ['cyan', 'check'], docs: ['bone', 'docs'], images: ['green', 'image'], assets: ['green', 'star'],
-  audio: ['rose', 'wave'], video: ['rose', 'play'], git: ['orange', 'maze'], ci: ['orange', 'loop'], vscode: ['steel', 'gear'],
+  audio: ['rose', 'wave'], video: ['rose', 'play'], git: ['orange', 'branch'], ci: ['orange', 'loop'], vscode: ['steel', 'gear'],
   ide: ['violet', 'gear'], packages: ['violet', 'cube'], modules: ['dim', 'cube'], build: ['dim', 'box'], components: ['steel', 'blocks'],
   config: ['concrete', 'sliders'], i18n: ['teal', 'globe'], data: ['paper', 'database'], api: ['orange', 'plug'], utils: ['concrete', 'wrench'],
   hooks: ['amber', 'bolt'], security: ['red', 'shield'], users: ['ice', 'person'], views: ['ice', 'window'], types: ['violet', 'diamond'],
-  temp: ['dim', 'clock'], logs: ['paper', 'docs'], mocks: ['teal', 'flask'], ai: ['amber', 'polaris'], mobile: ['green', 'phone'], fonts: ['bone', 'font'],
+  temp: ['dim', 'clock'], logs: ['paper', 'docs'], mocks: ['teal', 'flask'], ai: ['cyan', 'polaris'], mobile: ['green', 'phone'], fonts: ['bone', 'font'],
   migrations: ['paper', 'arrow'], middleware: ['teal', 'layers'], services: ['violet', 'layers'], coverage: ['green', 'target'],
   secrets: ['amber', 'key'], styles: ['rose', 'palette'], scripts: ['amber', 'terminal'], infra: ['ice', 'container'], store: ['paper', 'database'],
 };

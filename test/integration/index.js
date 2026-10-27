@@ -133,8 +133,12 @@ async function run() {
     await cfg().update('bureauTheme.font', 'bureau', G);
     await waitFor(() => family().includes('Overpass Mono'), 'editor con Overpass Mono', 20000);
     await api.fontsIdle();
-    assert.match(String(cfg().get('chat.fontFamily')), /Overpass/);
+    // chat.fontFamily no existe en las versiones antiguas (la CI prueba también la mínima de engines).
+    if (cfg().inspect('chat.fontFamily')?.defaultValue !== undefined) assert.match(String(cfg().get('chat.fontFamily')), /Overpass/);
     assert.match(String(cfg().get('terminal.integrated.fontFamily')), /Overpass Mono/);
+    // Detrás va la fuente anterior: si se desinstala la extensión y se borran sus fuentes, VS Code vuelve a ella.
+    const previous = String(before ?? cfg().inspect('editor.fontFamily')?.defaultValue);
+    assert.ok(family().endsWith(previous.includes('monospace') ? previous : `${previous}, monospace`), `${family()} acaba en la fuente anterior`);
     // En la carpeta de fuentes del usuario de cada sistema (Windows, ~/Library/Fonts, ~/.local/share/fonts).
     assert.ok(fs.existsSync(path.join(userFontsDir(), 'BureauTheme-OverpassMono-Variable.ttf')), 'fuente instalada para el usuario');
 
@@ -149,6 +153,68 @@ async function run() {
     await vscode.commands.executeCommand('bureauTheme.removeFonts');
     await api.fontsIdle();
     for (const set of installedBefore) installFonts(path.join(ext.extensionPath, 'fonts'), set.files);
+  }, 90000);
+
+  await step('terminal Bureau: el prompt se enciende, abre una terminal Bureau con la integración de shell y al apagarlo todo vuelve', async () => {
+    const cfg = () => vscode.workspace.getConfiguration();
+    const terminal = vscode.workspace.getConfiguration('bureauTheme.terminal');
+    const profileKey = `terminal.integrated.defaultProfile.${process.platform === 'win32' ? 'windows' : process.platform === 'darwin' ? 'osx' : 'linux'}`;
+    const profileBefore = cfg().inspect(profileKey)?.globalValue;
+    const fontBefore = cfg().inspect('terminal.integrated.fontFamily')?.globalValue;
+
+    await terminal.update('prompt', 'signage', G);
+    await waitFor(() => api.terminalIdle() !== undefined, 'terminal Bureau cargada');
+    await waitFor(() => cfg().inspect(profileKey)?.globalValue === 'Bureau', 'el perfil Bureau es el predeterminado', 20000);
+    await api.terminalIdle();
+    assert.match(String(cfg().get('terminal.integrated.fontFamily')), /'Bureau Prompt Icons'/);
+    assert.ok(fs.existsSync(path.join(userFontsDir(), 'BureauTheme-BureauPromptIcons.ttf')), 'fuente de iconos instalada para el usuario');
+
+    const options = api.bureauTerminalOptions();
+    assert.ok(fs.existsSync(options.shellPath), `shell: ${options.shellPath}`);
+    assert.match(fs.readFileSync(path.join(options.env.BUREAU_PROMPT_DIR, 'prompt.conf'), 'utf8'), /^style=signage$/m);
+    // Las tareas siguen con el shell del sistema aunque el perfil Bureau sea el predeterminado.
+    assert.equal(await runTask('bureau-terminal-ok', 0), 0);
+    assert.equal(await runTask('bureau-terminal-fail', 3), 3);
+    // Una terminal Bureau de verdad, con el prompt de dos líneas y Clasificado (el
+    // redibujado al pulsar Enter): el prompt carga la integración de shell de
+    // VS Code a mano, y VS Code recibe el resultado de cada comando.
+    await terminal.update('prompt', 'dossier', G);
+    await terminal.update('classified', true, G);
+    await api.terminalIdle();
+    const t = vscode.window.createTerminal(api.bureauTerminalOptions());
+    try {
+      await waitFor(() => t.shellIntegration !== undefined, 'integración de shell en la terminal Bureau', 30000);
+      for (const command of ['echo bureau', 'echo control']) {
+        const execution = /** @type {vscode.TerminalShellIntegration} */ (t.shellIntegration).executeCommand(command);
+        const exitCode = await new Promise((resolve) => {
+          const sub = vscode.window.onDidEndTerminalShellExecution((e) => {
+            if (e.execution === execution) {
+              sub.dispose();
+              resolve(e.exitCode);
+            }
+          });
+        });
+        assert.equal(exitCode, 0, command);
+      }
+    } finally {
+      t.dispose();
+      await terminal.update('classified', undefined, G);
+      await terminal.update('prompt', 'signage', G);
+    }
+    // Su menú y el de los estilos se abren y se cierran con Esc.
+    for (const command of ['bureauTheme.terminalMenu', 'bureauTheme.chooseTerminalPrompt']) {
+      const menu = vscode.commands.executeCommand(command);
+      await sleep(800);
+      await vscode.commands.executeCommand('workbench.action.closeQuickOpen');
+      await menu;
+    }
+    assert.equal(cfg().get('bureauTheme.terminal.prompt'), 'signage', 'cerrar el menú no cambia nada');
+
+    await terminal.update('prompt', 'off', G);
+    await waitFor(() => cfg().inspect(profileKey)?.globalValue === profileBefore, 'vuelve el perfil predeterminado anterior', 20000);
+    await api.terminalIdle();
+    assert.equal(cfg().inspect('terminal.integrated.fontFamily')?.globalValue, fontBefore, 'la fuente de la terminal vuelve a estar como antes');
+    assert.match(fs.readFileSync(path.join(options.env.BUREAU_PROMPT_DIR, 'prompt.conf'), 'utf8'), /^style=off$/m, 'las terminales abiertas devuelven tu prompt');
   }, 90000);
 
   await step('activar los sonidos registra los listeners', async () => {
@@ -411,9 +477,9 @@ async function run() {
   await step('Casa Inmemorial: activa un protocolo, vuelve a la Casa y Esc la cierra', async () => {
     const panel = vscode.commands.executeCommand('bureauTheme.openOldestHouse');
     await sleep(600);
-    // La primera opción es «Tema de color»; «Modo Clasificado» es la décima (los
-    // separadores no cuentan): 6 de apariencia, sonidos, gramola, bandas sonoras.
-    for (let i = 0; i < 9; i++) await vscode.commands.executeCommand('workbench.action.quickOpenSelectNext');
+    // La primera opción es «Tema de color»; «Modo Clasificado» es la undécima (los
+    // separadores no cuentan): 7 de apariencia (con la terminal Bureau), sonidos, gramola, bandas sonoras.
+    for (let i = 0; i < 10; i++) await vscode.commands.executeCommand('workbench.action.quickOpenSelectNext');
     await vscode.commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
     await waitFor(() => classifiedCfg().get('enabled') === true, 'Modo Clasificado activado desde el panel');
     await sleep(600); // el panel se vuelve a abrir solo

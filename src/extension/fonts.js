@@ -8,18 +8,40 @@
  * Flujo: ajuste `bureauTheme.font` (none | bureau | resonant | auto) →
  * se instalan las fuentes para el usuario → se cambian los ajustes de fuente
  * de VS Code (editor, terminal, consola de depuración, chat y vista previa de
- * Markdown) guardando antes una copia de los valores del usuario.
+ * Markdown) guardando antes una copia de los valores del usuario. Cada ajuste
+ * lleva detrás la fuente que tenía el usuario: al desinstalar la extensión se
+ * borran sus fuentes (src/extension/uninstall.js) y VS Code vuelve sola a esa.
  */
 
 const vscode = require('vscode');
 const path = require('node:path');
-const { FONT_SETS, FONT_SETTINGS, settingsFor, resolveFontSet } = require('./fontsets');
+const { FONT_SETS, FONT_SETTINGS, fallbackFonts, settingsFor, isOwnValue, withoutPromptIcons, resolveFontSet } = require('./fontsets');
+const { withPromptIcons, promptIconsWanted } = require('./prompt-config');
 // El instalador (child_process, registro de Windows) se carga solo al instalar o quitar.
 const { readActiveThemeLabel, THEME_SETTING_KEYS } = require('./theme-state');
 
-const { FONT_SETTING: SETTING, FONT_APPLIED_KEY: APPLIED_KEY } = require('./config');
+const { FONT_SETTING: SETTING, FONT_APPLIED_KEY: APPLIED_KEY, FONT_FALLBACK_KEY: FALLBACK_KEY, TERMINAL_FONT_INSTALLED_KEY } = require('./config');
 const BACKUP_KEY = 'fontBackup';
 const MODES = ['none', 'bureau', 'resonant', 'auto'];
+/** El ajuste que lleva detrás la fuente de iconos de la terminal Bureau (terminal-prompt.js), si está encendido. */
+const TERMINAL_FONT = 'terminal.integrated.fontFamily';
+
+/**
+ * Los ajustes de fuente que existen en este VS Code: escribir uno que no está
+ * registrado da error (chat.fontFamily no existe en las versiones antiguas, y
+ * markdown.preview.fontFamily no está si se desactiva la extensión de Markdown).
+ * @param {vscode.WorkspaceConfiguration} config
+ */
+const registeredKeys = (config) => Object.keys(FONT_SETTINGS).filter((key) => config.inspect(key)?.defaultValue !== undefined);
+
+/**
+ * La fuente anterior de cada ajuste, para ponerla detrás de la del juego.
+ * @param {vscode.WorkspaceConfiguration} config @param {Record<string, unknown>} backup
+ */
+function fallbacksOf(config, backup) {
+  const defaults = Object.fromEntries(Object.keys(FONT_SETTINGS).map((key) => [key, config.inspect(key)?.defaultValue]));
+  return fallbackFonts(backup, defaults);
+}
 
 class FontController {
   /**
@@ -67,30 +89,44 @@ class FontController {
   async syncNow({ quiet = false }) {
     const target = resolveFontSet(this.mode(), readActiveThemeLabel());
     const applied = this.context.globalState.get(APPLIED_KEY);
-    if (target === applied) return;
-    if (target) await this.apply(target, quiet);
+    // Una tipografía aplicada antes de la 0.8 se vuelve a escribir (sin avisar) con la fuente anterior detrás.
+    // Sus fuentes ya están instaladas: no se vuelven a registrar (reg.exe bloquea el arranque).
+    if (target === applied && (!target || this.context.globalState.get(FALLBACK_KEY))) return;
+    if (target) await this.apply(target, quiet || target === applied, target !== applied);
     else await this.restore(quiet);
   }
 
-  /** @param {import('./fontsets').FontSetId} id @param {boolean} quiet */
-  async apply(id, quiet) {
-    try {
-      const installed = require('./font-installer').installFonts(this.fontsRoot, FONT_SETS[id].files);
-      this.log.info(`Fonts installed for the current user: ${installed.join(', ')}`);
-    } catch (err) {
-      vscode.window.showErrorMessage(vscode.l10n.t('CONTROL Theme could not install the fonts: {0}', /** @type {Error} */ (err).message));
-      return;
+  /** @param {import('./fontsets').FontSetId} id @param {boolean} quiet @param {boolean} [install] */
+  async apply(id, quiet, install = true) {
+    if (install) {
+      try {
+        const installed = require('./font-installer').installFonts(this.fontsRoot, FONT_SETS[id].files);
+        this.log.info(`Fonts installed for the current user: ${installed.join(', ')}`);
+      } catch (err) {
+        vscode.window.showErrorMessage(vscode.l10n.t('CONTROL Theme could not install the fonts: {0}', /** @type {Error} */ (err).message));
+        return;
+      }
     }
 
     const config = vscode.workspace.getConfiguration();
-    if (!this.context.globalState.get(BACKUP_KEY)) {
-      /** @type {Record<string, unknown>} */
-      const backup = {};
-      for (const key of Object.keys(FONT_SETTINGS)) backup[key] = config.inspect(key)?.globalValue ?? null;
+    const keys = registeredKeys(config);
+    let backup = /** @type {Record<string, unknown> | undefined} */ (this.context.globalState.get(BACKUP_KEY));
+    if (!backup) {
+      backup = {};
+      for (const key of keys) backup[key] = withoutPromptIcons(config.inspect(key)?.globalValue ?? null);
       await this.context.globalState.update(BACKUP_KEY, backup);
     }
-    for (const [key, value] of Object.entries(settingsFor(id))) await config.update(key, value, vscode.ConfigurationTarget.Global);
+    const fallbacks = fallbacksOf(config, backup);
+    const values = settingsFor(id, fallbacks);
+    if (promptIconsWanted((k) => config.get(k))) values[TERMINAL_FONT] = withPromptIcons(values[TERMINAL_FONT], true);
+    for (const key of keys) {
+      const current = config.inspect(key)?.globalValue ?? null;
+      // Solo los ajustes que siguen como los tenía el usuario o como los dejó la extensión: si después lo cambió él, se respeta.
+      if (withoutPromptIcons(current) !== (backup[key] ?? null) && !isOwnValue(key, current, fallbacks)) continue;
+      await config.update(key, values[key], vscode.ConfigurationTarget.Global);
+    }
     await this.context.globalState.update(APPLIED_KEY, id);
+    await this.context.globalState.update(FALLBACK_KEY, true);
     this.log.info(`Typography applied: ${id}`);
 
     if (quiet) return;
@@ -114,14 +150,19 @@ class FontController {
     const applied = /** @type {import('./fontsets').FontSetId | undefined} */ (this.context.globalState.get(APPLIED_KEY));
     if (!applied) return;
     const backup = /** @type {Record<string, unknown>} */ (this.context.globalState.get(BACKUP_KEY) ?? {});
-    const ours = settingsFor(applied);
     const config = vscode.workspace.getConfiguration();
-    for (const key of Object.keys(FONT_SETTINGS)) {
-      if (config.inspect(key)?.globalValue !== ours[key]) continue; // el usuario lo cambió: se respeta
-      await config.update(key, backup[key] ?? undefined, vscode.ConfigurationTarget.Global);
+    const fallbacks = fallbacksOf(config, backup);
+    const icons = promptIconsWanted((k) => config.get(k));
+    for (const key of registeredKeys(config)) {
+      if (!isOwnValue(key, config.inspect(key)?.globalValue, fallbacks)) continue; // el usuario lo cambió: se respeta
+      let value = backup[key] ?? undefined;
+      // Con la terminal Bureau, la fuente de iconos sigue detrás de tu fuente.
+      if (key === TERMINAL_FONT && icons) value = withPromptIcons(typeof value === 'string' && value.trim() ? value : fallbacks[key], true);
+      await config.update(key, value, vscode.ConfigurationTarget.Global);
     }
     await this.context.globalState.update(APPLIED_KEY, undefined);
     await this.context.globalState.update(BACKUP_KEY, undefined);
+    await this.context.globalState.update(FALLBACK_KEY, undefined);
     this.log.info('Typography restored to the previous settings');
     if (!quiet) vscode.window.showInformationMessage(vscode.l10n.t('Your previous typography has been restored.'));
   }
@@ -153,9 +194,10 @@ class FontController {
     await this.setMode('none');
     await this.queue;
     await this.restore(true);
-    let removed = 0;
-    const { uninstallFonts } = require('./font-installer');
-    for (const set of Object.values(FONT_SETS)) removed += uninstallFonts(set.files);
+    const keepPromptIcons = promptIconsWanted((k) => vscode.workspace.getConfiguration().get(k));
+    const removed = require('./font-installer').uninstallAllFonts({ keepPromptIcons });
+    // Si se ha borrado, la terminal Bureau la vuelve a instalar cuando haga falta.
+    if (!keepPromptIcons) await this.context.globalState.update(TERMINAL_FONT_INSTALLED_KEY, undefined);
     this.log.info(`Fonts removed: ${removed}`);
     vscode.window.showInformationMessage(vscode.l10n.t('The CONTROL fonts have been removed. Some files are only deleted after restarting your computer if they are in use.'));
   }

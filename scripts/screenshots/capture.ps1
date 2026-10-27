@@ -4,6 +4,8 @@ param(
   [int] $Width = 1600,
   [int] $Height = 1000,
   [switch] $ResizeOnly,
+  # Saca el cursor de la ventana (antes de un popup puesto por CDP: si se moviera después, se cerraría).
+  [switch] $ParkCursor,
   [switch] $Close
 )
 $ErrorActionPreference = 'Stop'
@@ -54,6 +56,7 @@ $cur = New-Object W+POINT
 [void][W]::GetCursorPos([ref]$cur)
 $inside = $cur.X -ge $r.L -and $cur.X -le $r.R -and $cur.Y -ge $r.T -and $cur.Y -le $r.B
 if ($inside) { [void][W]::SetCursorPos($r.R + 40, $r.B + 40); Start-Sleep -Milliseconds 900 }
+if ($ParkCursor) { 'parked'; exit 0 }
 $bmp = New-Object System.Drawing.Bitmap $w, $hh
 $g = [System.Drawing.Graphics]::FromImage($bmp)
 $hdc = $g.GetHdc()

@@ -19,3 +19,6 @@ notes/
 
 # VS Code descargado para la CI y las pruebas (npm run download-vscode)
 .vscode-test/
+
+# Capturas de la prueba de los popups (npm run test:popups)
+.popup-check/

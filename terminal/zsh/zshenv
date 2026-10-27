@@ -1,0 +1,8 @@
+# Bureau prompt: the Bureau terminal profile of VS Code starts zsh with ZDOTDIR
+# here. Each of these files loads yours (from BUREAU_USER_ZDOTDIR, your previous
+# ZDOTDIR or your home folder) and then hands over to the next one.
+ZDOTDIR=$BUREAU_USER_ZDOTDIR
+[[ -f $ZDOTDIR/.zshenv ]] && builtin source $ZDOTDIR/.zshenv
+# Your .zshenv can move ZDOTDIR (for example to ~/.config/zsh).
+BUREAU_USER_ZDOTDIR=$ZDOTDIR
+ZDOTDIR=$BUREAU_ZDOTDIR

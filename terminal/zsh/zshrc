@@ -1,0 +1,6 @@
+# Bureau prompt: loads your .zshrc and then the Bureau prompt. See zshenv.
+ZDOTDIR=$BUREAU_USER_ZDOTDIR
+[[ -f $ZDOTDIR/.zshrc ]] && builtin source $ZDOTDIR/.zshrc
+[[ -r $BUREAU_ZDOTDIR/../bureau-prompt.zsh ]] && builtin source $BUREAU_ZDOTDIR/../bureau-prompt.zsh
+# A login shell still reads .zlogin from here; the others keep your ZDOTDIR.
+[[ -o login ]] && ZDOTDIR=$BUREAU_ZDOTDIR
