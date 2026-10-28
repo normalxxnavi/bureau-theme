@@ -65,7 +65,9 @@ if (-not (Test-Path variable:global:__BureauState)) {
   }
 
   # Git: branch, commits ahead/behind and changed files. Only inside a repository
-  # (no git process in other folders).
+  # (no git process in other folders). Without core.fsmonitor: in a repository
+  # you did not create (an archive you extracted), its .git/config could name a
+  # program that git status would run on every prompt.
   function global:__BureauGit([string]$dir) {
     $d = $dir
     while ($d) {
@@ -74,7 +76,7 @@ if (-not (Test-Path variable:global:__BureauState)) {
       if ($parent -eq $d) { $d = $null } else { $d = $parent }
     }
     if (-not $d) { return $null }
-    $out = & git --no-optional-locks status --porcelain=v2 --branch 2>$null
+    $out = & git -c core.fsmonitor= --no-optional-locks status --porcelain=v2 --branch 2>$null
     if (-not $out) { return $null }
     $git = @{ Branch = ''; Ahead = 0; Behind = 0; Changes = 0 }
     $oid = ''

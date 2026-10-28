@@ -863,3 +863,56 @@ test('fish: la cabecera y el cierre de cada comando (si está instalado)', { ski
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
+
+const PROMPT_SCRIPTS = ['bureau-prompt.ps1', 'bureau-prompt.bash', 'bureau-prompt.zsh', 'bureau-prompt.fish'];
+
+test('los cuatro scripts llaman a Git sin core.fsmonitor', () => {
+  for (const file of PROMPT_SCRIPTS) {
+    const calls = fs.readFileSync(path.join(ROOT, 'terminal', file), 'utf8').match(/(?:command|&) git\b[^\n]*/g) ?? [];
+    assert.ok(calls.length > 0, `${file}: git status`);
+    for (const call of calls) assert.match(call, /git -c core\.fsmonitor= /, `${file}: ${call}`);
+  }
+});
+
+test('ownGitColors: sin Git con ruta absoluta no lanza ninguno', async () => {
+  assert.deepEqual(await installer.ownGitColors({ find: () => null }), []);
+});
+
+test('Git en el prompt: el core.fsmonitor de un repositorio ajeno no se ejecuta (en cada shell instalado)', { skip: !hasGit() && 'sin git' }, () => {
+  const dir = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), 'bureau-fsmonitor-')));
+  try {
+    for (const file of PROMPT_SCRIPTS) fs.copyFileSync(path.join(ROOT, 'terminal', file), path.join(dir, file));
+    const home = path.join(dir, 'home');
+    const repo = path.join(dir, 'repo');
+    fs.mkdirSync(home);
+    fs.mkdirSync(repo);
+    // Sin tu configuración de Git ni las GIT_* de la terminal Bureau.
+    const env = { ...Object.fromEntries(Object.entries(UTF8).filter(([k]) => !/^GIT_/i.test(k))), HOME: home, USERPROFILE: home, XDG_CONFIG_HOME: home, GIT_CONFIG_NOSYSTEM: '1' };
+    const git = (/** @type {string[]} */ ...args) => spawnSync('git', args, { cwd: repo, env, encoding: 'utf8', timeout: 20000 });
+    for (const args of [['init', '-q'], ['symbolic-ref', 'HEAD', 'refs/heads/expediente']]) assert.equal(git(...args).status, 0, args.join(' '));
+    fs.writeFileSync(path.join(repo, 'a.txt'), 'a\n');
+    assert.equal(git('add', 'a.txt').status, 0);
+    assert.equal(git('-c', 'user.name=Bureau', '-c', 'user.email=bureau@example.com', '-c', 'commit.gpgsign=false', 'commit', '-q', '-m', 'a').status, 0);
+    // Lo que puede traer el .git/config de un archivo comprimido: un programa que git status ejecuta.
+    const marker = path.join(dir, 'fsmonitor-ran');
+    assert.equal(git('config', 'core.fsmonitor', `echo x > '${marker.replace(/\\/g, '/')}'; false`).status, 0);
+    git('--no-optional-locks', 'status', '--porcelain=v2', '--branch');
+    assert.ok(fs.existsSync(marker), 'sin -c core.fsmonitor=, git status lo ejecuta (si no, esta prueba no comprueba nada)');
+    fs.rmSync(marker);
+
+    const fwd = (/** @type {string} */ p) => p.replace(/\\/g, '/');
+    /** @type {Array<{shell: string, args: string[]}>} */
+    const runs = [];
+    if (has('bash', ['--version'])) runs.push({ shell: 'bash', args: ['--norc', '-i', '-c', `source '${fwd(dir)}/bureau-prompt.bash'; cd '${fwd(repo)}'; __bureau_git; printf '@@%s@@' "$__bg_branch"`] });
+    if (has('zsh', ['--version'])) runs.push({ shell: 'zsh', args: ['-f', '-i', '-c', `source '${dir}/bureau-prompt.zsh'; cd '${repo}'; __bureau_git; print -rn -- "@@$__bg_branch@@"`] });
+    if (has('fish', ['--version'])) runs.push({ shell: 'fish', args: ['-i', '-c', `source '${dir}/bureau-prompt.fish'; cd '${repo}'; __bureau_git; echo -n '@@'$__bg_branch'@@'`] });
+    if (powershell) runs.push({ shell: powershell, args: ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command', `. '${path.join(dir, 'bureau-prompt.ps1')}'; Set-Location -LiteralPath '${repo}'; [Console]::Out.Write('@@' + (__BureauGit (Get-Location).Path).Branch + '@@')`] });
+    for (const { shell, args } of runs) {
+      const r = spawnSync(shell, args, { cwd: repo, env, encoding: 'utf8', timeout: 30000 });
+      assert.ok(r.stdout.includes('@@expediente@@'), `${shell}: la rama sigue saliendo: ${JSON.stringify(r.stdout)} ${r.stderr}`);
+      assert.ok(!fs.existsSync(marker), `${shell}: ejecutó el core.fsmonitor del repositorio`);
+    }
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});

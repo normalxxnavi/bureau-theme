@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 **Beta.** Until 1.0.0 the version is **0.*attempt*.*attempt*DDMMYYYY**: the minor number counts the release attempts (every version tag pushed, continuing from 0.6.0) and the patch is that same number followed by the release date — day, month and year, without separators. For example, attempt 7 on 16/10/2026 is 0.7.716102026. Version 1.0.0 will be the first stable release. (Up to 0.6.0 the minor number counted the days of development and the patch the builds of that day; the earliest builds, never published, were numbered 0.5.0–0.10.1 and are listed here with their new numbers.)
 
+## [Unreleased]
+
+### Security
+
+- **The Bureau terminal no longer runs a program named by a repository**: to show the branch and the changes, the prompt runs `git status` in every Git repository you enter, and Git runs the program that the repository's `.git/config` names in `core.fsmonitor`. A folder from somewhere else — an archive you extracted, for example — could run any program as soon as a terminal opened in it. The prompt now asks Git with `core.fsmonitor` turned off, in PowerShell, bash, zsh and fish, also outside VS Code. Terminals already open keep the previous prompt until you open new ones.
+- The extension looks for `git` (to read the colours of your own Git configuration) only in absolute `PATH` entries, like every other program it starts: on Windows, `git` on its own was looked up first in the current folder.
+
 ## [0.8.828102026] — 2026-10-28
 
 ### Added

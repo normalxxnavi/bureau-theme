@@ -73,7 +73,9 @@ if not set -q __bureau_loaded
     end
 
     # Git: branch, commits ahead/behind and changed files. Only inside a
-    # repository (no git process in other folders).
+    # repository (no git process in other folders). Without core.fsmonitor: in
+    # a repository you did not create (an archive you extracted), its
+    # .git/config could name a program that git status would run on every prompt.
     function __bureau_git
         set -g __bg_branch ''
         set -g __bg_counts ''
@@ -88,7 +90,7 @@ if not set -q __bureau_loaded
         set -l ahead 0
         set -l behind 0
         set -l changes 0
-        for line in (command git --no-optional-locks status --porcelain=v2 --branch 2>/dev/null)
+        for line in (command git -c core.fsmonitor= --no-optional-locks status --porcelain=v2 --branch 2>/dev/null)
             switch $line
                 case '# branch.head *'
                     set __bg_branch (string sub -s 15 -- $line)

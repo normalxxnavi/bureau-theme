@@ -54,7 +54,9 @@ __bureau_conf() {
 }
 
 # Git: branch, commits ahead/behind and changed files. Only inside a repository
-# (no git process in other folders).
+# (no git process in other folders). Without core.fsmonitor: in a repository
+# you did not create (an archive you extracted), its .git/config could name a
+# program that git status would run on every prompt.
 __bureau_git() {
   __bg_branch='' __bg_counts=''
   local dir=$PWD line oid='' ahead=0 behind=0 changes=0
@@ -75,7 +77,7 @@ __bureau_git() {
       '#'*) ;;
       *) changes=$((changes + 1)) ;;
     esac
-  done < <(command git --no-optional-locks status --porcelain=v2 --branch 2>/dev/null)
+  done < <(command git -c core.fsmonitor= --no-optional-locks status --porcelain=v2 --branch 2>/dev/null)
   [ "$__bg_branch" = '(detached)' ] && __bg_branch=${oid:0:7}
   [ "$ahead" != 0 ] && __bg_counts="↑$ahead"
   [ "$behind" != 0 ] && __bg_counts="${__bg_counts:+$__bg_counts }↓$behind"
