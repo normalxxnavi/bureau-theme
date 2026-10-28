@@ -11,9 +11,10 @@
  *    abre la consola de sonido para su captura.
  * 2. shots.js: instala el .vsix en un perfil limpio de VS Code, crea un
  *    proyecto de demostración (con Git y una tarea de tests) y captura la
- *    ventana con cada tema (PrintWindow, capture.ps1).
- * 3. publish.js: copia las capturas tal cual a images/screenshots/ (sin
- *    fondos ni textos: son la ventana real de VS Code).
+ *    ventana con cada tema al doble de resolución (cdp.js; capture.ps1 le da
+ *    tamaño y la cierra).
+ * 3. publish.js: copia las capturas a images/screenshots/ (sin fondos ni
+ *    textos: son la ventana real de VS Code, con un borde gris de 1 px).
  *
  * Solo Windows. Abre y cierra varias ventanas de VS Code: no toques el ratón
  * mientras se capturan (unos 5 minutos).
@@ -28,7 +29,7 @@ const ROOT = path.resolve(__dirname, '..', '..');
 const only = process.argv[2];
 
 if (process.platform !== 'win32') {
-  console.error('Las capturas usan la API de ventanas de Windows (PrintWindow): solo funcionan en Windows.');
+  console.error('Las capturas usan la API de ventanas de Windows (capture.ps1): solo funcionan en Windows.');
   process.exit(1);
 }
 

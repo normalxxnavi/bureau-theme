@@ -130,4 +130,37 @@ function cropRgba(img, x, y, w, h) {
   return { width: w, height: h, rgba };
 }
 
-module.exports = { encodePng, decodePng, cropRgba, crc32 };
+/**
+ * La mitad de ancho y de alto, con la media de cada bloque de 2 × 2 píxeles.
+ * @param {{width: number, height: number, rgba: Uint8Array}} img
+ */
+function halveRgba(img) {
+  const width = img.width >> 1;
+  const height = img.height >> 1;
+  const rgba = new Uint8Array(width * height * 4);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const a = ((2 * y) * img.width + 2 * x) * 4;
+      const b = a + img.width * 4;
+      for (let c = 0; c < 4; c++) rgba[(y * width + x) * 4 + c] = (img.rgba[a + c] + img.rgba[a + 4 + c] + img.rgba[b + c] + img.rgba[b + 4 + c] + 2) >> 2;
+    }
+  }
+  return { width, height, rgba };
+}
+
+/**
+ * Pinta un borde de `size` píxeles por dentro de la imagen (la cambia).
+ * @param {{width: number, height: number, rgba: Uint8Array}} img
+ * @param {[number, number, number]} rgb @param {number} size
+ */
+function edgeRgba(img, rgb, size) {
+  for (let y = 0; y < img.height; y++) {
+    for (let x = 0; x < img.width; x++) {
+      if (x >= size && y >= size && x < img.width - size && y < img.height - size) continue;
+      img.rgba.set([...rgb, 255], (y * img.width + x) * 4);
+    }
+  }
+  return img;
+}
+
+module.exports = { encodePng, decodePng, cropRgba, halveRgba, edgeRgba, crc32 };

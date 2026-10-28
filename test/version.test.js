@@ -45,3 +45,32 @@ test('candidatas: vX.Y.Z.rc-1, .rc-2… para cada versión', () => {
   assert.equal(nextRcTag('0.7.720102026', []), 'v0.7.720102026.rc-1');
   assert.equal(nextRcTag('0.7.720102026', ['v0.7.720102026.rc-1', 'v0.7.720102026.rc-3']), 'v0.7.720102026.rc-4');
 });
+
+test('notas de la release: la sección de la versión, con las capturas y los enlaces apuntando al tag', () => {
+  const { releaseNotes } = require('../scripts/release-notes');
+  const changelog = [
+    '# Changelog',
+    '',
+    '## [0.9.901112026] — 2026-11-01',
+    '',
+    '### Added',
+    '',
+    '- **La terminal**: cinco estilos. Ver [SECURITY.md](SECURITY.md) y [la web](https://example.com).',
+    '',
+    '  ![Los cinco estilos](images/screenshots/terminal-styles.png)',
+    '  <img src="images/screenshots/icons-dark.png" alt="Iconos">',
+    '',
+    '## [0.8.828102026] — 2026-10-28',
+    '',
+    '- Antes.',
+  ].join('\n');
+  const notes = releaseNotes(changelog, '0.9.901112026', 'https://github.com/Normalxxnavi/bureau-theme.git');
+  assert.ok(notes);
+  assert.ok(!notes.includes('## [0.9'), 'sin el título');
+  assert.ok(!notes.includes('Antes.'), 'solo esa versión');
+  assert.ok(notes.includes('![Los cinco estilos](https://github.com/Normalxxnavi/bureau-theme/raw/v0.9.901112026/images/screenshots/terminal-styles.png)'));
+  assert.ok(notes.includes('<img src="https://github.com/Normalxxnavi/bureau-theme/raw/v0.9.901112026/images/screenshots/icons-dark.png"'));
+  assert.ok(notes.includes('[SECURITY.md](https://github.com/Normalxxnavi/bureau-theme/blob/v0.9.901112026/SECURITY.md)'));
+  assert.ok(notes.includes('[la web](https://example.com)'), 'los enlaces absolutos no cambian');
+  assert.equal(releaseNotes(changelog, '0.1.0', 'https://github.com/x/y'), null);
+});

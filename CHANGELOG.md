@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **A shorter details page, with sharp screenshots**: screenshots first, then the features with their icons, how to install and how to change the colours, with the settings and the known limitations folded away. The screenshots are taken at twice the resolution (2560 × 1600), so their text stays sharp on any screen, and a new one shows the five prompts of the Bureau terminal in the same terminal (under 0.8.828102026). The Spanish version has its own page, [README.es.md](README.es.md).
+
 ### Security
 
 - **The Bureau terminal no longer runs a program named by a repository**: to show the branch and the changes, the prompt runs `git status` in every Git repository you enter, and Git runs the program that the repository's `.git/config` names in `core.fsmonitor`. A folder from somewhere else — an archive you extracted, for example — could run any program as soon as a terminal opened in it. The prompt now asks Git with `core.fsmonitor` turned off, in PowerShell, bash, zsh and fish, also outside VS Code. Terminals already open keep the previous prompt until you open new ones.
@@ -24,6 +28,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - New VS Code terminals open with it: the extension adds a **Bureau** terminal profile and makes it the default (your previous default comes back when you turn it off). Changes apply at once in the terminals already open. cmd gets its `PROMPT` in every VS Code terminal.
   - **Also outside VS Code**, if you ask for it: three lines at the end of your shell profiles (`profile.ps1`, `.bashrc`, `.zshrc`), a file in fish `conf.d`, the `PROMPT` variable of your user for cmd, two Windows Terminal profiles with the four colour schemes and the icon font behind the font of the Windows Terminal profiles you already have, so the icons also show in *Command Prompt* and *Windows PowerShell* (Windows Terminal does not look for them in other fonts by itself). Removing it — or uninstalling the extension — leaves each file as it was and `PROMPT` with its previous value.
   - In the Oldest House (*Bureau terminal…*: one line per option with its state; the system icon only lists the ones for your system), in a new step of the welcome guide and with **CONTROL: Choose the Terminal Prompt…**, **CONTROL: Open a Bureau Terminal**, **CONTROL: Configure the Bureau Terminal…**, **CONTROL: Use the Bureau Prompt Outside VS Code** and **CONTROL: Remove the Bureau Prompt from Your Shells**. Settings `bureauTheme.terminal.*`.
+
+  ![The five prompts of the Bureau terminal in the same terminal, on CONTROL Dark](images/screenshots/terminal-styles.png)
+
 - **Uninstalling the extension removes its fonts**: the `BureauTheme-` copies in your user fonts folder and, on Windows, their registry entries. Your previous font now stays behind the game font in each setting, so after uninstalling VS Code goes back to it by itself, without touching your settings. On Windows, a font that is still open (for example, in another VS Code window) is uninstalled, but its file stays in the fonts folder until you delete it.
 - New screenshots on the details page: the Oldest House, the Songmaster jukebox popup, Classified mode, the welcome guide and the Bureau terminal.
 - The release workflow also runs the integration test on the oldest VS Code the extension supports (1.93), and checks the popups in a real VS Code on Windows, macOS and Linux — on Linux, the jukebox with a test player —, keeping a screenshot of each one. The unit tests draw the Bureau prompt in every shell the runner has (PowerShell and Git Bash on Windows, bash and zsh on macOS and Linux, fish on Linux) and the header and closing line of each command — in bash and zsh also in a real interactive session —, check that Git accepts the Bureau colours, and the integration test opens a real Bureau terminal on each system. Every job and long step has a time limit, and every failure shows up as an annotation in the run summary. `npm run release:check` runs the same checks on your computer before you push a tag.
@@ -35,6 +42,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - **Polaris** — Copilot, chat and AI — is now the cyan crystals around an eye that Jesse sees in the first game, instead of a yellow star. The icons of AI files (`CLAUDE.md`, `*.prompt.md`…) and AI folders follow it.
   - **Source control and the Git branch** are the Bureau tape that links the Control Points — the "ley lines" of the Oldest House —, instead of the Ashtray Maze and the inverted pyramid: a Git branch that turns at right angles, with a step like the corridors of the House, between two square Points. The marks for changes, staged changes, conflicts and a deleted branch take the place of the tip Point, apart from the tape so they also read in the single-colour icons, and the corner of the activity bar where VS Code draws the change counter stays free. The Git files (`.gitignore`, `.gitattributes`…) and folders (`.git`, `.github`…) follow it.
   - **Extensions** are Jesse's mod slots: three mods with their symbol and a free slot.
+
+  ![The redrawn product icons in the activity bar, on CONTROL Dark](images/screenshots/icons-dark.png)
+
 - **Songmaster jukebox**: the status bar and the Oldest House show the song first and then the artist (*Take Control — Old Gods of Asgard*), instead of the other way round.
 - **The status bar icons appear much sooner**: the extension now activates as soon as VS Code starts, instead of waiting for every other extension to finish starting. With slow extensions (C# Dev Kit, for example) the Oldest House icon took up to 40 seconds to appear; now it takes about 3. The sounds, the jukebox, the protocols and the typography start right after it, so activating takes about 20 ms even with all of them on.
 

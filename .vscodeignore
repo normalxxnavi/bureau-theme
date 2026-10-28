@@ -1,7 +1,7 @@
 # Solo entra en el .vsix lo que la extensión necesita en tiempo de ejecución:
 # package.json, package.nls*.json, l10n/, themes/, sounds/, dist/ (el código empaquetado),
 # terminal/ (los scripts del prompt de la terminal Bureau), images/icon.png, README.md,
-# CHANGELOG.md y LICENSE.
+# CHANGELOG.md y LICENSE (README.es.md se lee en GitHub, enlazado desde el README).
 .vscode/**
 .github/**
 .vscode-test/**
@@ -25,6 +25,7 @@ package-lock.json
 .gitattributes
 .editorconfig
 CONTRIBUTING.md
+README.es.md
 SECURITY.md
 *.vsix
 product-icons/svg/**

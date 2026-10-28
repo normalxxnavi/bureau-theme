@@ -151,6 +151,16 @@ async function connect(port, timeoutMs = 60000) {
       }
       await sleep(1200); // imágenes del popup
     },
+    /**
+     * Pinta la ventana a `factor` veces su resolución sin cambiar su tamaño
+     * (como en un monitor con escala del 200 %), hasta que se cierra la
+     * conexión. Con una pantalla de 1080p, es la única forma de tener capturas
+     * nítidas de 2560 px.
+     * @param {number} factor
+     */
+    async scale(factor) {
+      await send('Emulation.setDeviceMetricsOverride', { width: 0, height: 0, deviceScaleFactor: factor, mobile: false });
+    },
     /** Captura de la ventana (solo el contenido, sin el marco del sistema). @param {string} file */
     async screenshot(file) {
       const { data } = await send('Page.captureScreenshot', { format: 'png' });
