@@ -110,11 +110,14 @@ async function main() {
       }
     }
   } finally {
+    phase = 'cerrando VS Code';
     cdp?.close();
     try {
+      // SIGKILL: en macOS VS Code no siempre se cierra con SIGTERM, y la comprobación se quedaba esperándolo.
       if (process.platform === 'win32') spawn('taskkill.exe', ['/PID', String(code.pid), '/T', '/F'], { stdio: 'ignore' });
-      else if (code.pid) process.kill(-code.pid);
+      else if (code.pid) process.kill(-code.pid, 'SIGKILL');
     } catch {}
+    code.unref();
     stopPlayer();
   }
   console.log(process.exitCode ? '✘ Popups: hay fallos' : `✔ Popups correctos (capturas en ${OUT})`);
@@ -127,8 +130,12 @@ setTimeout(() => {
   process.exit(1);
 }, WATCHDOG_MS).unref();
 
-main().catch((e) => {
-  console.error(e);
-  ciError(CI_TITLE, String(e?.stack || e));
-  process.exit(1);
-});
+// Al acabar se sale ya, sin esperar a los procesos de VS Code que queden.
+main().then(
+  () => process.exit(process.exitCode ?? 0),
+  (e) => {
+    console.error(e);
+    ciError(CI_TITLE, String(e?.stack || e));
+    process.exit(1);
+  }
+);

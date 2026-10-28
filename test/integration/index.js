@@ -244,11 +244,19 @@ async function run() {
     const shell = path.basename(shellOptions.shellPath);
     /** @type {Map<vscode.TerminalShellExecution, number | undefined>} */
     const ended = new Map();
-    const endSub = vscode.window.onDidEndTerminalShellExecution((e) => ended.set(e.execution, e.exitCode));
     const t = vscode.window.createTerminal(shellOptions);
-    /** Con lo que se ve en la terminal en el mensaje. @param {Error} err @returns {Promise<never>} */
+    /** Lo que VS Code ha visto de cada comando (para el mensaje si algo falla). @type {string[]} */
+    const seen = [];
+    const startSub = vscode.window.onDidStartTerminalShellExecution((e) => {
+      if (e.terminal === t) seen.push(`empieza «${e.execution.commandLine.value}» (confianza ${e.execution.commandLine.confidence})`);
+    });
+    const endSub = vscode.window.onDidEndTerminalShellExecution((e) => {
+      ended.set(e.execution, e.exitCode);
+      if (e.terminal === t) seen.push(`acaba «${e.execution.commandLine.value}» (código ${e.exitCode})`);
+    });
+    /** Con lo que ha visto VS Code y lo que se ve en la terminal en el mensaje. @param {Error} err @returns {Promise<never>} */
     const withScreen = async (err) => {
-      throw new Error(`${err.message} · en la terminal: ${await terminalText(t)}`);
+      throw new Error(`${err.message} · VS Code: ${seen.join(' · ') || 'ninguna ejecución'} · en la terminal: ${await terminalText(t)}`);
     };
     try {
       at(`integración de shell (${shell})`);
@@ -260,6 +268,7 @@ async function run() {
         if (ended.get(execution) !== 0) await withScreen(new Error(`«${command}» en ${shell} terminó con el código ${ended.get(execution)}`));
       }
     } finally {
+      startSub.dispose();
       endSub.dispose();
       t.dispose();
       await terminal.update('classified', undefined, G);
