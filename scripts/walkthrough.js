@@ -135,7 +135,7 @@ const MEDIA = {
       [
         glyph('badgeBar', 36, 54, 168),
         ...themes.map((t, i) => miniWindow(t, 236 + i * 56, 54, 48, 92)),
-        ...['dossier', 'hotline', 'duck', 'polaris', 'maze'].map((g, i) => glyph(g, 238 + i * 44, 186, 32)),
+        ...['dossier', 'hotline', 'duck', 'polaris', 'branch'].map((g, i) => glyph(g, 238 + i * 44, 186, 32)),
         bar(238, 240, 206, FG, 0.15),
         bar(238, 254, 140, FG, 0.15),
       ].join('')
@@ -158,9 +158,9 @@ const MEDIA = {
       const x = 34 + Number(indent) * 18;
       return fileIcon(String(key), x, y, 20) + bar(x + 30, y + 7, 160 * Number(w), FG, 0.55);
     });
-    const bar24 = ['dossierBar', 'lensBar', 'mazeBar', 'duckBar', 'hedronCheckBar', 'blocksBar'];
+    const bar24 = ['dossierBar', 'lensBar', 'branchBar', 'duckBar', 'hedronCheckBar', 'blocksBar'];
     const activity = bar24.map((g, i) => glyph(g, 300 + (i % 2) * 70, 40 + Math.floor(i / 2) * 70, 44));
-    const status = ['pyramid', 'hotline', 'polaris'].map((g, i) => glyph(g, 300 + i * 50, 250, 22));
+    const status = ['branch', 'hotline', 'polaris'].map((g, i) => glyph(g, 300 + i * 50, 250, 22));
     return card([...explorer, `<rect x="276" y="24" width="1" height="260" fill="${FG}" fill-opacity=".2"/>`, ...activity, ...status].join(''));
   },
 
@@ -191,6 +191,34 @@ const MEDIA = {
         bar(270, 238, 120, REAL.cyan, 1, 4),
       ].join('')
     ),
+
+  // La terminal Bureau: el prompt Señalética en Windows, macOS y Linux (sus
+  // iconos de sistema), con la carpeta, la rama de Git y el cursor.
+  terminal: () => {
+    const { OS_GLYPHS } = require('./prompt-icons');
+    const { GLYPHS } = require('./product-icons');
+    const { p, c } = themes[0];
+    const bg = c['terminal.background'];
+    /** Un glifo monocromo de 16 × 16 en (x, y) con `size` píxeles de lado. @param {import('./lib/glyph-kit').Poly[]} polys @param {number} x @param {number} y @param {number} size @param {string} fill */
+    const mono = (polys, x, y, size, fill) => `<path transform="translate(${x} ${y}) scale(${size / 16})" fill="${fill}" d="${K.toPath(polys)}"/>`;
+    const rows = /** @type {const} */ (['controlPoints', 'command', 'tux']).map((os, i) => {
+      const y = 50 + i * 74;
+      return [
+        `<rect x="44" y="${y}" width="36" height="28" fill="${p.ansi.red}"/>`,
+        mono(OS_GLYPHS[os](), 52, y + 4, 20, bg),
+        `<rect x="88" y="${y}" width="160" height="28" fill="${p.fg.main}"/>`,
+        mono(GLYPHS.folderOpened(), 96, y + 6, 16, bg),
+        bar(120, y + 11, 112, bg, 0.85),
+        `<rect x="256" y="${y}" width="112" height="28" fill="${p.ansi.yellow}"/>`,
+        mono(GLYPHS.branch(), 264, y + 6, 16, bg),
+        bar(288, y + 11, 64, bg, 0.85),
+        `<path d="M380 ${y + 7} L388 ${y + 14} L380 ${y + 21}" fill="none" stroke="${p.ansi.red}" stroke-width="3"/>`,
+        i === 2 ? `<rect x="398" y="${y + 6}" width="9" height="17" fill="${p.accent.line}"/>` : bar(398, y + 11, 40, p.fg.main, 0.5),
+        i < 2 ? bar(44, y + 44, 150 + i * 60, p.fg.main, 0.3) : '',
+      ].join('');
+    });
+    return card([`<rect x="24" y="30" width="432" height="246" rx="2" fill="${bg}" stroke="${FG}" stroke-opacity=".25"/>`, ...rows].join(''));
+  },
 
   // La centralita: la gramola Songmaster y una onda de resonancia.
   sounds: () => {

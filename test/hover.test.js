@@ -27,6 +27,14 @@ test('pastillas: el estilo pasa el sanitizador de VS Code y el texto va escapado
   assert.throws(() => H.pill('x', '#fff', 'rgb(0,0,0)'), /Color no admitido/);
 });
 
+test('las pastillas de estado siguen al tema: en CONTROL Resonant el rojo es solo del Siseo', () => {
+  for (const c of [H.ACCENT, H.NEUTRAL]) for (const v of Object.values(c)) assert.match(v, /^var\(--vscode-[a-zA-Z-]+\)$/);
+  // La gramola, la Casa Inmemorial y el Modo Clasificado (el nivel de alerta sí usa rojo: es peligro).
+  for (const file of ['music.js', 'status.js', 'classified.js']) {
+    assert.doesNotMatch(fs.readFileSync(path.join(ROOT, 'src', 'extension', file), 'utf8'), /#E0352B/i, `${file}: rojo fijo en un popup`);
+  }
+});
+
 test('texto de fuera: sin HTML ni iconos $(…)', () => {
   assert.equal(H.escapeHtml('<img src=x> & "$(bureau-house)"'), '&lt;img src=x&gt; &amp; &quot;&#36;(bureau-house)&quot;');
   assert.equal(H.escapeHtml(undefined), '');

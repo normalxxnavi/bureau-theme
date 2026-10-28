@@ -3,7 +3,8 @@
 
 /**
  * Localiza la instalación local de VS Code (para validar claves y reutilizar
- * sus gramáticas TextMate). Se puede forzar con la variable VSCODE_PATH.
+ * sus gramáticas TextMate) y su ejecutable (tests de integración y de popups).
+ * Se puede forzar con la variable VSCODE_PATH.
  */
 
 const fs = require('node:fs');
@@ -45,4 +46,27 @@ function findAppRoot() {
   return null;
 }
 
-module.exports = { findAppRoot };
+/** El ejecutable de VS Code: el de VSCODE_EXECUTABLE (la CI descarga uno limpio) o el de la instalación local. */
+function codeExecutable() {
+  if (process.env.VSCODE_EXECUTABLE) return process.env.VSCODE_EXECUTABLE;
+  const appRoot = findAppRoot();
+  if (!appRoot) throw new Error('No se encontró VS Code. Define VSCODE_PATH o VSCODE_EXECUTABLE (npm run download-vscode).');
+  if (process.platform === 'win32') {
+    // <instalación>/<hash>/resources/app → <instalación>/Code.exe (o <hash>/Code.exe)
+    for (const up of ['../../..', '../..']) {
+      const exe = path.resolve(appRoot, up, 'Code.exe');
+      if (fs.existsSync(exe)) return exe;
+    }
+  } else if (process.platform === 'darwin') {
+    // <app>/Contents/Resources/app → <app>/Contents/MacOS/Code (Electron en versiones antiguas)
+    for (const name of ['Code', 'Electron']) {
+      const exe = path.resolve(appRoot, '..', '..', 'MacOS', name);
+      if (fs.existsSync(exe)) return exe;
+    }
+  } else {
+    return path.resolve(appRoot, '..', '..', 'code');
+  }
+  throw new Error('No se encontró el ejecutable de VS Code');
+}
+
+module.exports = { findAppRoot, codeExecutable };

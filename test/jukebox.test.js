@@ -7,8 +7,42 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const { EventEmitter } = require('node:events');
+const { PassThrough } = require('node:stream');
 const P = require('../src/extension/music-parse');
-const { macReadScript, macCommandScript } = require('../src/extension/music-source');
+const { macReadScript, macCommandScript, windowsSource } = require('../src/extension/music-source');
+
+/**
+ * Un PowerShell de mentira para la fuente de Windows: `answer(proceso, orden)`
+ * decide qué contesta a cada orden (una línea, o null para no contestar).
+ * @param {(p: any, cmd: string) => string | null} answer
+ */
+function fakePowerShell(answer) {
+  /** @type {Array<EventEmitter & {n: number, killed: boolean, stdout: PassThrough, stdin: any, kill(): void}>} */
+  const started = [];
+  const spawn = () => {
+    const p = /** @type {any} */ (new EventEmitter());
+    p.n = started.length + 1;
+    p.killed = false;
+    p.stdout = new PassThrough();
+    p.stdin = new EventEmitter();
+    p.stdin.write = (/** @type {string} */ data) => {
+      const line = answer(p, data.trim());
+      if (line !== null) setImmediate(() => p.stdout.write(`${line}\n`));
+      return true;
+    };
+    p.kill = () => {
+      p.killed = true;
+      setImmediate(() => p.emit('exit', null));
+    };
+    setImmediate(() => p.stdout.write('{"ready":true}\n'));
+    started.push(p);
+    return p;
+  };
+  return { spawn, started };
+}
+
+const SONG = (/** @type {string} */ title) => JSON.stringify({ app: 'Spotify', title, artist: 'Old Gods of Asgard', album: '', playing: true });
 
 test('Windows: lee la línea JSON del PowerShell (y lo vacío no es una canción)', () => {
   const t = P.parseWindowsLine('{"app":"SpotifyAB.SpotifyMusic_zpdnekdrzrea0!Spotify","title":"Take Control","artist":"Old Gods of Asgard","album":"Take Control","playing":true}');
@@ -62,9 +96,9 @@ test('Linux: reproductores MPRIS y sus datos en la salida de gdbus (GVariant)', 
   assert.equal(P.parseGdbusPlayer("({'PlaybackStatus': <'Stopped'>},)", 'x'), null, 'parado no cuenta');
 });
 
-test('barra de estado: «Artista — Título» recortado y sin iconos colados', () => {
+test('barra de estado: «Título — Artista» recortado y sin iconos colados', () => {
   const t = { app: 'Spotify', title: 'Take Control', artist: 'Old Gods of Asgard', album: '', playing: true };
-  assert.equal(P.statusText(t), 'Old Gods of Asgard — Take Control');
+  assert.equal(P.statusText(t), 'Take Control — Old Gods of Asgard', 'primero la canción y después el artista');
   assert.equal(P.statusText({ ...t, artist: '' }), 'Take Control');
   const long = P.statusText({ ...t, title: 'A'.repeat(80) });
   assert.ok(long.length <= 42 && long.endsWith('…'));
@@ -102,4 +136,64 @@ test('portada: solo imágenes locales razonables (Windows en Base64, Linux file:
   assert.equal(P.parseGdbusPlayer(withArt, 'x')?.artUrl, 'file:///tmp/firefox-art.png');
   const remote = "({'Metadata': <{'mpris:artUrl': <'https://i.scdn.co/image/abc'>, 'xesam:title': <'Song'>}>, 'PlaybackStatus': <'Playing'>},)";
   assert.equal(P.parseGdbusPlayer(remote, 'x')?.artUrl, undefined, 'las portadas en internet no se usan');
+});
+
+test('Windows: cada respuesta va a su petición (una que llega tarde no desfasa las siguientes)', async () => {
+  let clock = 0;
+  // El primer proceso no contesta la portada a tiempo; la respuesta llega después, cuando el test quiere.
+  const ps = fakePowerShell((p, cmd) => {
+    if (p.n === 1 && cmd === 'cover') return null;
+    return cmd === 'read' ? SONG(`Canción ${p.n}`) : '{}';
+  });
+  // Sin tiempos justos: lo que contesta tiene 10 s (en un runner cargado, 20 ms no bastan); la portada que no llega agota 50 ms.
+  const source = windowsSource({ onlySpotify: false }, { spawn: ps.spawn, now: () => clock, answerMs: 50, firstAnswerMs: 10_000 });
+  assert.equal((await source.read())?.title, 'Canción 1');
+  assert.equal(await source.cover(), null, 'sin respuesta a tiempo: sin portada');
+  assert.ok(ps.started[0].killed, 'el proceso que no contesta se cierra');
+  ps.started[0].stdout.write('{"data":"tarde"}\n');
+  await new Promise((r) => setImmediate(r));
+  assert.equal(await source.read(), null, 'justo después del fallo espera antes de volver a arrancar PowerShell');
+  clock += 60_000;
+  assert.equal((await source.read())?.title, 'Canción 2', 'un proceso nuevo, y la canción (no la portada que llegó tarde)');
+  source.dispose();
+});
+
+test('Windows: si PowerShell se cierra al arrancar, no se relanza en cada lectura (espera cada vez más)', async () => {
+  let clock = 0;
+  const ps = fakePowerShell((p) => {
+    setImmediate(() => p.emit('exit', 1));
+    return null;
+  });
+  const source = windowsSource({ onlySpotify: false }, { spawn: ps.spawn, now: () => clock, answerMs: 1000, firstAnswerMs: 1000 });
+  /** Lee varias veces en un rato de `ms` (cada lectura, 3 s después de la anterior, como la gramola). @param {number} ms */
+  const readFor = async (ms) => {
+    for (const end = clock + ms; clock < end; clock += 3000) assert.equal(await source.read(), null);
+  };
+  await readFor(60_000);
+  const inAMinute = ps.started.length;
+  assert.ok(inAMinute <= 5, `en un minuto, ${inAMinute} arranques (antes, uno cada 3 s: 20)`);
+  await readFor(30 * 60_000);
+  assert.ok(ps.started.length - inAMinute <= 8, `y en media hora más, ${ps.started.length - inAMinute} (cada 5 minutos como mucho)`);
+  // Cuando vuelve a funcionar, se recupera sola (no se queda apagada para toda la sesión).
+  ps.started.length = 0;
+  const ok = fakePowerShell((_p, cmd) => (cmd === 'read' ? SONG('De vuelta') : '{}'));
+  const healthy = windowsSource({ onlySpotify: false }, { spawn: ok.spawn, now: () => clock, answerMs: 1000, firstAnswerMs: 1000 });
+  assert.equal((await healthy.read())?.title, 'De vuelta');
+  source.dispose();
+  healthy.dispose();
+});
+
+test('Windows: las peticiones seguidas se contestan en orden y al cerrar no queda ninguna colgada', async () => {
+  const ps = fakePowerShell((_p, cmd) => (cmd === 'read' ? SONG('Take Control') : '{"ok":true}'));
+  const source = windowsSource({ onlySpotify: false }, { spawn: ps.spawn, answerMs: 1000, firstAnswerMs: 1000 });
+  const [a, , b] = await Promise.all([source.read(), source.command('next'), source.read()]);
+  assert.equal(a?.title, 'Take Control');
+  assert.equal(b?.title, 'Take Control');
+  assert.equal(ps.started.length, 1, 'un solo proceso');
+  const slow = fakePowerShell(() => null);
+  const hanging = windowsSource({ onlySpotify: false }, { spawn: slow.spawn, answerMs: 5000, firstAnswerMs: 5000 });
+  const pending = hanging.read();
+  hanging.dispose();
+  assert.equal(await pending, null, 'cerrar la gramola contesta lo que estaba esperando');
+  source.dispose();
 });

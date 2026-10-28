@@ -20,8 +20,10 @@
  *
  * Estilo: geométrico y brutalista, trazos gruesos de esquina viva; los
  * círculos son octógonos y los puntos, cuadrados. Guiños de lore:
- *   - control de código fuente / rama de Git → la pirámide invertida,
- *   - Copilot, chat e IA (sparkle) → el Consejo (la pirámide que «habla»),
+ *   - control de código fuente / rama de Git → la cinta del Bureau que une
+ *     los Puntos de Control (las «líneas ley» de la Casa Inmemorial),
+ *   - Copilot, chat e IA (sparkle) → Polaris, los cristales que guían a Jesse,
+ *   - extensiones → las ranuras de Mods del equipo de Jesse,
  *   - depurar y tests → el hexágono de la Hedron,
  *   - notificaciones → el teléfono de la Hotline,
  *   - paquetes → el cubo de un Objeto de Poder.
@@ -55,7 +57,7 @@ const FONT_NAME = 'bureau-product-icons';
 /** @typedef {import('./lib/glyph-kit').Poly} Poly */
 /** @typedef {Array<[string, Poly[]]>} Layers */
 
-const { rect, poly, cut, cutRect, frame, octagon, octRing, stroke, ring, cross, star, move } = K;
+const { rect, poly, cut, cutRect, frame, octagon, octRing, stroke, ring, cross, star, shard, move } = K;
 
 /**
  * Colores reales de «Bureau Product Icons (Color)». Tonos medios: tienen que
@@ -63,9 +65,9 @@ const { rect, poly, cut, cutRect, frame, octagon, octRing, stroke, ring, cross, 
  */
 const REAL = {
   red: '#E0352B', // la Hotline (el teléfono rojo), el Hiss, el rojo del FBC
-  orange: '#E07A2B', // Git, la gramola Songmaster, el pico del patito
+  orange: '#E07A2B', // Git (el hilo de cobre de la cinta de los Puntos de Control), la gramola Songmaster, el pico del patito
   amber: '#C98A1E', // avisos, el Laberinto del Cenicero, la cinta de Ahti
-  yellow: '#D9B02A', // Polaris, la luz del proyector, el patito de goma
+  yellow: '#D9B02A', // la luz del proyector, el patito de goma
   green: '#4FA05A', // ejecutar, añadir, correcto
   teal: '#2E9C8E',
   cyan: '#2FA7B8', // la Hedron, el Umbral, el Aberrante (Control Resonant)
@@ -80,16 +82,54 @@ const REAL = {
   neon: '#F1E4C3', // su tubo de neón
   magenta: '#D24A9A', // sus remates
   chrome: '#B7BEC6', // su rejilla y su peana
+  // Polaris: el cian azulado de sus cristales en el primer juego (control.fandom.com/wiki/Polaris).
+  polarisLight: '#7AD3E2',
+  polaris: '#3FA9C1',
+  polarisDeep: '#2A7F96',
 };
 const R = REAL;
 
 /** Un glifo de un solo color. @param {string} color @param {Poly[]} polys @returns {Layers} */
 const one = (color, polys) => [[color, polys]];
 
-/** Pirámide de la rama de Git, más pequeña y abajo a la izquierda para dejar sitio a una marca. */
-const smallPyramid = () => [...ring([[2, 6], [11, 6], [6.5, 13.5]], 2), poly([5.2, 8], [7.8, 8], [6.5, 10])];
-/** Polaris pequeña, abajo a la izquierda (deja sitio a una marca arriba a la derecha). */
-const smallPolaris = () => [star(6.5, 9.5, 8, 6, 2, 4)];
+/**
+ * La rama de Git como la cinta de los Puntos de Control: el tronco baja desde
+ * el Punto de la izquierda y la cinta sale de él en ángulo recto, con un
+ * escalón como los pasillos de la Casa Inmemorial, hasta el Punto de la punta;
+ * todo en el naranja del hilo de cobre. Los Puntos son marcos cuadrados para
+ * distinguirse de la cinta a 16 px (y del Consejo, que es una pirámide
+ * maciza). Con `head`, el estado de la rama (cambios, preparados, conflictos,
+ * borrada) ocupa el sitio del Punto de la punta.
+ * @param {Layers[number] | null} [head] @returns {Layers}
+ */
+const branch = (head = null) => [
+  [R.orange, [...frame(1, 1, 6, 6), rect(3, 7, 2, 8), rect(3, 11, 6, 2), rect(7, 9, 6, 2), rect(11, 7, 2, 2), ...(head ? [] : frame(9, 1, 6, 6))]],
+  ...(head ? [head] : []),
+];
+
+/**
+ * Polaris como en el primer juego: cristales afilados alrededor de un ojo (el
+ * vórtice del centro). `small` = más pequeña, abajo a la izquierda, para dejar
+ * sitio a una marca arriba a la derecha.
+ * @param {boolean} [small] @returns {Layers}
+ */
+function polaris(small = false) {
+  const [cx, cy, out] = small ? [6, 10, 6] : [8, 8, 8];
+  return [
+    [R.polarisDeep, [45, 135, 225, 315].map((d) => shard(cx, cy, d, 4.2, out - 0.4, 1.3))],
+    [R.polarisLight, [-90, 0, 90, 180].map((d) => shard(cx, cy, d, 4, out, 1.6))],
+    [R.polaris, octRing(cx - 3, cy - 3, 6, 6, 2, 2)],
+  ];
+}
+
+/**
+ * Cruz hueca de un solo polígono (dos huecos solapados se anularían).
+ * @param {number} x @param {number} y @param {number} s lado @param {number} t grosor
+ */
+const plusHole = (x, y, s, t) => {
+  const a = (s - t) / 2;
+  return cut([x + a, y], [x + a + t, y], [x + a + t, y + a], [x + s, y + a], [x + s, y + a + t], [x + a + t, y + a + t], [x + a + t, y + s], [x + a, y + s], [x + a, y + a + t], [x, y + a + t], [x, y + a], [x + a, y + a]);
+};
 /** El teléfono de la Hotline. `full` = con el auricular entero (sin marca). */
 const hotline = (/** @type {boolean} */ full) => [
   rect(3, 2, full ? 10 : 7, 2),
@@ -133,20 +173,26 @@ const DEFS = {
   dossier: () => [[R.paper, [...backSheet(), ...ring([[6, 6], [11, 6], [14, 9], [14, 14], [6, 14]], 2)]], [R.red, [rect(8, 9, 4, 2)]]],
   // Lupa cuadrada y brutalista.
   lens: () => [[R.steel, frame(1, 1, 10, 10, 2)], [R.brass, stroke([[10, 10], [14.6, 14.6]], 2.6)]],
-  // Pirámide invertida con su núcleo: control de código fuente y rama de Git.
-  pyramid: () => one(R.orange, [...ring([[2.5, 3], [13.5, 3], [8, 13]], 2), poly([6.4, 6], [9.6, 6], [8, 9])]),
-  // Variantes de la rama de Git: pirámide algo menor con una marca en la esquina.
-  pyramidDot: () => [[R.orange, smallPyramid()], [R.amber, MARK.dot()]],
-  pyramidPlus: () => [[R.orange, smallPyramid()], [R.green, MARK.plus()]],
-  pyramidMinus: () => [[R.orange, smallPyramid()], [R.red, MARK.minus()]],
-  pyramidAlert: () => [[R.orange, smallPyramid()], [R.red, MARK.alert()]],
+  // La rama de Git (y el control de código): la cinta del Bureau entre Puntos de Control.
+  branch: () => branch(),
+  // Variantes de la rama de Git: el Punto de la punta relleno (cambios), o una cruz (preparados), un guion (borrada) o
+  // un rombo (conflictos) a 1 px de la cinta, para que no se fundan con ella en el tema monocromo.
+  branchDot: () => branch([R.amber, [rect(9, 1, 6, 6)]]),
+  branchPlus: () => branch([R.green, [rect(11, 0, 2, 6), rect(9, 2, 6, 2)]]),
+  branchMinus: () => branch([R.red, [rect(9, 2, 6, 2)]]),
+  branchAlert: () => branch([R.red, [poly([12, 0], [15, 3], [12, 6], [9, 3])]]),
   // El Consejo: pirámide maciza con una ranura, y la línea con la que «habla».
   board: () => [[R.red, [rect(4, 1, 8, 2)]], [R.violet, [poly([1, 5], [15, 5], [8, 15]), cutRect(5, 7, 6, 2)]]],
   // Hexágono de la Hedron con «play» (ejecutar y depurar) o con un check (tests).
   hedronPlay: () => one(R.cyan, [...hedron(), poly([6, 5], [11, 8], [6, 11])]),
   hedronCheck: () => [[R.cyan, hedron()], [R.green, stroke([[5, 8], [7, 10], [11, 6]], 2)]],
-  // Bloques de hormigón; uno está «alterado» (desplazado y hueco).
-  blocks: () => [[R.blue, [rect(1, 9, 6, 6)]], [R.teal, [rect(9, 9, 6, 6)]], [R.steel, [rect(1, 1, 6, 6)]], [R.red, frame(10, 0, 6, 6, 2)]],
+  // Ranuras de Mods (extensiones): tres Mods con su símbolo (+, núcleo, flecha) y la ranura libre, en rojo.
+  blocks: () => [
+    [R.blue, [rect(1, 9, 6, 6), plusHole(2, 10, 4, 2)]],
+    [R.teal, [rect(9, 9, 6, 6), cutRect(11, 11, 2, 2)]],
+    [R.steel, [rect(1, 1, 6, 6), cut([2, 3], [4, 5], [6, 3], [6, 5], [4, 7], [2, 5])]],
+    [R.red, frame(10, 0, 6, 6, 2)],
+  ],
   // Credencial del Bureau con el emblema de la pirámide.
   badge: () => [[R.brass, frame(3, 1, 10, 14, 2)], [R.red, [poly([5, 4], [11, 4], [8, 8])]], [R.brass, [rect(5, 10, 6, 2)]]],
   // Tuerca hexagonal (ajustes).
@@ -157,14 +203,14 @@ const DEFS = {
   // Cubo de un Objeto de Poder (paquetes): tres caras separadas.
   cube: () => one(R.violet, [poly([8, 1], [15, 4.5], [8, 8], [1, 4.5]), poly([1, 6], [7, 9.2], [7, 15], [1, 11.8]), poly([15, 6], [9, 9.2], [9, 15], [15, 11.8])]),
   // Polaris, la luz que guía a Jesse: los asistentes de IA (Copilot, chat).
-  polaris: () => one(R.yellow, [star(8, 8, 8, 7.6, 2.6, 5)]),
+  polaris: () => polaris(),
   // Estados de Copilot y del chat: Polaris con una marca (trabajando, aviso, error, listo, sin conexión, en pausa).
-  polarisDot: () => [[R.yellow, smallPolaris()], [R.amber, MARK.dot()]],
-  polarisAlert: () => [[R.yellow, smallPolaris()], [R.amber, MARK.alert()]],
-  polarisError: () => [[R.yellow, smallPolaris()], [R.red, MARK.error()]],
-  polarisCheck: () => [[R.yellow, smallPolaris()], [R.green, MARK.check()]],
-  polarisOff: () => [[R.yellow, smallPolaris()], [R.red, MARK.off()]],
-  polarisPause: () => [[R.yellow, smallPolaris()], [R.steel, MARK.pause()]],
+  polarisDot: () => [...polaris(true), [R.amber, MARK.dot()]],
+  polarisAlert: () => [...polaris(true), [R.amber, MARK.alert()]],
+  polarisError: () => [...polaris(true), [R.red, MARK.error()]],
+  polarisCheck: () => [...polaris(true), [R.green, MARK.check()]],
+  polarisOff: () => [...polaris(true), [R.red, MARK.off()]],
+  polarisPause: () => [...polaris(true), [R.steel, MARK.pause()]],
   // La Hotline en «no molestar» (notificaciones silenciadas).
   hotlineOff: () => [[R.red, hotline(false)], [R.steel, MARK.off()]],
   // El Laberinto del Cenicero (Ashtray Maze): control de código fuente, caminos que se bifurcan.
@@ -352,12 +398,20 @@ const DEFS = {
   // ── Barra de actividad: versiones dibujadas en 24 × 24 (se pintan a 24 px) ──────
   dossierBar: () => [[R.paper, [rect(2, 2, 12, 2), rect(2, 2, 2, 16), ...ring([[8, 8], [16, 8], [21, 13], [21, 22], [8, 22]], 2)]], [R.red, [rect(11, 15, 7, 2)]]],
   lensBar: () => [[R.steel, frame(2, 2, 14, 14, 2)], [R.brass, stroke([[15, 15], [21.6, 21.6]], 3.2)]],
-  mazeBar: () => one(R.amber, stroke([[3, 22], [3, 3], [21, 3], [21, 21], [8, 21], [8, 8], [16, 8], [16, 16], [12, 16], [12, 12]], 2)),
+  // Control de código: la misma cinta con su escalón entre los dos Puntos. Abajo a la derecha (x ≥ 12, y ≥ 12) no hay
+  // nada: ahí va el contador de cambios.
+  branchBar: () =>
+    one(R.orange, [...frame(2, 2, 6, 6), ...frame(16, 2, 6, 6), rect(4, 8, 2, 14), rect(4, 14, 8, 2), rect(10, 10, 2, 6), rect(10, 10, 10, 2), rect(18, 8, 2, 4)]),
   duckBar: () => [
     [R.yellow, [octagon(8, 2, 10, 10, 3), cutRect(13, 5, 2, 2), rect(9, 11, 7, 4), poly([2, 10], [6, 15], [16, 15], [19, 13], [22, 14], [22, 18], [18, 22], [6, 22], [2, 18])]],
     [R.orange, [poly([18, 5], [20, 5], [23, 7.5], [20, 10], [18, 10])]],
   ],
-  blocksBar: () => [[R.blue, [rect(2, 13, 9, 9)]], [R.teal, [rect(13, 13, 9, 9)]], [R.steel, [rect(2, 2, 9, 9)]], [R.red, frame(14, 1, 9, 9, 2)]],
+  blocksBar: () => [
+    [R.blue, [rect(2, 13, 9, 9), plusHole(3, 14, 7, 3)]],
+    [R.teal, [rect(13, 13, 9, 9), cutRect(16, 16, 3, 3)]],
+    [R.steel, [rect(2, 2, 9, 9), cut([4, 5], [6.5, 7.5], [9, 5], [9, 7], [6.5, 9.5], [4, 7])]],
+    [R.red, frame(14, 1, 9, 9, 2)],
+  ],
   hedronCheckBar: () => [[R.cyan, ring([[12, 2], [21, 7], [21, 17], [12, 22], [3, 17], [3, 7]], 2)], [R.green, stroke([[7.5, 12], [10.5, 15], [16.5, 9]], 2.4)]],
   badgeBar: () => [[R.brass, frame(4, 2, 16, 20, 2)], [R.red, [poly([8, 6], [16, 6], [12, 11.5])]], [R.brass, [rect(8, 14, 8, 2), rect(8, 18, 5, 2)]]],
   hexNutBar: () => [[R.steel, nut(12, 12, 9, 3)], [R.brass, [nut(12, 12, 2)[0]]]],
@@ -375,7 +429,7 @@ const DEFS = {
 };
 
 /** Tamaño de rejilla de cada glifo (16 salvo los de la barra de actividad). */
-const GRID24 = new Set(['dossierBar', 'lensBar', 'mazeBar', 'duckBar', 'blocksBar', 'hedronCheckBar', 'badgeBar', 'hexNutBar', 'thresholdBar']);
+const GRID24 = new Set(['dossierBar', 'lensBar', 'branchBar', 'duckBar', 'blocksBar', 'hedronCheckBar', 'badgeBar', 'hexNutBar', 'thresholdBar']);
 
 /**
  * Tuerca hexagonal (lados planos arriba y abajo, en filas enteras): `half` es la
@@ -398,9 +452,9 @@ const MAPPING = {
   // Barra de actividad
   'explorer-view-icon': 'dossierBar', files: 'dossier', book: 'dossier',
   'search-view-icon': 'lensBar', search: 'lens', 'search-large': 'lens',
-  'source-control-view-icon': 'mazeBar', 'source-control': 'maze', repo: 'maze', 'git-merge': 'maze', 'git-branch': 'pyramid',
-  'git-branch-compact': 'pyramid', 'git-branch-changes': 'pyramidDot', 'git-branch-staged-changes': 'pyramidPlus',
-  'git-branch-conflicts': 'pyramidAlert', 'git-branch-create': 'pyramidPlus', 'git-branch-delete': 'pyramidMinus',
+  'source-control-view-icon': 'branchBar', 'source-control': 'branch', repo: 'branch', 'git-merge': 'branch', 'git-branch': 'branch',
+  'git-branch-compact': 'branch', 'git-branch-changes': 'branchDot', 'git-branch-staged-changes': 'branchPlus',
+  'git-branch-conflicts': 'branchAlert', 'git-branch-create': 'branchPlus', 'git-branch-delete': 'branchMinus',
   'run-view-icon': 'duckBar', 'debug-alt': 'duck', 'debug-alt-small': 'duck', debug: 'duck', bug: 'duck',
   'extensions-view-icon': 'blocksBar', extensions: 'blocks',
   'test-view-icon': 'hedronCheckBar', beaker: 'hedronCheck', pass: 'hedronCheck', 'pass-filled': 'hedronCheck',
@@ -526,6 +580,7 @@ const CONTRIBUTED = {
   'bureau-badge': ['badge', 'CONTROL: full set (Bureau badge)'],
   'bureau-duck': ['duck', 'CONTROL: product icons (the rubber duck)'],
   'bureau-threshold': ['threshold', 'CONTROL: follow the system light/dark mode (the Threshold)'],
+  'bureau-terminal': ['prompt', 'CONTROL: the Bureau terminal (prompt)'],
 };
 
 // --- Generación ----------------------------------------------------------------

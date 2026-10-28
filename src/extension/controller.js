@@ -17,6 +17,7 @@ const rules = require('./rules');
 // de las funciones que lo usan: con los sonidos desactivados no se evalúa.
 const { readActiveThemeLabel, THEME_SETTING_KEYS } = require('./theme-state');
 const { eventLabel } = require('./labels');
+const { inEditorTab } = require('./documents');
 
 /** Espera tras el último cambio de diagnósticos antes de contar errores. */
 const ERROR_SETTLE_MS = 1200;
@@ -79,6 +80,8 @@ class SoundController {
     this.typingFiles = new Map();
     this.lastThemeLabel = this.activeThemeLabel();
     this.playerWarned = false;
+    /** Cuántas veces se ha empezado a vigilar los commits (ver watchGitCommits). */
+    this.gitRun = 0;
     /**
      * Últimos sonidos reproducidos. Lo usa el test de integración a través
      * de la API que devuelve `activate()`.
@@ -112,16 +115,17 @@ class SoundController {
 
     d.push(
       vscode.workspace.onWillSaveTextDocument((e) => {
-        if (e.reason === vscode.TextDocumentSaveReason.Manual) this.manualSaves.add(e.document.uri.toString());
+        if (e.reason === vscode.TextDocumentSaveReason.Manual && inEditorTab(e.document)) this.manualSaves.add(e.document.uri.toString());
       }),
       vscode.workspace.onDidSaveTextDocument((doc) => {
         if (this.manualSaves.delete(doc.uri.toString())) this.play('save');
-        if (this.config.errorTrigger === 'onSave') this.scheduleErrorCheck();
+        if (this.config.errorTrigger === 'onSave' && inEditorTab(doc)) this.scheduleErrorCheck();
       }),
       vscode.workspace.onDidChangeTextDocument((e) => {
         if (e.contentChanges.length === 0 || !EDITABLE_SCHEMES.has(e.document.uri.scheme)) return;
-        this.errors?.edited();
-        if (this.config.events.typing && e.document === vscode.window.activeTextEditor?.document) this.onTyping();
+        const active = e.document === vscode.window.activeTextEditor?.document;
+        if (active || inEditorTab(e.document)) this.errors?.edited();
+        if (this.config.events.typing && active) this.onTyping();
       }),
       vscode.languages.onDidChangeDiagnostics(() => this.onDiagnosticsChanged()),
       vscode.tasks.onDidEndTaskProcess((e) => {
@@ -266,11 +270,13 @@ class SoundController {
   // --- Git ------------------------------------------------------------------
 
   async watchGitCommits() {
+    // Apagar y encender mientras Git arranca: solo cuenta el último encendido (si no, cada commit sonaría dos veces).
+    const run = ++this.gitRun;
     try {
       const ext = vscode.extensions.getExtension('vscode.git');
       if (!ext) return;
       const exports = ext.isActive ? ext.exports : await ext.activate();
-      if (!this.started) return;
+      if (!this.started || run !== this.gitRun) return;
       const api = exports?.getAPI?.(1);
       if (!api) return;
       const watch = (/** @type {any} */ repo) => {

@@ -49,6 +49,8 @@ while ($true) {
 `;
 
 const MAX_RESTARTS = 3;
+/** Un proceso que ha durado esto ya no es un fallo al arrancar. */
+const STABLE_MS = 60_000;
 
 /** Ruta absoluta a powershell.exe (no depende del PATH). */
 function powershellPath() {
@@ -73,6 +75,7 @@ function createWindowsPlayer(log) {
   let disposed = false;
 
   function start() {
+    const startedAt = Date.now();
     const encoded = Buffer.from(SCRIPT, 'utf16le').toString('base64');
     const child = spawn(powershellPath(), ['-NoLogo', '-NoProfile', '-NonInteractive', '-EncodedCommand', encoded], {
       windowsHide: true,
@@ -91,6 +94,8 @@ function createWindowsPlayer(log) {
     child.on('error', (err) => log.warn(`Could not start PowerShell: ${err.message}`));
     child.on('exit', (code) => {
       if (proc === child) proc = null;
+      // Solo cuentan los fallos seguidos: uno que ha funcionado un rato (y se cerró, por ejemplo al suspender el equipo) no acerca al límite.
+      if (Date.now() - startedAt > STABLE_MS) restarts = 0;
       if (!disposed) log.warn(`PowerShell audio player exited unexpectedly (code ${code}); it will restart on the next sound.`);
     });
     child.stdin.on('error', () => {}); // el proceso pudo cerrarse entre dos sonidos

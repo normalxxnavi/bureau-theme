@@ -24,10 +24,6 @@ const POLL_MS = 3000;
 const POPUP_TEXT = 120;
 /** Comandos que se pueden pulsar desde el popup. */
 const POPUP_COMMANDS = ['bureauTheme.musicPrevious', 'bureauTheme.musicPlayPause', 'bureauTheme.musicNext', 'bureauTheme.openSoundtrack'];
-/** Colores de las pastillas del popup. */
-const RED = '#E0352B';
-const BADGE = { background: 'var(--vscode-badge-background)', color: 'var(--vscode-badge-foreground)' };
-
 /** @returns {{enabled: boolean, onlySpotify: boolean, controls: boolean}} */
 function readMusicConfig() {
   const c = vscode.workspace.getConfiguration(MUSIC);
@@ -76,6 +72,9 @@ class Jukebox {
     this.coverFor = '';
     /** Lo que muestra ahora el popup (para no rehacerlo si no cambia). */
     this.popupKey = '';
+    /** Hay una lectura en curso, y otra pedida mientras tanto. */
+    this.reading = false;
+    this.readAgain = false;
   }
 
   init() {
@@ -131,6 +130,7 @@ class Jukebox {
 
   stop() {
     this.started = false;
+    this.readAgain = false;
     clearTimeout(this.timer);
     this.focusListener?.dispose();
     this.focusListener = undefined;
@@ -144,14 +144,39 @@ class Jukebox {
     this.popupKey = '';
   }
 
+  /**
+   * Lee lo que suena y programa la siguiente lectura. Una sola a la vez: si
+   * llega otra petición (volver a la ventana, un control) mientras lee, se
+   * vuelve a leer al terminar. Sin esto, cada lectura solapada dejaba su
+   * propio temporizador y las lecturas se iban multiplicando.
+   */
   async poll() {
     clearTimeout(this.timer);
     if (!this.started || !this.source) return;
-    const track = await this.source.read().catch(() => null);
+    if (this.reading) {
+      this.readAgain = true;
+      return;
+    }
+    this.reading = true;
+    const source = this.source;
+    try {
+      const track = await source.read().catch(() => null);
+      // Apagada (o cambiada de fuente) mientras leía: esta lectura ya no cuenta.
+      if (this.started && this.source === source) {
+        this.track = track;
+        this.loadCover();
+        this.render();
+      }
+    } finally {
+      this.reading = false;
+    }
     if (!this.started) return;
-    this.track = track;
-    this.loadCover();
-    this.render();
+    if (this.readAgain) {
+      this.readAgain = false;
+      this.poll();
+      return;
+    }
+    clearTimeout(this.timer);
     if (vscode.window.state.focused) this.timer = setTimeout(() => this.poll(), POLL_MS);
   }
 
@@ -191,8 +216,8 @@ class Jukebox {
         t.artist ? H.escapeHtml(parse.clip(t.artist, POPUP_TEXT)) : '',
         t.album ? `<i>${H.escapeHtml(parse.clip(t.album, POPUP_TEXT))}</i>` : '',
         [
-          playing ? H.pill(`● ${vscode.l10n.t('PLAYING')}`, RED) : H.pill(`❚❚ ${vscode.l10n.t('PAUSED')}`, BADGE.background, BADGE.color),
-          H.pill(parse.appName(t.app).toUpperCase(), BADGE.background, BADGE.color),
+          playing ? H.pill(`● ${vscode.l10n.t('PLAYING')}`, H.ACCENT.background, H.ACCENT.color) : H.pill(`❚❚ ${vscode.l10n.t('PAUSED')}`, H.NEUTRAL.background, H.NEUTRAL.color),
+          H.pill(parse.appName(t.app).toUpperCase(), H.NEUTRAL.background, H.NEUTRAL.color),
         ].join(' '),
       ].filter(Boolean),
       rows: [
@@ -226,7 +251,7 @@ class Jukebox {
     }
     H.setItem(title, {
       text: `$(bureau-jukebox) ${parse.statusText(t)}`,
-      accessibilityInformation: { label: `${vscode.l10n.t('Songmaster Jukebox')}: ${t.artist} ${t.title}`, role: 'button' },
+      accessibilityInformation: { label: `${vscode.l10n.t('Songmaster Jukebox')}: ${[t.title, t.artist].filter(Boolean).join(', ')}`, role: 'button' },
       visible: true,
     });
     const controls = readMusicConfig().controls;

@@ -2,7 +2,7 @@
   "name": "bureau-theme",
   "displayName": "%displayName%",
   "description": "%description%",
-  "version": "0.7.720102026",
+  "version": "0.8.828102026",
   "preview": true,
   "publisher": "Normalxxnavi",
   "author": {
@@ -53,13 +53,13 @@
     "bureau",
     "sound effects",
     "typography",
-    "font",
+    "terminal prompt",
     "wcag",
     "accessible"
   ],
   "main": "./dist/extension.js",
   "activationEvents": [
-    "onStartupFinished"
+    "*"
   ],
   "extensionKind": [
     "ui",
@@ -264,6 +264,31 @@
         "command": "bureauTheme.openSoundtrack",
         "title": "%command.openSoundtrack%",
         "category": "CONTROL"
+      },
+      {
+        "command": "bureauTheme.terminalMenu",
+        "title": "%command.terminalMenu%",
+        "category": "CONTROL"
+      },
+      {
+        "command": "bureauTheme.chooseTerminalPrompt",
+        "title": "%command.chooseTerminalPrompt%",
+        "category": "CONTROL"
+      },
+      {
+        "command": "bureauTheme.newBureauTerminal",
+        "title": "%command.newBureauTerminal%",
+        "category": "CONTROL"
+      },
+      {
+        "command": "bureauTheme.installTerminalPrompt",
+        "title": "%command.installTerminalPrompt%",
+        "category": "CONTROL"
+      },
+      {
+        "command": "bureauTheme.uninstallTerminalPrompt",
+        "title": "%command.uninstallTerminalPrompt%",
+        "category": "CONTROL"
       }
     ],
     "walkthroughs": [
@@ -333,6 +358,19 @@
             "completionEvents": [
               "onSettingChanged:bureauTheme.font",
               "onCommand:bureauTheme.chooseFont"
+            ]
+          },
+          {
+            "id": "terminal",
+            "title": "%walkthrough.terminal.title%",
+            "description": "%walkthrough.terminal.description%",
+            "media": {
+              "svg": "media/walkthrough/terminal.svg",
+              "altText": "%walkthrough.terminal.alt%"
+            },
+            "completionEvents": [
+              "onSettingChanged:bureauTheme.terminal.prompt",
+              "onCommand:bureauTheme.newBureauTerminal"
             ]
           },
           {
@@ -772,6 +810,140 @@
             "description": "%config.music.controls%"
           }
         }
+      },
+      {
+        "title": "%config.terminal.title%",
+        "order": 5,
+        "properties": {
+          "bureauTheme.terminal.prompt": {
+            "type": "string",
+            "enum": [
+              "off",
+              "signage",
+              "dossier",
+              "controlPoint",
+              "board",
+              "alertLevel"
+            ],
+            "enumDescriptions": [
+              "%config.terminal.prompt.off%",
+              "%config.terminal.prompt.signage%",
+              "%config.terminal.prompt.dossier%",
+              "%config.terminal.prompt.controlPoint%",
+              "%config.terminal.prompt.board%",
+              "%config.terminal.prompt.alertLevel%"
+            ],
+            "default": "off",
+            "scope": "application",
+            "order": 0,
+            "markdownDescription": "%config.terminal.prompt%"
+          },
+          "bureauTheme.terminal.classified": {
+            "type": "boolean",
+            "default": false,
+            "scope": "application",
+            "order": 1,
+            "markdownDescription": "%config.terminal.classified%"
+          },
+          "bureauTheme.terminal.icons": {
+            "type": "boolean",
+            "default": true,
+            "scope": "application",
+            "order": 2,
+            "markdownDescription": "%config.terminal.icons%"
+          },
+          "bureauTheme.terminal.windowsIcon": {
+            "type": "string",
+            "enum": [
+              "controlPoints",
+              "house"
+            ],
+            "enumDescriptions": [
+              "%config.terminal.windowsIcon.controlPoints%",
+              "%config.terminal.windowsIcon.house%"
+            ],
+            "default": "controlPoints",
+            "scope": "application",
+            "order": 3,
+            "description": "%config.terminal.windowsIcon%"
+          },
+          "bureauTheme.terminal.macosIcon": {
+            "type": "string",
+            "enum": [
+              "command",
+              "apple"
+            ],
+            "enumDescriptions": [
+              "%config.terminal.macosIcon.command%",
+              "%config.terminal.macosIcon.apple%"
+            ],
+            "default": "command",
+            "scope": "application",
+            "order": 4,
+            "description": "%config.terminal.macosIcon%"
+          },
+          "bureauTheme.terminal.linuxIcon": {
+            "type": "string",
+            "enum": [
+              "tux",
+              "tuxMop"
+            ],
+            "enumDescriptions": [
+              "%config.terminal.linuxIcon.tux%",
+              "%config.terminal.linuxIcon.tuxMop%"
+            ],
+            "default": "tux",
+            "scope": "application",
+            "order": 5,
+            "description": "%config.terminal.linuxIcon%"
+          },
+          "bureauTheme.terminal.commandFrame": {
+            "type": "boolean",
+            "default": true,
+            "scope": "application",
+            "order": 6,
+            "markdownDescription": "%config.terminal.commandFrame%"
+          },
+          "bureauTheme.terminal.gitColors": {
+            "type": "boolean",
+            "default": true,
+            "scope": "application",
+            "order": 7,
+            "markdownDescription": "%config.terminal.gitColors%"
+          },
+          "bureauTheme.terminal.newTerminals": {
+            "type": "boolean",
+            "default": true,
+            "scope": "application",
+            "order": 8,
+            "markdownDescription": "%config.terminal.newTerminals%"
+          },
+          "bureauTheme.terminal.shell": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "pwsh",
+              "powershell",
+              "cmd",
+              "bash",
+              "zsh",
+              "fish"
+            ],
+            "enumDescriptions": [
+              "%config.terminal.shell.auto%",
+              "PowerShell 7 (pwsh)",
+              "Windows PowerShell",
+              "%config.terminal.shell.cmd%",
+              "bash (Git Bash on Windows)",
+              "zsh",
+              "fish"
+            ],
+            "default": "auto",
+            "scope": "machine",
+            "order": 9,
+            "markdownDescription": "%config.terminal.shell%"
+          }
+        }
       }
     ],
     "colors": [
@@ -905,7 +1077,23 @@
           "fontPath": "./product-icons/bureau-product-icons.woff",
           "fontCharacter": "\\E023"
         }
+      },
+      "bureau-terminal": {
+        "description": "CONTROL: the Bureau terminal (prompt)",
+        "default": {
+          "fontPath": "./product-icons/bureau-product-icons.woff",
+          "fontCharacter": "\\E028"
+        }
       }
+    },
+    "terminal": {
+      "profiles": [
+        {
+          "id": "bureauTheme.terminal",
+          "title": "Bureau",
+          "icon": "bureau-terminal"
+        }
+      ]
     }
   },
   "scripts": {
@@ -922,16 +1110,20 @@
     "icon": "node scripts/icon.js",
     "walkthrough": "node scripts/walkthrough.js",
     "screenshots": "node scripts/screenshots/index.js",
-    "test": "node --test \"test/*.test.js\"",
+    "test": "node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=./scripts/lib/gha-reporter.js --test-reporter-destination=stdout \"test/*.test.js\"",
     "test:integration": "npm run bundle && node scripts/integration.js",
     "test:jukebox": "node scripts/jukebox-check.js",
+    "test:popups": "npm run bundle && node scripts/popup-check.js",
     "version:next": "node scripts/version.js",
-    "check": "npm run build && npm run typecheck && npm run contrast && npm run validate && npm test",
-    "package": "vsce package",
+    "release:check": "node scripts/release-check.js",
+    "check": "npm run build && npm run typecheck && npm run contrast && npm run validate && npm test && npm run package",
+    "package": "node scripts/package-local.js",
     "install:local": "node scripts/install-local.js",
     "vscode:prepublish": "npm run build && npm run contrast && npm test",
-    "generate": "npm run build && node scripts/icons.js && node scripts/product-icons.js && node scripts/walkthrough.js",
-    "download-vscode": "node scripts/download-vscode.js"
+    "vscode:uninstall": "node ./dist/uninstall.js",
+    "generate": "npm run build && node scripts/icons.js && node scripts/product-icons.js && node scripts/prompt-icons.js && node scripts/walkthrough.js && npm run package",
+    "download-vscode": "node scripts/download-vscode.js",
+    "prompt-icons": "node scripts/prompt-icons.js"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
@@ -946,5 +1138,8 @@
     "typescript": "^7.0.2",
     "vscode-oniguruma": "^2.0.1",
     "vscode-textmate": "^9.2.0"
+  },
+  "overrides": {
+    "@azure/msal-node": "^7.1.0"
   }
 }

@@ -15,6 +15,8 @@
  *   - Resonant → Space Mono / Space Grotesk, geométricas y retrofuturistas.
  */
 
+const { PROMPT_FONT, withPromptIcons } = require('./prompt-config');
+
 /** @typedef {'bureau' | 'resonant'} FontSetId */
 /** @typedef {'none' | 'bureau' | 'resonant' | 'auto'} FontMode */
 
@@ -58,20 +60,68 @@ const FONT_SETTINGS = {
   'markdown.preview.fontFamily': 'text',
 };
 
-/** Lista de fuentes en formato CSS, con una genérica al final. */
-const fontStack = (/** @type {string[]} */ names, /** @type {string} */ generic) => [...names.map((n) => `'${n}'`), generic].join(', ');
+/**
+ * Lista de fuentes en formato CSS, con una genérica al final. `fallback` (otra
+ * lista CSS, la que tenía el usuario) va detrás de las del juego: si esas
+ * fuentes ya no están (al desinstalar la extensión se borran), VS Code usa la
+ * del usuario sin tocar sus ajustes.
+ * @param {string[]} names @param {string} generic @param {string} [fallback]
+ */
+function fontStack(names, generic, fallback = '') {
+  const unquote = (/** @type {string} */ f) => f.replace(/^(['"])(.*)\1$/, '$2');
+  const rest = fallback
+    .split(',')
+    .map((f) => f.trim())
+    .filter((f) => f && !names.includes(unquote(f)));
+  if (!rest.includes(generic)) rest.push(generic);
+  return [...names.map((n) => `'${n}'`), ...rest].join(', ');
+}
+
+/**
+ * La fuente que había antes en cada ajuste: el valor del usuario o, si no lo
+ * cambió, el de VS Code. «default» y "" no son fuentes: significan «la del
+ * editor» (o la de la interfaz, en el chat y la vista previa).
+ * @param {Record<string, unknown>} backup valores del usuario antes de aplicar la tipografía
+ * @param {Record<string, unknown>} defaults valores por defecto de VS Code
+ * @returns {Record<string, string>}
+ */
+function fallbackFonts(backup, defaults) {
+  const stack = (/** @type {unknown} */ v) => (typeof v === 'string' && v.trim() && v.trim().toLowerCase() !== 'default' ? v.trim() : '');
+  const editor = stack(backup['editor.fontFamily']) || stack(defaults['editor.fontFamily']);
+  return Object.fromEntries(
+    Object.entries(FONT_SETTINGS).map(([key, kind]) => [key, stack(backup[key]) || stack(defaults[key]) || (kind === 'mono' ? editor : 'system-ui')])
+  );
+}
 
 /**
  * Valores de los ajustes para un juego de fuentes.
  * @param {FontSetId} id
+ * @param {Record<string, string>} [fallbacks] la fuente anterior de cada ajuste (`fallbackFonts`)
  * @returns {Record<string, string>}
  */
-function settingsFor(id) {
+function settingsFor(id, fallbacks = {}) {
   const set = FONT_SETS[id];
   return Object.fromEntries(
-    Object.entries(FONT_SETTINGS).map(([key, kind]) => [key, kind === 'mono' ? fontStack(set.mono, 'monospace') : fontStack(set.text, 'sans-serif')])
+    Object.entries(FONT_SETTINGS).map(([key, kind]) => [
+      key,
+      kind === 'mono' ? fontStack(set.mono, 'monospace', fallbacks[key]) : fontStack(set.text, 'sans-serif', fallbacks[key]),
+    ])
   );
 }
+
+/**
+ * ¿Es este valor uno de los que escribe la extensión en el ajuste? Con la
+ * fuente anterior detrás o sin ella (como hasta la 0.7).
+ * @param {string} key @param {unknown} value @param {Record<string, string>} fallbacks
+ */
+function isOwnValue(key, value, fallbacks) {
+  // La fuente de iconos de la terminal Bureau puede ir en la lista: no cuenta.
+  const v = withoutPromptIcons(value);
+  return /** @type {FontSetId[]} */ (Object.keys(FONT_SETS)).some((id) => v === settingsFor(id, fallbacks)[key] || v === settingsFor(id)[key]);
+}
+
+/** El valor de un ajuste de fuente sin la fuente de iconos del prompt. @param {unknown} value */
+const withoutPromptIcons = (value) => (typeof value === 'string' && value.includes(PROMPT_FONT.family) ? withPromptIcons(value, false) : value);
 
 /**
  * Qué juego de fuentes corresponde al modo elegido y al tema activo.
@@ -88,14 +138,14 @@ function resolveFontSet(mode, themeLabel) {
 
 /**
  * ¿Los ajustes actuales ya son los de este juego de fuentes?
- * @param {Record<string, unknown>} current @param {FontSetId} id
+ * @param {Record<string, unknown>} current @param {FontSetId} id @param {Record<string, string>} [fallbacks]
  */
-function isApplied(current, id) {
-  const wanted = settingsFor(id);
+function isApplied(current, id, fallbacks = {}) {
+  const wanted = settingsFor(id, fallbacks);
   return Object.keys(wanted).every((k) => current[k] === wanted[k]);
 }
 
 /** Nombre del valor en el registro de Windows («Overpass Mono (TrueType)»). */
 const registryName = (/** @type {{family: string, style: string}} */ f) => `${f.family}${f.style ? ` ${f.style}` : ''} (TrueType)`;
 
-module.exports = { FONT_SETS, FONT_SETTINGS, fontStack, settingsFor, resolveFontSet, isApplied, registryName };
+module.exports = { FONT_SETS, FONT_SETTINGS, fontStack, fallbackFonts, settingsFor, isOwnValue, withoutPromptIcons, resolveFontSet, isApplied, registryName };

@@ -12,10 +12,9 @@
 
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
-const pkg = require('../package.json');
+const { packageVsix } = require('./package-local');
 
 const ROOT = path.resolve(__dirname, '..');
-const vsix = path.join(ROOT, `${pkg.name}-${pkg.version}.vsix`);
 
 /** @param {string} cmd @param {string[]} args */
 function run(cmd, args) {
@@ -24,7 +23,7 @@ function run(cmd, args) {
 }
 
 // 1) Empaquetar (antes ejecuta build, contraste y tests: vscode:prepublish).
-run(process.execPath, [path.join(ROOT, 'node_modules', '@vscode', 'vsce', 'vsce'), 'package', '--out', vsix]);
+const vsix = packageVsix();
 
 // 2) Instalar o reinstalar en el VS Code del usuario. En Windows `code` es un .cmd.
 if (process.platform === 'win32') run('cmd.exe', ['/d', '/c', 'code', '--install-extension', vsix, '--force']);

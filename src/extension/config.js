@@ -51,6 +51,8 @@ function normalizeConfig(get) {
  */
 const FONT_SETTING = 'bureauTheme.font';
 const FONT_APPLIED_KEY = 'fontApplied';
+/** true cuando los ajustes de fuente llevan detrás la fuente anterior del usuario (desde la 0.8). */
+const FONT_FALLBACK_KEY = 'fontFallback';
 
 /** Protocolos de la Agencia: Modo Clasificado, nivel de alerta y comentarios del Consejo. */
 const CLASSIFIED = 'bureauTheme.classified';
@@ -67,8 +69,35 @@ const PROTOCOL_SWITCHES = {
 /** La gramola Songmaster (la música que suena en el ordenador). */
 const MUSIC = 'bureauTheme.music';
 
+/**
+ * La terminal Bureau: el estilo del prompt (`off` = apagado) y claves de estado
+ * (globalState). Aquí para que extension.js decida al arrancar si carga el
+ * módulo sin cargarlo, y para que las tipografías sepan de su fuente de iconos.
+ */
+const TERMINAL_PROMPT = 'bureauTheme.terminal.prompt';
+/** Hay algo de la terminal Bureau aplicado (perfil predeterminado, fuente…) que deshacer. */
+const TERMINAL_ACTIVE_KEY = 'terminalActive';
+/** Versión de la extensión con la que se instaló la fuente de iconos del prompt. */
+const TERMINAL_FONT_INSTALLED_KEY = 'terminalIconFontInstalled';
+
 /** Icono CONTROL de la barra de estado (abre el panel). Antes era solo de sonido y se llamaba así: */
 const STATUS_BAR_ITEM = 'bureauTheme.statusBarItem';
 const LEGACY_STATUS_BAR_ITEM = 'bureauTheme.sounds.statusBarItem';
 
-module.exports = { SECTION, normalizeConfig, FONT_SETTING, FONT_APPLIED_KEY, CLASSIFIED, ALERT, BOARD, PROTOCOL_SWITCHES, MUSIC, STATUS_BAR_ITEM, LEGACY_STATUS_BAR_ITEM };
+module.exports = {
+  SECTION,
+  normalizeConfig,
+  FONT_SETTING,
+  FONT_APPLIED_KEY,
+  FONT_FALLBACK_KEY,
+  CLASSIFIED,
+  ALERT,
+  BOARD,
+  PROTOCOL_SWITCHES,
+  MUSIC,
+  TERMINAL_PROMPT,
+  TERMINAL_ACTIVE_KEY,
+  TERMINAL_FONT_INSTALLED_KEY,
+  STATUS_BAR_ITEM,
+  LEGACY_STATUS_BAR_ITEM,
+};

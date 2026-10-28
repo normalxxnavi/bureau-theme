@@ -4,7 +4,7 @@
 /**
  * La Casa Inmemorial: todo el tema en un menú (QuickPick) sin abrir
  * settings.json — tema de color, set completo, iconos, modo claro/oscuro del
- * sistema, tipografía, sonidos (la consola de sonido), la gramola y las
+ * sistema, tipografía, la terminal Bureau (su propio menú), sonidos (la consola de sonido), la gramola y las
  * bandas sonoras, y los protocolos de la Agencia (el Consejo con su propio
  * menú). Se abre con el icono del edificio en la barra de estado o con
  * «CONTROL: Abrir la Casa Inmemorial…», y se carga la primera vez.
@@ -14,7 +14,7 @@
  */
 
 const vscode = require('vscode');
-const { SECTION, FONT_SETTING, MUSIC } = require('./config');
+const { SECTION, FONT_SETTING, MUSIC, TERMINAL_PROMPT } = require('./config');
 const { readActiveThemeLabel } = require('./theme-state');
 // En el paquete son archivos aparte (scripts/bundle.js): no se duplican.
 const setup = require('./setup');
@@ -67,9 +67,10 @@ async function pickIconTheme(setting, list, title) {
  *   typography: () => InstanceType<typeof import('./fonts').FontController>,
  *   status: InstanceType<typeof import('./status').ControlStatus>,
  *   music: () => InstanceType<typeof import('./music').Jukebox>,
+ *   terminal: () => InstanceType<typeof import('./terminal-prompt').TerminalPrompt>,
  * }} deps
  */
-async function openControlPanel({ context, sounds, typography, status, music }) {
+async function openControlPanel({ context, sounds, typography, status, music, terminal }) {
   for (;;) {
     const c = vscode.workspace.getConfiguration();
     const on = (/** @type {boolean} */ value) => (value ? vscode.l10n.t('Enabled') : vscode.l10n.t('Disabled'));
@@ -92,6 +93,12 @@ async function openControlPanel({ context, sounds, typography, status, music }) 
         action: 'followSystem',
       },
       { label: `$(symbol-text) ${vscode.l10n.t('Typography')}`, description: typographyName(c.get(FONT_SETTING)), action: 'typography' },
+      {
+        label: `$(bureau-terminal) ${vscode.l10n.t('Bureau terminal…')}`,
+        description: c.get(TERMINAL_PROMPT) === 'off' || !c.get(TERMINAL_PROMPT) ? vscode.l10n.t('Disabled') : terminal().summary(),
+        detail: vscode.l10n.t('The prompt of PowerShell, cmd, bash, zsh and fish, with the system icon.'),
+        action: 'terminal',
+      },
       { label: vscode.l10n.t('Sound and music'), kind: vscode.QuickPickItemKind.Separator },
       {
         label: `${soundsOn ? '$(bureau-resonance)' : '$(bureau-resonance-off)'} ${vscode.l10n.t('Sounds')}`,
@@ -141,6 +148,9 @@ async function openControlPanel({ context, sounds, typography, status, music }) 
         break;
       case 'typography':
         await typography().choose();
+        break;
+      case 'terminal':
+        await terminal().openMenu();
         break;
       case 'sounds':
         await require('./sound-menu').openSoundMenu(sounds());

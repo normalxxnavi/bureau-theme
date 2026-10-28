@@ -162,6 +162,20 @@ function star(cx, cy, n, r, ri, rm = r) {
   return solid(p);
 }
 
+/**
+ * Triángulo radial (un cristal de Polaris): la base, de medio ancho `hw`, a `r0`
+ * del centro y la punta a `r1`, en la dirección `deg` (grados). Las coordenadas
+ * se redondean: una base horizontal o vertical cae justo en su píxel, sin restos
+ * de coma flotante.
+ * @param {number} cx @param {number} cy @param {number} deg @param {number} r0 @param {number} r1 @param {number} hw
+ */
+function shard(cx, cy, deg, r0, r1, hw) {
+  const a = (deg * Math.PI) / 180;
+  const [c, s] = [Math.cos(a), Math.sin(a)];
+  const r = (/** @type {number} */ v) => Math.round(v * 1e6) / 1e6;
+  return poly([r(cx + r0 * c - s * hw), r(cy + r0 * s + c * hw)], [r(cx + r1 * c), r(cy + r1 * s)], [r(cx + r0 * c + s * hw), r(cy + r0 * s - c * hw)]);
+}
+
 /** Polígono regular. `rot` en grados. @param {number} cx @param {number} cy @param {number} r @param {number} n @param {number} [rot] */
 function regular(cx, cy, r, n, rot = -90) {
   /** @type {Poly} */
@@ -188,4 +202,4 @@ const toPath = (/** @type {Poly[]} */ polys) => polys.map((p) => `M${p.map(([x, 
 /** Invierte polígonos: lo relleno pasa a hueco y al revés (para calar una forma en otra). @param {Poly[]} polys */
 const invert = (polys) => polys.map((p) => /** @type {Poly} */ ([...p].reverse()));
 
-module.exports = { area, solid, hole, rect, poly, cut, cutRect, frame, octagon, octRing, stroke, ring, cross, star, regular, move, scale, invert, art, toPath };
+module.exports = { area, solid, hole, rect, poly, cut, cutRect, frame, octagon, octRing, stroke, ring, cross, star, shard, regular, move, scale, invert, art, toPath };
