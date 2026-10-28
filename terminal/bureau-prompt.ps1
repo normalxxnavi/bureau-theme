@@ -374,11 +374,17 @@ if (-not (Test-Path variable:global:__BureauState)) {
           # PowerShell that is an OEM code page without the icons, so UTF-8 only
           # while it redraws.
           $encoding = [Console]::OutputEncoding
+          # The shell integration of older VS Code versions (1.93...) would take
+          # this redraw for the end of the previous command, with no exit code:
+          # with -1 it skips it, as before the first command.
+          $vscode = Test-Path variable:global:__LastHistoryId
+          if ($vscode) { $lastId = $global:__LastHistoryId; $global:__LastHistoryId = -1 }
           try {
             if ($encoding.CodePage -ne 65001) { [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false) }
             [Microsoft.PowerShell.PSConsoleReadLine]::InvokePrompt()
           } finally {
             if ([Console]::OutputEncoding.CodePage -ne $encoding.CodePage) { [Console]::OutputEncoding = $encoding }
+            if ($vscode) { $global:__LastHistoryId = $lastId }
           }
         }
       }

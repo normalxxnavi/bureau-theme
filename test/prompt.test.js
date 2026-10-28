@@ -538,7 +538,8 @@ const has = (cmd, args) => {
 
 /** Carpeta temporal con el script y su prompt.conf. @param {string} file */
 function scratch(file) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bureau-prompt-'));
+  // Con la ruta larga: en los runners de Windows la carpeta temporal es C:\Users\RUNNER~1\… y PowerShell la expande.
+  const dir = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), 'bureau-prompt-')));
   fs.copyFileSync(path.join(ROOT, 'terminal', file), path.join(dir, file));
   return dir;
 }

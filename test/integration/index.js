@@ -46,6 +46,25 @@ async function within(/** @type {Thenable<any>} */ promise, /** @type {string} *
 }
 
 /**
+ * Las últimas líneas que se ven en la terminal (por el portapapeles), para que
+ * un fallo diga qué ha pasado en ella: en la CI no hay otra forma de verlo.
+ * @param {vscode.Terminal} t
+ */
+async function terminalText(t) {
+  try {
+    t.show(false);
+    await sleep(500);
+    await vscode.commands.executeCommand('workbench.action.terminal.selectAll');
+    await vscode.commands.executeCommand('workbench.action.terminal.copySelection');
+    await vscode.commands.executeCommand('workbench.action.terminal.clearSelection');
+    const lines = (await vscode.env.clipboard.readText()).split(/\r?\n/).map((l) => l.trimEnd()).filter(Boolean);
+    return lines.length ? lines.slice(-15).join(' ⏎ ') : '(vacía)';
+  } catch (err) {
+    return `(no se pudo leer: ${/** @type {Error} */ (err).message})`;
+  }
+}
+
+/**
  * Cierra con Esc el menú que ha abierto `command` y espera a que el comando
  * termine. Insiste hasta que se cierra: en un runner lento el menú puede
  * tardar en salir, y un Esc antes de tiempo lo dejaría abierto para siempre.
@@ -227,14 +246,18 @@ async function run() {
     const ended = new Map();
     const endSub = vscode.window.onDidEndTerminalShellExecution((e) => ended.set(e.execution, e.exitCode));
     const t = vscode.window.createTerminal(shellOptions);
+    /** Con lo que se ve en la terminal en el mensaje. @param {Error} err @returns {Promise<never>} */
+    const withScreen = async (err) => {
+      throw new Error(`${err.message} · en la terminal: ${await terminalText(t)}`);
+    };
     try {
       at(`integración de shell (${shell})`);
-      await waitFor(() => t.shellIntegration !== undefined, `integración de shell en la terminal Bureau (${shell})`, 30000);
+      await waitFor(() => t.shellIntegration !== undefined, `integración de shell en la terminal Bureau (${shell})`, 30000).catch(withScreen);
       for (const command of ['echo bureau', 'echo control']) {
         at(`${command} en ${shell}`);
         const execution = /** @type {vscode.TerminalShellIntegration} */ (t.shellIntegration).executeCommand(command);
-        await waitFor(() => ended.has(execution), `el final de «${command}» en ${shell}`, 20000);
-        assert.equal(ended.get(execution), 0, command);
+        await waitFor(() => ended.has(execution), `el final de «${command}» en ${shell}`, 20000).catch(withScreen);
+        if (ended.get(execution) !== 0) await withScreen(new Error(`«${command}» en ${shell} terminó con el código ${ended.get(execution)}`));
       }
     } finally {
       endSub.dispose();
@@ -252,7 +275,9 @@ async function run() {
     at('apagar el prompt');
     await terminal.update('prompt', 'off', G);
     if (process.env.BUREAU_IT_SHELL) await terminal.update('shell', undefined, G);
-    await waitFor(() => cfg().inspect(profileKey)?.globalValue === profileBefore, 'vuelve el perfil predeterminado anterior', 20000);
+    await waitFor(() => cfg().inspect(profileKey)?.globalValue === profileBefore, 'vuelve el perfil predeterminado anterior', 20000).catch((err) => {
+      throw new Error(`${err.message} (${profileKey} = ${JSON.stringify(cfg().inspect(profileKey)?.globalValue)}, antes ${JSON.stringify(profileBefore)}; prompt = ${cfg().get('bureauTheme.terminal.prompt')})`);
+    });
     await within(api.terminalIdle(), 'la sincronización de la terminal Bureau');
     assert.equal(cfg().inspect('terminal.integrated.fontFamily')?.globalValue, fontBefore, 'la fuente de la terminal vuelve a estar como antes');
     assert.match(fs.readFileSync(path.join(options.env.BUREAU_PROMPT_DIR, 'prompt.conf'), 'utf8'), /^style=off$/m, 'las terminales abiertas devuelven tu prompt');

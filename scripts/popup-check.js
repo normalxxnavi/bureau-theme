@@ -28,6 +28,9 @@ const OUT = path.join(ROOT, '.popup-check');
 const PORT = 9339;
 const CI_TITLE = `Popups (${process.platform})`;
 
+/** Por dónde va la comprobación: si se agota el tiempo, el error lo dice. */
+let phase = 'arrancando';
+
 /** @param {string} message */
 function fail(message) {
   console.error(`✘ ${message}`);
@@ -85,14 +88,18 @@ async function main() {
   /** @type {Awaited<ReturnType<typeof connect>> | undefined} */
   let cdp;
   try {
+    phase = 'conectando con la ventana de VS Code';
     cdp = await connect(PORT, 90000);
     /** @type {Array<{id: string, file: string, expect: string[]}>} */
     const checks = [{ id: 'bureauTheme.panel', file: 'oldest-house.png', expect: ['The Oldest House'] }];
     if (testPlayer) checks.push({ id: 'bureauTheme.music', file: 'jukebox.png', expect: [TEST_TRACK.title, TEST_TRACK.artist, TEST_TRACK.album] });
     for (const c of checks) {
       try {
+        phase = `el ratón sobre ${c.id}`;
         await cdp.hoverStatusItem(c.id, 60000);
+        phase = `leyendo el popup de ${c.id}`;
         const p = await cdp.popup();
+        phase = `captura del popup de ${c.id}`;
         await cdp.screenshot(path.join(OUT, c.file));
         for (const text of c.expect) if (!p.text.includes(text)) fail(`${c.id}: el popup no dice «${text}»`);
         if (!p.images || p.loaded !== p.images) fail(`${c.id}: ${p.loaded} de ${p.images} imágenes cargadas`);
@@ -116,7 +123,7 @@ async function main() {
 // Pase lo que pase, la comprobación termina: un VS Code que no contesta no puede dejar la CI parada.
 const WATCHDOG_MS = 5 * 60_000;
 setTimeout(() => {
-  fail(`la comprobación no ha terminado en ${WATCHDOG_MS / 60_000} minutos`);
+  fail(`la comprobación no ha terminado en ${WATCHDOG_MS / 60_000} minutos (iba por: ${phase})`);
   process.exit(1);
 }, WATCHDOG_MS).unref();
 

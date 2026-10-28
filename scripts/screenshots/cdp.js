@@ -30,7 +30,7 @@ async function connect(port, timeoutMs = 60000) {
   let page;
   while (!page) {
     try {
-      const list = /** @type {any[]} */ (await (await fetch(`http://127.0.0.1:${port}/json/list`)).json());
+      const list = /** @type {any[]} */ (await (await fetch(`http://127.0.0.1:${port}/json/list`, { signal: AbortSignal.timeout(5000) })).json());
       page = list.find((/** @type {any} */ t) => t.type === 'page' && /workbench/.test(t.url));
     } catch {
       // VS Code todavía no escucha
@@ -42,8 +42,9 @@ async function connect(port, timeoutMs = 60000) {
   }
   const ws = new WebSocket(page.webSocketDebuggerUrl);
   await new Promise((resolve, reject) => {
-    ws.addEventListener('open', resolve, { once: true });
-    ws.addEventListener('error', reject, { once: true });
+    const timer = setTimeout(() => reject(new Error(`La ventana de VS Code no acepta la conexión de depuración en ${SEND_TIMEOUT_MS / 1000} s`)), SEND_TIMEOUT_MS);
+    ws.addEventListener('open', () => (clearTimeout(timer), resolve(undefined)), { once: true });
+    ws.addEventListener('error', () => (clearTimeout(timer), reject(new Error('Error en la conexión de depuración con VS Code'))), { once: true });
   });
   let id = 0;
   /** @type {Map<number, {resolve: (v: any) => void, reject: (e: Error) => void}>} */
