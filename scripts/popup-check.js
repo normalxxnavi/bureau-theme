@@ -67,6 +67,11 @@ async function main() {
     '--new-window',
     `--extensionDevelopmentPath=${ROOT}`,
     `--remote-debugging-port=${PORT}`,
+    // Sin pantalla de verdad (los runners de la CI), Chromium da la ventana por
+    // tapada y deja de pintarla: ni el ratón virtual ni las capturas avanzarían.
+    '--disable-backgrounding-occluded-windows',
+    '--disable-renderer-backgrounding',
+    '--disable-background-timer-throttling',
   ];
   // Igual que el test de integración: en Linux de la CI, sin sandbox ni GPU.
   if (process.platform === 'linux' && process.env.CI) args.unshift('--no-sandbox', '--disable-gpu');
@@ -107,6 +112,13 @@ async function main() {
   }
   console.log(process.exitCode ? '✘ Popups: hay fallos' : `✔ Popups correctos (capturas en ${OUT})`);
 }
+
+// Pase lo que pase, la comprobación termina: un VS Code que no contesta no puede dejar la CI parada.
+const WATCHDOG_MS = 5 * 60_000;
+setTimeout(() => {
+  fail(`la comprobación no ha terminado en ${WATCHDOG_MS / 60_000} minutos`);
+  process.exit(1);
+}, WATCHDOG_MS).unref();
 
 main().catch((e) => {
   console.error(e);

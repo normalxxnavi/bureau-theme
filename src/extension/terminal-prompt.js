@@ -328,8 +328,9 @@ class TerminalPrompt {
     if (vscode.workspace.getConfiguration().get('terminal.integrated.shellIntegration.enabled') === false) return undefined;
     const file = { pwsh: 'shellIntegration.ps1', powershell: 'shellIntegration.ps1', bash: 'shellIntegration-bash.sh', zsh: 'shellIntegration-rc.zsh', fish: 'shellIntegration.fish' }[kind];
     if (!file) return undefined;
-    const full = path.join(vscode.env.appRoot, 'out', 'vs', 'workbench', 'contrib', 'terminal', 'common', 'scripts', file);
-    return fs.existsSync(full) ? full : undefined;
+    // En common/scripts en los VS Code recientes; en browser/media en los antiguos (1.93…) y en los editores basados en ellos.
+    const terminal = path.join(vscode.env.appRoot, 'out', 'vs', 'workbench', 'contrib', 'terminal');
+    return [path.join(terminal, 'common', 'scripts', file), path.join(terminal, 'browser', 'media', file)].find((f) => fs.existsSync(f));
   }
 
   /** Opciones de la terminal del perfil Bureau. @returns {vscode.TerminalOptions} */

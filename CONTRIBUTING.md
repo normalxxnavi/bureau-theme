@@ -92,7 +92,7 @@ The version is set on `develop`, so `release` only receives merges and tags:
 ```sh
 # on develop, with the work finished
 npm run version:next                  # "version" in package.json and package-lock.json, "## [Unreleased]" → "## [X.Y.Z] — YYYY-MM-DD"
-npm run check
+npm run release:check                 # what the Release workflow checks, on your computer
 git commit -am "X.Y.Z: <summary>"
 git push origin develop
 git switch release
@@ -102,6 +102,8 @@ git tag -a vX.Y.Z -m "Bureau — CONTROL Fan Theme X.Y.Z"
 git push origin vX.Y.Z               # starts the Release workflow
 git switch develop
 ```
+
+`npm run release:check` runs, in order, what the *build* job of the workflow runs — dependency signatures and `npm audit` (new advisories appear any day, even if you change nothing: `npm audit fix` usually fixes them), the beta version scheme, `npm run check`, generated files up to date — and then the integration test in your VS Code (`-- --no-integration` skips it). If it passes, the tag only depends on what differs on macOS and Linux, which is what a release candidate is for. Every job and long step of the workflow has a time limit, so something stuck fails within minutes instead of holding the run for hours, and every failure (a unit test, a step of the integration test, a popup) also shows up as an annotation in the run summary, readable without signing in.
 
 If the release slips to another day, run `npm run version:next` on `develop` again: while the version has no tag, it only updates the date. If a tagged attempt was not published (the workflow failed or you rejected it), `npm run version:next -- --retry` retries the same attempt with today's date (0.7.716102026 → 0.7.720102026) and moves its CHANGELOG section to it.
 
@@ -211,7 +213,7 @@ La versión se pone en `develop`, así que `release` solo recibe merges y tags:
 ```sh
 # en develop, con el trabajo terminado
 npm run version:next                  # "version" en package.json y package-lock.json, "## [Unreleased]" → "## [X.Y.Z] — AAAA-MM-DD"
-npm run check
+npm run release:check                 # lo que comprueba el workflow Release, en tu equipo
 git commit -am "X.Y.Z: <resumen>"
 git push origin develop
 git switch release
@@ -221,6 +223,8 @@ git tag -a vX.Y.Z -m "Bureau — CONTROL Fan Theme X.Y.Z"
 git push origin vX.Y.Z               # arranca el workflow Release
 git switch develop
 ```
+
+`npm run release:check` pasa, en orden, lo que pasa el trabajo *build* del workflow —firmas de las dependencias y `npm audit` (salen avisos nuevos cualquier día aunque no toques nada: normalmente se arreglan con `npm audit fix`), el esquema de versión de la beta, `npm run check` y los archivos generados al día— y después el test de integración en tu VS Code (`-- --no-integration` lo salta). Si pasa, el tag solo depende de lo que cambia en macOS y Linux, que es para lo que está la candidata. Cada trabajo y cada paso largo del workflow tiene un límite de tiempo, así que algo que se cuelga falla en minutos en vez de dejar la ejecución parada horas, y cada fallo (un test unitario, un paso del test de integración, un popup) sale también como anotación en el resumen de la ejecución, que se lee sin iniciar sesión.
 
 Si la subida se retrasa a otro día, vuelve a lanzar `npm run version:next` en `develop`: mientras la versión no tenga tag, solo cambia la fecha. Si un intento con tag no llegó a publicarse (falló el workflow o lo rechazaste), `npm run version:next -- --retry` repite el mismo intento con la fecha de hoy (0.7.716102026 → 0.7.720102026) y le pasa su sección del CHANGELOG.
 

@@ -34,6 +34,34 @@ async function waitFor(/** @type {() => boolean} */ check, /** @type {string} */
   throw new Error(`Tiempo agotado esperando: ${what}`);
 }
 
+/** `promise`, o un error si tarda más de `timeoutMs` (nada se queda esperando para siempre). */
+async function within(/** @type {Thenable<any>} */ promise, /** @type {string} */ what, timeoutMs = 20000) {
+  /** @type {NodeJS.Timeout | undefined} */
+  let timer;
+  try {
+    return await Promise.race([promise, new Promise((_, reject) => (timer = setTimeout(() => reject(new Error(`Tiempo agotado esperando: ${what}`)), timeoutMs)))]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Cierra con Esc el menú que ha abierto `command` y espera a que el comando
+ * termine. Insiste hasta que se cierra: en un runner lento el menú puede
+ * tardar en salir, y un Esc antes de tiempo lo dejaría abierto para siempre.
+ */
+async function closeMenu(/** @type {Thenable<unknown>} */ command, /** @type {string} */ what, timeoutMs = 20000) {
+  let done = false;
+  const finished = Promise.resolve(command).finally(() => (done = true));
+  const end = Date.now() + timeoutMs;
+  while (!done) {
+    if (Date.now() > end) throw new Error(`Tiempo agotado esperando: ${what} se cierra`);
+    await sleep(400);
+    if (!done) await vscode.commands.executeCommand('workbench.action.closeQuickOpen');
+  }
+  await finished;
+}
+
 function silentWav(/** @type {string} */ file) {
   const sr = 8000;
   const data = Buffer.alloc(sr * 0.05 * 2);
@@ -78,16 +106,23 @@ async function run() {
   };
   log(`Test de integración (VS Code ${vscode.version})`);
 
+  /** Por dónde va el paso (`at('…')`): si falla o se bloquea, el error lo dice. */
+  let phase = '';
+  const at = (/** @type {string} */ where) => {
+    phase = where;
+  };
+
   /** Cada paso tiene su propio límite para que un fallo no bloquee el resto. */
   const step = async (/** @type {string} */ name, /** @type {() => Promise<void>} */ fn, timeoutMs = 45000) => {
     const t0 = Date.now();
+    phase = '';
     /** @type {NodeJS.Timeout | undefined} */
     let timer;
     try {
       await Promise.race([fn(), new Promise((_, reject) => (timer = setTimeout(() => reject(new Error('paso bloqueado')), timeoutMs)))]);
       log(`  ✔ ${name} (${Date.now() - t0} ms)`);
     } catch (err) {
-      log(`  ✘ ${name}: ${/** @type {Error} */ (err).message}`);
+      log(`  ✘ ${name}: ${/** @type {Error} */ (err).message}${phase ? ` [en: ${phase}]` : ''}`);
     } finally {
       clearTimeout(timer);
     }
@@ -162,10 +197,13 @@ async function run() {
     const profileBefore = cfg().inspect(profileKey)?.globalValue;
     const fontBefore = cfg().inspect('terminal.integrated.fontFamily')?.globalValue;
 
+    // BUREAU_IT_SHELL=bash (zsh, fish, pwsh…) prueba otro shell que el automático del sistema.
+    if (process.env.BUREAU_IT_SHELL) await terminal.update('shell', process.env.BUREAU_IT_SHELL, G);
+    at('encender el prompt');
     await terminal.update('prompt', 'signage', G);
     await waitFor(() => api.terminalIdle() !== undefined, 'terminal Bureau cargada');
     await waitFor(() => cfg().inspect(profileKey)?.globalValue === 'Bureau', 'el perfil Bureau es el predeterminado', 20000);
-    await api.terminalIdle();
+    await within(api.terminalIdle(), 'la sincronización de la terminal Bureau');
     assert.match(String(cfg().get('terminal.integrated.fontFamily')), /'Bureau Prompt Icons'/);
     assert.ok(fs.existsSync(path.join(userFontsDir(), 'BureauTheme-BureauPromptIcons.ttf')), 'fuente de iconos instalada para el usuario');
 
@@ -173,46 +211,49 @@ async function run() {
     assert.ok(fs.existsSync(options.shellPath), `shell: ${options.shellPath}`);
     assert.match(fs.readFileSync(path.join(options.env.BUREAU_PROMPT_DIR, 'prompt.conf'), 'utf8'), /^style=signage$/m);
     // Las tareas siguen con el shell del sistema aunque el perfil Bureau sea el predeterminado.
-    assert.equal(await runTask('bureau-terminal-ok', 0), 0);
-    assert.equal(await runTask('bureau-terminal-fail', 3), 3);
+    at('tareas con el perfil Bureau como predeterminado');
+    assert.equal(await within(runTask('bureau-terminal-ok', 0), 'la tarea bureau-terminal-ok'), 0);
+    assert.equal(await within(runTask('bureau-terminal-fail', 3), 'la tarea bureau-terminal-fail'), 3);
     // Una terminal Bureau de verdad, con el prompt de dos líneas y Clasificado (el
     // redibujado al pulsar Enter): el prompt carga la integración de shell de
     // VS Code a mano, y VS Code recibe el resultado de cada comando.
+    at('terminal Bureau con Clasificado');
     await terminal.update('prompt', 'dossier', G);
     await terminal.update('classified', true, G);
-    await api.terminalIdle();
-    const t = vscode.window.createTerminal(api.bureauTerminalOptions());
+    await within(api.terminalIdle(), 'la sincronización de la terminal Bureau');
+    const shellOptions = api.bureauTerminalOptions();
+    const shell = path.basename(shellOptions.shellPath);
+    /** @type {Map<vscode.TerminalShellExecution, number | undefined>} */
+    const ended = new Map();
+    const endSub = vscode.window.onDidEndTerminalShellExecution((e) => ended.set(e.execution, e.exitCode));
+    const t = vscode.window.createTerminal(shellOptions);
     try {
-      await waitFor(() => t.shellIntegration !== undefined, 'integración de shell en la terminal Bureau', 30000);
+      at(`integración de shell (${shell})`);
+      await waitFor(() => t.shellIntegration !== undefined, `integración de shell en la terminal Bureau (${shell})`, 30000);
       for (const command of ['echo bureau', 'echo control']) {
+        at(`${command} en ${shell}`);
         const execution = /** @type {vscode.TerminalShellIntegration} */ (t.shellIntegration).executeCommand(command);
-        const exitCode = await new Promise((resolve) => {
-          const sub = vscode.window.onDidEndTerminalShellExecution((e) => {
-            if (e.execution === execution) {
-              sub.dispose();
-              resolve(e.exitCode);
-            }
-          });
-        });
-        assert.equal(exitCode, 0, command);
+        await waitFor(() => ended.has(execution), `el final de «${command}» en ${shell}`, 20000);
+        assert.equal(ended.get(execution), 0, command);
       }
     } finally {
+      endSub.dispose();
       t.dispose();
       await terminal.update('classified', undefined, G);
       await terminal.update('prompt', 'signage', G);
     }
     // Su menú y el de los estilos se abren y se cierran con Esc.
     for (const command of ['bureauTheme.terminalMenu', 'bureauTheme.chooseTerminalPrompt']) {
-      const menu = vscode.commands.executeCommand(command);
-      await sleep(800);
-      await vscode.commands.executeCommand('workbench.action.closeQuickOpen');
-      await menu;
+      at(command);
+      await closeMenu(vscode.commands.executeCommand(command), command);
     }
     assert.equal(cfg().get('bureauTheme.terminal.prompt'), 'signage', 'cerrar el menú no cambia nada');
 
+    at('apagar el prompt');
     await terminal.update('prompt', 'off', G);
+    if (process.env.BUREAU_IT_SHELL) await terminal.update('shell', undefined, G);
     await waitFor(() => cfg().inspect(profileKey)?.globalValue === profileBefore, 'vuelve el perfil predeterminado anterior', 20000);
-    await api.terminalIdle();
+    await within(api.terminalIdle(), 'la sincronización de la terminal Bureau');
     assert.equal(cfg().inspect('terminal.integrated.fontFamily')?.globalValue, fontBefore, 'la fuente de la terminal vuelve a estar como antes');
     assert.match(fs.readFileSync(path.join(options.env.BUREAU_PROMPT_DIR, 'prompt.conf'), 'utf8'), /^style=off$/m, 'las terminales abiertas devuelven tu prompt');
   }, 90000);
@@ -443,10 +484,7 @@ async function run() {
     const music = vscode.workspace.getConfiguration('bureauTheme.music');
     await music.update('enabled', true, G);
     await waitFor(() => api.musicStarted === true, 'gramola en marcha');
-    const menu = vscode.commands.executeCommand('bureauTheme.musicMenu');
-    await sleep(800);
-    await vscode.commands.executeCommand('workbench.action.closeQuickOpen');
-    await menu;
+    await closeMenu(vscode.commands.executeCommand('bureauTheme.musicMenu'), 'el menú de la gramola');
     await music.update('enabled', false, G);
     await waitFor(() => api.musicStarted === false, 'gramola apagada');
   });
@@ -482,9 +520,8 @@ async function run() {
     for (let i = 0; i < 10; i++) await vscode.commands.executeCommand('workbench.action.quickOpenSelectNext');
     await vscode.commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
     await waitFor(() => classifiedCfg().get('enabled') === true, 'Modo Clasificado activado desde el panel');
-    await sleep(600); // el panel se vuelve a abrir solo
-    await vscode.commands.executeCommand('workbench.action.closeQuickOpen');
-    await panel; // con Esc el panel se cierra y el comando termina
+    // El panel se vuelve a abrir solo; con Esc se cierra y el comando termina.
+    await closeMenu(panel, 'la Casa Inmemorial');
     await classifiedCfg().update('enabled', false, G);
   });
 

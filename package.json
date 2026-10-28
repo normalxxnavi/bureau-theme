@@ -1110,11 +1110,12 @@
     "icon": "node scripts/icon.js",
     "walkthrough": "node scripts/walkthrough.js",
     "screenshots": "node scripts/screenshots/index.js",
-    "test": "node --test \"test/*.test.js\"",
+    "test": "node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=./scripts/lib/gha-reporter.js --test-reporter-destination=stdout \"test/*.test.js\"",
     "test:integration": "npm run bundle && node scripts/integration.js",
     "test:jukebox": "node scripts/jukebox-check.js",
     "test:popups": "npm run bundle && node scripts/popup-check.js",
     "version:next": "node scripts/version.js",
+    "release:check": "node scripts/release-check.js",
     "check": "npm run build && npm run typecheck && npm run contrast && npm run validate && npm test && npm run package",
     "package": "node scripts/package-local.js",
     "install:local": "node scripts/install-local.js",
@@ -1137,5 +1138,8 @@
     "typescript": "^7.0.2",
     "vscode-oniguruma": "^2.0.1",
     "vscode-textmate": "^9.2.0"
+  },
+  "overrides": {
+    "@azure/msal-node": "^7.1.0"
   }
 }

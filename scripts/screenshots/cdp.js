@@ -16,6 +16,9 @@ const fs = require('node:fs');
 /** @param {number} ms */
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+/** Lo más que se espera la respuesta a una orden del protocolo de depuración. */
+const SEND_TIMEOUT_MS = 20000;
+
 /**
  * Se conecta a la ventana principal de VS Code (la página del workbench).
  * @param {number} port
@@ -53,11 +56,24 @@ async function connect(port, timeoutMs = 60000) {
     if (msg.error) p.reject(new Error(msg.error.message));
     else p.resolve(msg.result);
   });
-  /** @param {string} method @param {object} [params] @returns {Promise<any>} */
+  /**
+   * Cada orden tiene su límite: si la ventana deja de pintar (en macOS, una
+   * ventana tapada o sin pantalla), Chromium no contesta a las capturas ni al
+   * ratón, y sin límite el proceso se quedaría esperando para siempre.
+   * @param {string} method @param {object} [params] @returns {Promise<any>}
+   */
   const send = (method, params = {}) =>
     new Promise((resolve, reject) => {
-      pending.set(++id, { resolve, reject });
-      ws.send(JSON.stringify({ id, method, params }));
+      const n = ++id;
+      const timer = setTimeout(() => {
+        pending.delete(n);
+        reject(new Error(`${method}: VS Code no contesta en ${SEND_TIMEOUT_MS / 1000} s`));
+      }, SEND_TIMEOUT_MS);
+      pending.set(n, {
+        resolve: (v) => (clearTimeout(timer), resolve(v)),
+        reject: (e) => (clearTimeout(timer), reject(e)),
+      });
+      ws.send(JSON.stringify({ id: n, method, params }));
     });
 
   /** @param {string} expression */

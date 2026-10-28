@@ -40,8 +40,11 @@ permissions:
   contents: read
 
 jobs:
+  # Cada trabajo y cada paso largo tiene su límite de tiempo: algo que se queda
+  # colgado falla en minutos, no a las 6 horas (el límite de GitHub).
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       # VERSION (sin la «v» ni el «.rc-N») y RC (true en una candidata) para los demás pasos.
       - name: Tag is a version (vX.Y.Z) or a release candidate (vX.Y.Z.rc-N)
@@ -136,6 +139,7 @@ jobs:
           - os: windows-latest
             vscode: minimum
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -196,6 +200,7 @@ jobs:
       # depurador, sonidos): en un runner lento puede fallar sin motivo. Se repite
       # una vez; un fallo real falla las dos veces.
       - name: Integration test (one retry)
+        timeout-minutes: 12
         shell: bash
         run: |
           run() { if [ "$RUNNER_OS" = Linux ]; then xvfb-run -a npm run test:integration; else npm run test:integration; fi; }
@@ -207,6 +212,7 @@ jobs:
       # el reproductor de prueba. Las capturas quedan en los artefactos del run.
       - name: Popups in a real VS Code
         if: matrix.vscode == 'stable'
+        timeout-minutes: 8
         shell: bash
         run: |
           if [ "$RUNNER_OS" = Linux ]; then
@@ -227,6 +233,7 @@ jobs:
     if: ${{ !contains(github.ref_name, '.rc-') }}
     needs: [build, integration]
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     # Revisor obligatorio: el trabajo espera aquí hasta que lo apruebes. La
     # credencial federada de Entra ID solo acepta trabajos de este entorno.
     environment:
