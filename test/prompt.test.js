@@ -18,6 +18,7 @@ const P = require('../src/extension/prompt-config');
 const installer = require('../src/extension/prompt-installer');
 const { installFonts, uninstallAllFonts, fingerprint } = require('../src/extension/font-installer');
 const { isOwnValue, settingsFor, fallbackFonts } = require('../src/extension/fontsets');
+const { findAppRoot } = require('../scripts/lib/vscode-install');
 
 const ROOT = path.resolve(__dirname, '..');
 const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
@@ -620,8 +621,8 @@ const FRAME_CONF = 'style=signage\nicons=1\ntheme=dark\nlang=en\n';
 /** La prueba de verdad: icons=0, y los comandos llegan por la entrada de un shell interactivo. */
 const SESSION_CONF = 'style=signage\nicons=0\ntheme=dark\nlang=en\n';
 const SESSION_LINES = ['echo hola', 'cd ..', 'false', 'exit'];
-/** En la carpeta temporal (sin repositorio que mirar) y sin el PWD de quien lanza los tests. */
-const SESSION_ENV = { ...Object.fromEntries(Object.entries(UTF8).filter(([k]) => k !== 'PWD' && k !== 'OLDPWD')), COLUMNS: '60' };
+/** En la carpeta temporal (sin repositorio que mirar), sin el PWD de quien lanza los tests y fuera de VS Code (aunque los lances desde su terminal). */
+const SESSION_ENV = { ...Object.fromEntries(Object.entries(UTF8).filter(([k]) => !['PWD', 'OLDPWD', 'TERM_PROGRAM', 'VSCODE_SHELL_INTEGRATION'].includes(k))), COLUMNS: '60' };
 
 /** Una sesión de verdad con cabecera y cierre: los de echo y false, ninguno para cd. @param {string} out */
 function checkSession(out) {
@@ -668,8 +669,48 @@ test('bash: la cabecera y el cierre de cada comando (bash 4.4 o posterior)', { s
     fs.writeFileSync(path.join(dir, 'prompt.conf'), SESSION_CONF);
     const input = ['exec 2>&1', `source '${unix}/bureau-prompt.bash'`, ...SESSION_LINES, ''].join('\n');
     checkSession(spawnSync('bash', ['--norc', '-i'], { encoding: 'utf8', input, cwd: dir, env: { ...SESSION_ENV, HISTCONTROL: 'ignoreboth' }, timeout: 60000 }).stdout);
+    // En VS Code la cabecera sale de la trampa DEBUG (no de PS0), una vez por línea, y nada en una línea vacía.
+    const inVscode = ['exec 2>&1', `source '${unix}/bureau-prompt.bash'`, '', ...SESSION_LINES, ''].join('\n');
+    const session = spawnSync('bash', ['--norc', '-i'], { encoding: 'utf8', input: inVscode, cwd: dir, env: { ...SESSION_ENV, TERM_PROGRAM: 'vscode', HISTCONTROL: 'ignoreboth' }, timeout: 60000 }).stdout;
+    checkSession(session);
+    const plainSession = plain(session);
+    assert.equal(plainSession.match(/── ■ echo hola/g)?.length, 1, 'una sola cabecera por comando');
+    assert.equal(plainSession.match(/── ■ /g)?.length, 2, 'cabeceras solo para echo y false (no para la línea vacía, cd ni exit)');
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+/** El script de integración de shell de bash del VS Code instalado (common/scripts; browser/media en los antiguos), o null. */
+const vscodeBashIntegration = (() => {
+  const app = findAppRoot();
+  if (!app) return null;
+  const terminal = path.join(app, 'out', 'vs', 'workbench', 'contrib', 'terminal');
+  return [path.join(terminal, 'common', 'scripts', 'shellIntegration-bash.sh'), path.join(terminal, 'browser', 'media', 'shellIntegration-bash.sh')].find((f) => fs.existsSync(f)) ?? null;
+})();
+
+test('bash con la integración de shell de VS Code: la cabecera va después de su marca de comando (si VS Code está instalado)', { skip: (!bashFrames && 'sin bash 4.4') || (!vscodeBashIntegration && 'sin VS Code') }, () => {
+  // En Linux y macOS VS Code lee el comando de la pantalla al recibir la marca C: con la cabecera antes, no coincidiría.
+  const dir = scratch('bureau-prompt.bash');
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'bureau-home-'));
+  const unix = (/** @type {string} */ p) => p.replace(/\\/g, '/');
+  try {
+    fs.copyFileSync(path.join(ROOT, 'terminal', 'bureau-init.bash'), path.join(dir, 'bureau-init.bash'));
+    fs.writeFileSync(path.join(dir, 'prompt.conf'), SESSION_CONF);
+    const env = { ...SESSION_ENV, HOME: unix(home), HISTCONTROL: 'ignoreboth', TERM_PROGRAM: 'vscode', BUREAU_VSCODE_SI: unix(/** @type {string} */ (vscodeBashIntegration)), VSCODE_NONCE: 'bureau' };
+    const r = spawnSync('bash', ['--init-file', unix(path.join(dir, 'bureau-init.bash')), '-i'], { encoding: 'utf8', input: 'echo hola\nfalse\nexit\n', cwd: dir, env, timeout: 60000 });
+    const out = plain(r.stdout);
+    for (const [command, code] of [['echo hola', 0], ['false', 1]]) {
+      const started = out.indexOf(`\x1b]633;E;${command};bureau\x07`);
+      assert.ok(started >= 0, `VS Code recibe «${command}»: ${JSON.stringify(out)} ${r.stderr}`);
+      const executed = out.indexOf('\x1b]633;C\x07', started);
+      const header = out.indexOf(`── ■ ${command}`, started);
+      assert.ok(executed > started && header > executed, `la cabecera de «${command}» va después de la marca C: ${JSON.stringify(out)}`);
+      assert.ok(out.indexOf(`\x1b]633;D;${code}\x07`, header) > header, `y el final con el código ${code}`);
+    }
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(home, { recursive: true, force: true });
   }
 });
 

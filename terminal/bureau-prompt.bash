@@ -252,13 +252,14 @@ __bureau_frame_wanted() {
 # it gets no frame.
 __bureau_frame_line() {
   __bf_cmd=''
-  local re='^ *[0-9]+\*? +(.*)' hc=${__bureau_hc:-0}
+  local re='^ *([0-9]+)\*? +(.*)' hc=${__bureau_hc:-0} last
   # Without ignorespace or HISTIGNORE, a line left out is a repeated one: the last in the history.
   case ${HISTCONTROL:-} in *ignorespace* | *ignoreboth*) ;; *) [ -z "${HISTIGNORE:-}" ] && hc=-1 ;; esac
-  if [ "${HISTCMD:-0}" -gt "$hc" ]; then
-    __bf_cmd=$(HISTTIMEFORMAT='' builtin history 1)
-    [[ $__bf_cmd =~ $re ]] && __bf_cmd=${BASH_REMATCH[1]}
-  fi
+  # The last line of the history is the one you ran if it has the number the
+  # next line had when the prompt was drawn (HISTCMD itself only moves on
+  # after PS0, so the DEBUG trap cannot use it).
+  last=$(HISTTIMEFORMAT='' builtin history 1)
+  if [[ $last =~ $re ]] && [ "${BASH_REMATCH[1]}" -ge "$hc" ]; then __bf_cmd=${BASH_REMATCH[2]}; fi
   __bureau_frame_wanted "$__bf_cmd"
 }
 
@@ -305,8 +306,8 @@ __bureau_foot() {
   __bf=$'\e[90m──\e[0m \e[1;'"${color}m$mark$label"$'\e[0m\e[90m'"$info ${rule// /─}"$'\e[0m'
 }
 
-# PS0 runs it in a subshell (only with frames on: __bureau_fon), with the
-# prompt.conf read for the prompt; it can only write.
+# PS0 runs it in a subshell, or the DEBUG trap inside VS Code (only with frames
+# on: __bureau_fon), with the prompt.conf read for the prompt; it only writes.
 __bureau_frame_head() {
   __bureau_framing && __bureau_frame_line || return 0
   local now
@@ -379,8 +380,30 @@ if [ "${BASH_VERSINFO[0]}" -ge 5 ] || { [ "${BASH_VERSINFO[0]}" -eq 4 ] && [ "${
   else
     __bureau_ps0='${BASH_VERSION:0:$((__bureau_t0=SECONDS*1000000, 0))}'
   fi
-  PS0="${PS0:-}"'${__bureau_fon:+$(__bureau_frame_head)}'"$__bureau_ps0"
+  # Inside VS Code the header goes from a DEBUG trap instead (if there is no
+  # other): PS0 writes before VS Code's shell integration marks the command as
+  # started, and on Linux and macOS VS Code reads the command line from the
+  # screen, header included, so it would not match the command. Its shell
+  # integration, loaded after this script, keeps the trap and runs it right
+  # after its mark.
+  if [ "${TERM_PROGRAM:-}" = vscode ] && [ -z "$(trap -p DEBUG)" ]; then
+    trap '__bureau_frame_trap' DEBUG
+    PS0="${PS0:-}$__bureau_ps0"
+  else
+    PS0="${PS0:-}"'${__bureau_fon:+$(__bureau_frame_head)}'"$__bureau_ps0"
+  fi
 fi
+
+# The DEBUG trap runs before every command: the header only before the first
+# one of each line you run, and none for the prompt's own commands (an empty
+# line).
+__bureau_frame_trap() {
+  [ -n "${__bureau_fon:-}" ] || return 0
+  __bureau_fon=''
+  case $BASH_COMMAND in __vsc_prompt* | __bureau_status* | __bureau_prompt*) return 0 ;; esac
+  __bureau_frame_head
+  return 0
+}
 PROMPT_COMMAND="__bureau_status${PROMPT_COMMAND:+;$PROMPT_COMMAND};__bureau_prompt"
 
 # Bureau colours for Git: git includes bureau.gitconfig, next to this script
@@ -430,6 +453,17 @@ fi
 # profile starts bash with its own arguments, so VS Code does not inject it and
 # it is loaded here, after the prompt, so that it wraps it.
 if [ -n "${BUREAU_VSCODE_SI:-}" ] && [ "${TERM_PROGRAM:-}" = vscode ] && [ -z "${VSCODE_SHELL_INTEGRATION:-}" ]; then
-  if [ -r "$BUREAU_VSCODE_SI" ]; then . "$BUREAU_VSCODE_SI"; fi
+  if [ -r "$BUREAU_VSCODE_SI" ]; then
+    # bash hides the DEBUG trap from a sourced file (unless functrace is on):
+    # with it on, VS Code's script sees the trap of the header and runs it
+    # after its own mark, instead of replacing it.
+    if shopt -oq functrace; then
+      . "$BUREAU_VSCODE_SI"
+    else
+      set -T
+      . "$BUREAU_VSCODE_SI"
+      set +T
+    fi
+  fi
 fi
 unset BUREAU_VSCODE_SI

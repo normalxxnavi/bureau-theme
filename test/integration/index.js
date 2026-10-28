@@ -141,7 +141,8 @@ async function run() {
       await Promise.race([fn(), new Promise((_, reject) => (timer = setTimeout(() => reject(new Error('paso bloqueado')), timeoutMs)))]);
       log(`  ✔ ${name} (${Date.now() - t0} ms)`);
     } catch (err) {
-      log(`  ✘ ${name}: ${/** @type {Error} */ (err).message}${phase ? ` [en: ${phase}]` : ''}`);
+      // En una sola línea: el informe se lee línea a línea.
+      log(`  ✘ ${name}: ${/** @type {Error} */ (err).message.replace(/\r?\n/g, ' ⏎ ')}${phase ? ` [en: ${phase}]` : ''}`);
     } finally {
       clearTimeout(timer);
     }
@@ -248,11 +249,11 @@ async function run() {
     /** Lo que VS Code ha visto de cada comando (para el mensaje si algo falla). @type {string[]} */
     const seen = [];
     const startSub = vscode.window.onDidStartTerminalShellExecution((e) => {
-      if (e.terminal === t) seen.push(`empieza «${e.execution.commandLine.value}» (confianza ${e.execution.commandLine.confidence})`);
+      if (e.terminal === t) seen.push(`empieza ${JSON.stringify(e.execution.commandLine.value)} (confianza ${e.execution.commandLine.confidence})`);
     });
     const endSub = vscode.window.onDidEndTerminalShellExecution((e) => {
       ended.set(e.execution, e.exitCode);
-      if (e.terminal === t) seen.push(`acaba «${e.execution.commandLine.value}» (código ${e.exitCode})`);
+      if (e.terminal === t) seen.push(`acaba ${JSON.stringify(e.execution.commandLine.value)} (código ${e.exitCode})`);
     });
     /** Con lo que ha visto VS Code y lo que se ve en la terminal en el mensaje. @param {Error} err @returns {Promise<never>} */
     const withScreen = async (err) => {
