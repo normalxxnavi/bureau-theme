@@ -65,7 +65,9 @@ if (-not (Test-Path variable:global:__BureauState)) {
   }
 
   # Git: branch, commits ahead/behind and changed files. Only inside a repository
-  # (no git process in other folders).
+  # (no git process in other folders). Without core.fsmonitor: in a repository
+  # you did not create (an archive you extracted), its .git/config could name a
+  # program that git status would run on every prompt.
   function global:__BureauGit([string]$dir) {
     $d = $dir
     while ($d) {
@@ -74,7 +76,7 @@ if (-not (Test-Path variable:global:__BureauState)) {
       if ($parent -eq $d) { $d = $null } else { $d = $parent }
     }
     if (-not $d) { return $null }
-    $out = & git --no-optional-locks status --porcelain=v2 --branch 2>$null
+    $out = & git -c core.fsmonitor= --no-optional-locks status --porcelain=v2 --branch 2>$null
     if (-not $out) { return $null }
     $git = @{ Branch = ''; Ahead = 0; Behind = 0; Changes = 0 }
     $oid = ''
@@ -374,11 +376,17 @@ if (-not (Test-Path variable:global:__BureauState)) {
           # PowerShell that is an OEM code page without the icons, so UTF-8 only
           # while it redraws.
           $encoding = [Console]::OutputEncoding
+          # The shell integration of older VS Code versions (1.93...) would take
+          # this redraw for the end of the previous command, with no exit code:
+          # with -1 it skips it, as before the first command.
+          $vscode = Test-Path variable:global:__LastHistoryId
+          if ($vscode) { $lastId = $global:__LastHistoryId; $global:__LastHistoryId = -1 }
           try {
             if ($encoding.CodePage -ne 65001) { [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false) }
             [Microsoft.PowerShell.PSConsoleReadLine]::InvokePrompt()
           } finally {
             if ([Console]::OutputEncoding.CodePage -ne $encoding.CodePage) { [Console]::OutputEncoding = $encoding }
+            if ($vscode) { $global:__LastHistoryId = $lastId }
           }
         }
       }

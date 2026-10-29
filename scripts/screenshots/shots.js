@@ -1,6 +1,7 @@
 // @ts-nocheck
 // Capturas: instalación limpia del VSIX en un perfil temporal y un arranque por captura.
-// Son capturas de la ventana real de VS Code, sin retocar.
+// Son capturas de la ventana real de VS Code, sin retocar, pintadas al doble de
+// resolución (cdp.scale): nítidas en pantallas de 1080p y de alta densidad.
 //   node shots.js <repo> <rawDir> <profileDir> <vsix> <cmd-probe.vsix>   (lo lanza index.js)
 //   ONLY=theme-dark.png,icons-dark.png node shots.js …                     (solo esas, con el perfil ya creado)
 const fs = require('fs');
@@ -13,6 +14,17 @@ const { vscode, cleanEnv } = require('./env');
 const { connect } = require('./cdp');
 const { TRACK, writeCover } = require('./cover');
 const env = cleanEnv();
+/**
+ * La carpeta que contiene el proyecto hace de carpeta personal: el prompt muestra
+ * «~\oldest-house» en lugar de la ruta de la carpeta temporal, y no salen ni se
+ * tocan tu configuración de Git ni tu historial de PowerShell. Sin AppData\Local,
+ * Windows PowerShell guardaría su caché de módulos en la carpeta del proyecto.
+ */
+function vsEnv(folder) {
+  const home = path.dirname(folder);
+  for (const dir of ['Local', 'Roaming']) fs.mkdirSync(path.join(home, 'AppData', dir), { recursive: true });
+  return { ...env, USERPROFILE: home, HOME: home };
+}
 const { exe, cliJs } = vscode();
 const cli = (args) => execFileSync(exe, [cliJs, ...args], { env: { ...env, ELECTRON_RUN_AS_NODE: '1' }, encoding: 'utf8' }).trim();
 const ud = path.join(profile, 'user-data');
@@ -39,9 +51,13 @@ const put = (rel, content) => {
 };
 
 /**
- * Una captura por arranque. `dpr` fuerza la escala de VS Code: 1 = píxel a píxel
- * (como en un monitor al 100 %), 2 = primer plano a doble resolución.
+ * Una captura por arranque. `size` es el tamaño de la ventana en píxeles de VS
+ * Code (la imagen sale al doble): 1280 × 800 por defecto, como un portátil, para
+ * que en la página de detalles el texto no quede diminuto.
  */
+const SIZE = [1280, 800];
+/** Primeros planos: media ventana, que en la página de detalles se ve casi a tamaño real. */
+const CLOSE_UP_SIZE = [800, 500];
 const COLOR_ICONS = { 'workbench.productIconTheme': 'bureau-product-icons-color' };
 /**
  * Primeros planos: sin minimapa, para que se vean el explorador, las pestañas y
@@ -56,9 +72,9 @@ const SHOTS = [
   { theme: 'CONTROL Resonant', out: 'control-resonant.png', file: 'src/sectors.py', line: 17, extra: COLOR_ICONS },
   { theme: 'CONTROL Astral', out: 'control-astral.png', file: 'src/hotline.js', line: 18 },
   { theme: 'CONTROL Dark', out: 'sounds.png', file: 'src/archive.ts', line: 18, extra: { 'cmdProbe.command': 'bureauTheme.soundMenu' } },
-  { theme: 'CONTROL Dark', out: 'icons-dark.png', file: 'package.json', line: 2, dpr: 2, workspace: 'dossiers', extra: { ...CLOSE_UP, ...COLOR_ICONS } },
+  { theme: 'CONTROL Dark', out: 'icons-dark.png', file: 'package.json', line: 2, size: CLOSE_UP_SIZE, workspace: 'dossiers', extra: { ...CLOSE_UP, ...COLOR_ICONS } },
   // Con el explorador arriba: las carpetas y sus emblemas (el de CONTROL Dark muestra los archivos).
-  { theme: 'CONTROL Astral', out: 'icons-astral.png', file: 'package.json', line: 2, dpr: 2, workspace: 'dossiers', extra: { ...CLOSE_UP, 'explorer.autoReveal': false } },
+  { theme: 'CONTROL Astral', out: 'icons-astral.png', file: 'package.json', line: 2, size: CLOSE_UP_SIZE, workspace: 'dossiers', extra: { ...CLOSE_UP, 'explorer.autoReveal': false } },
   // Lo que no tiene ningún otro tema, cada uno en un tema distinto.
   { theme: 'CONTROL Dark', out: 'oldest-house.png', file: 'src/archive.ts', line: 18, extra: { 'cmdProbe.command': 'bureauTheme.openOldestHouse' } },
   // La gramola con la sesión de prueba; el popup sale con el ratón virtual (cdp.js), sin mover el del usuario.
@@ -67,14 +83,41 @@ const SHOTS = [
   { theme: 'CONTROL Black', out: 'classified.png', file: '.env', line: 2, extra: { ...COLOR_ICONS, 'bureauTheme.classified.enabled': true }, keys: ['ArrowDown'] },
   // La guía cambia el título de la ventana: se busca por la carpeta.
   { theme: 'CONTROL Astral', out: 'welcome.png', file: 'src/hotline.js', line: 18, title: '- oldest-house', extra: { 'cmdProbe.command': 'bureauTheme.openWelcome' } },
-  // La terminal Bureau con el prompt Señalética: tres comandos escritos «con el teclado», el último falla.
+  // La terminal Bureau: los cinco estilos del prompt en la misma terminal, con el panel
+  // maximizado. El estilo cambia antes de cada Enter, así que el prompt siguiente ya sale
+  // con el nuevo; el último comando falla. Va en su propia copia del proyecto: el panel
+  // maximizado se guarda por carpeta y no debe salir en las demás capturas.
   {
     theme: 'CONTROL Dark',
-    out: 'terminal.png',
+    out: 'terminal-styles.png',
     file: 'src/archive.ts',
     line: 18,
-    extra: { 'bureauTheme.terminal.prompt': 'signage', 'cmdProbe.command': 'bureauTheme.newBureauTerminal' },
-    keys: [{ text: 'git status --short' }, 'Enter', { text: 'npm test' }, 'Enter', { text: 'git checkout release' }, 'Enter'],
+    size: [1000, 640],
+    workspace: 'terminal-styles/oldest-house',
+    extra: {
+      'bureauTheme.terminal.prompt': 'signage',
+      'workbench.panel.opensMaximized': 'always',
+      // Sin el nombre de la terminal en la barra del panel: al cambiar de estilo cambia el
+      // PROMPT de cmd y VS Code le pone el aviso de «reiniciar», que aquí no viene a cuento.
+      'terminal.integrated.tabs.showActiveTerminal': 'never',
+      'cmdProbe.command': 'bureauTheme.newBureauTerminal',
+    },
+    keys: [
+      { text: 'git status --short' },
+      { set: { 'bureauTheme.terminal.prompt': 'dossier' } },
+      'Enter',
+      { text: 'git log --oneline --decorate -1' },
+      { set: { 'bureauTheme.terminal.prompt': 'controlPoint' } },
+      'Enter',
+      { text: 'node --version' },
+      { set: { 'bureauTheme.terminal.prompt': 'board' } },
+      'Enter',
+      { text: 'git branch' },
+      { set: { 'bureauTheme.terminal.prompt': 'alertLevel' } },
+      'Enter',
+      { text: 'git checkout release' },
+      'Enter',
+    ],
   },
 ];
 
@@ -98,7 +141,11 @@ function settings(theme, extra = {}) {
         'editor.fontSize': 14,
         'editor.lineHeight': 22,
         'editor.stickyScroll.enabled': false,
-        'terminal.integrated.fontSize': 13,
+        'terminal.integrated.fontSize': 14,
+        // Una sola terminal, la que abre la captura, sin la línea fija de arriba.
+        'terminal.integrated.hideOnStartup': 'always',
+        'terminal.integrated.enablePersistentSessions': false,
+        'terminal.integrated.stickyScroll.enabled': false,
         'window.restoreWindows': 'none',
         'security.workspace.trust.enabled': false,
         'task.allowAutomaticTasks': 'off',
@@ -113,6 +160,8 @@ function settings(theme, extra = {}) {
         'editor.lightbulb.enabled': 'off',
         'workbench.layoutControl.enabled': false,
         'window.zoomLevel': 0,
+        // Los botones de la ventana los pinta VS Code: así salen en la captura.
+        'window.controlsStyle': 'custom',
         'editor.bracketPairColorization.enabled': true,
         'editor.guides.bracketPairs': 'active',
         'explorer.compactFolders': false,
@@ -125,21 +174,25 @@ function settings(theme, extra = {}) {
   );
 }
 
-async function launch(file, line, dpr = 1, folder = ws, port = 0) {
-  const args = [`--user-data-dir=${ud}`, `--extensions-dir=${ext}`, `--force-device-scale-factor=${dpr}`, '--new-window', folder];
+async function launch(file, line, folder = ws, port = 0) {
+  const args = [`--user-data-dir=${ud}`, `--extensions-dir=${ext}`, '--force-device-scale-factor=1', '--new-window', folder];
   if (port) args.push(`--remote-debugging-port=${port}`);
   if (file) args.push('--goto', `${path.join(folder, file)}:${line}:5`);
-  const child = spawn(exe, args, { env, detached: true, stdio: 'ignore' });
+  const child = spawn(exe, args, { env: vsEnv(folder), detached: true, stdio: 'ignore' });
   child.unref();
 }
 
 const titleOf = (file, folder = ws) => `${path.basename(file)} - ${path.basename(folder)}`;
 
-async function waitForWindow(title) {
+/**
+ * Espera a la ventana y le da tamaño. Windows le suma un borde invisible de 8
+ * píxeles a los lados y abajo, que no sale en la captura.
+ */
+async function waitForWindow(title, [w, h] = SIZE) {
   for (let i = 0; i < 60; i++) {
     await sleep(500);
     try {
-      ps(['-TitleContains', title, '-OutFile', 'x', '-Width', '1600', '-Height', '1000', '-ResizeOnly']);
+      ps(['-TitleContains', title, '-Width', String(w + 16), '-Height', String(h + 8)]);
       return;
     } catch {
       // todavía no
@@ -149,38 +202,54 @@ async function waitForWindow(title) {
 }
 
 /**
- * Arranca VS Code con los ajustes de la captura, espera a que cargue y guarda
- * la ventana. Con `keys` o `hover`, VS Code arranca con el puerto de depuración
- * y las teclas y el ratón llegan por él (cdp.js).
+ * Arranca VS Code con los ajustes de la captura y el puerto de depuración, lo
+ * pinta al doble de resolución, espera a que cargue y guarda la ventana. Las
+ * teclas y el ratón llegan por el puerto (cdp.js); `{ set }` cambia ajustes
+ * con la ventana abierta.
  */
 async function shoot(s, i) {
   const folder = s.workspace ? path.join(profile, s.workspace) : ws;
-  if (!fs.existsSync(folder)) fs.cpSync(ws, folder, { recursive: true });
-  settings(s.theme, s.extra);
+  if (!fs.existsSync(folder)) {
+    fs.mkdirSync(path.dirname(folder), { recursive: true });
+    fs.cpSync(ws, folder, { recursive: true });
+  }
+  let extra = s.extra;
+  settings(s.theme, extra);
   const session = s.mediaSession ? startMediaSession() : null;
-  const port = s.keys || s.hover ? 9333 + i : 0;
+  const port = 9333 + i;
   try {
-    await launch(s.file, s.line, s.dpr, folder, port);
+    await launch(s.file, s.line, folder, port);
     const title = s.title ?? titleOf(s.file, folder);
-    await waitForWindow(titleOf(s.file, folder));
-    await sleep(11000); // servidor de lenguaje y semantic tokens
-    if (port) {
-      ps(['-TitleContains', title, '-OutFile', 'x', '-ParkCursor']);
-      const cdp = await connect(port);
-      try {
-        // Una tecla, o texto escrito donde esté el foco ({text}); tras Enter, tiempo para el comando.
-        for (const key of s.keys ?? []) {
-          if (typeof key === 'string') await cdp.press(key);
-          else await cdp.type(key.text);
-          if (key === 'Enter') await sleep(2500);
-        }
-        if (s.hover) await cdp.hoverStatusItem(s.hover);
-      } finally {
-        cdp.close();
+    await waitForWindow(titleOf(s.file, folder), s.size);
+    // El cursor de verdad, fuera: encima de la ventana abriría popups y resaltados.
+    ps(['-TitleContains', title, '-ParkCursor']);
+    const cdp = await connect(port);
+    try {
+      await cdp.scale(2); // antes de que cargue: el editor y la terminal se pintan ya a 2×
+      await sleep(11000); // servidor de lenguaje y semantic tokens
+      // Una tecla, texto escrito donde esté el foco ({text}) o ajustes nuevos ({set});
+      // tras Enter, tiempo para el comando.
+      for (const key of s.keys ?? []) {
+        if (typeof key === 'string') await cdp.press(key);
+        else if ('set' in key) {
+          extra = { ...extra, ...key.set };
+          settings(s.theme, extra);
+          await sleep(3000);
+        } else await cdp.type(key.text);
+        if (key === 'Enter') await sleep(2500);
       }
+      if (s.hover) await cdp.hoverStatusItem(s.hover);
+      // Con la escala emulada, el lienzo WebGL de la terminal puede quedarse a 1× y pintar
+      // las letras el doble de grandes (pasaba con la terminal debajo del editor, y ni
+      // cambiar de tamaño ni de escala lo arreglaba): mejor fallar que publicarla así.
+      const stale = await cdp.evaluate(`[...document.querySelectorAll('.terminal .xterm-screen canvas')].filter((c) => c.width < parseFloat(c.style.width) * 1.5).length`);
+      if (stale) throw new Error(`${s.out}: la terminal se ha pintado a 1× (letras el doble de grandes)`);
+      await cdp.screenshot(path.join(outDir, s.out));
+      console.log(s.out, await cdp.evaluate('[innerWidth * 2, innerHeight * 2].join(" × ")'));
+    } finally {
+      cdp.close();
+      ps(['-TitleContains', title, '-Close']);
     }
-    console.log(s.out, ps(['-TitleContains', title, '-OutFile', path.join(outDir, s.out), '-Width', '1600', '-Height', '1000']));
-    ps(['-TitleContains', title, '-OutFile', 'x', '-Close']);
   } finally {
     session?.kill();
   }
@@ -290,7 +359,7 @@ const ONLY = process.env.ONLY;
   await launch(null);
   await sleep(14000);
   try {
-    ps(['-TitleContains', 'oldest-house', '-OutFile', 'x', '-Close']);
+    ps(['-TitleContains', 'oldest-house', '-Close']);
   } catch (e) {
     console.log('warm close:', e.message.split(NL)[0]);
   }

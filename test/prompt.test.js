@@ -18,6 +18,7 @@ const P = require('../src/extension/prompt-config');
 const installer = require('../src/extension/prompt-installer');
 const { installFonts, uninstallAllFonts, fingerprint } = require('../src/extension/font-installer');
 const { isOwnValue, settingsFor, fallbackFonts } = require('../src/extension/fontsets');
+const { findAppRoot } = require('../scripts/lib/vscode-install');
 
 const ROOT = path.resolve(__dirname, '..');
 const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
@@ -538,7 +539,8 @@ const has = (cmd, args) => {
 
 /** Carpeta temporal con el script y su prompt.conf. @param {string} file */
 function scratch(file) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bureau-prompt-'));
+  // Con la ruta larga: en los runners de Windows la carpeta temporal es C:\Users\RUNNER~1\… y PowerShell la expande.
+  const dir = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), 'bureau-prompt-')));
   fs.copyFileSync(path.join(ROOT, 'terminal', file), path.join(dir, file));
   return dir;
 }
@@ -619,8 +621,8 @@ const FRAME_CONF = 'style=signage\nicons=1\ntheme=dark\nlang=en\n';
 /** La prueba de verdad: icons=0, y los comandos llegan por la entrada de un shell interactivo. */
 const SESSION_CONF = 'style=signage\nicons=0\ntheme=dark\nlang=en\n';
 const SESSION_LINES = ['echo hola', 'cd ..', 'false', 'exit'];
-/** En la carpeta temporal (sin repositorio que mirar) y sin el PWD de quien lanza los tests. */
-const SESSION_ENV = { ...Object.fromEntries(Object.entries(UTF8).filter(([k]) => k !== 'PWD' && k !== 'OLDPWD')), COLUMNS: '60' };
+/** En la carpeta temporal (sin repositorio que mirar), sin el PWD de quien lanza los tests y fuera de VS Code (aunque los lances desde su terminal). */
+const SESSION_ENV = { ...Object.fromEntries(Object.entries(UTF8).filter(([k]) => !['PWD', 'OLDPWD', 'TERM_PROGRAM', 'VSCODE_SHELL_INTEGRATION'].includes(k))), COLUMNS: '60' };
 
 /** Una sesión de verdad con cabecera y cierre: los de echo y false, ninguno para cd. @param {string} out */
 function checkSession(out) {
@@ -667,8 +669,48 @@ test('bash: la cabecera y el cierre de cada comando (bash 4.4 o posterior)', { s
     fs.writeFileSync(path.join(dir, 'prompt.conf'), SESSION_CONF);
     const input = ['exec 2>&1', `source '${unix}/bureau-prompt.bash'`, ...SESSION_LINES, ''].join('\n');
     checkSession(spawnSync('bash', ['--norc', '-i'], { encoding: 'utf8', input, cwd: dir, env: { ...SESSION_ENV, HISTCONTROL: 'ignoreboth' }, timeout: 60000 }).stdout);
+    // En VS Code la cabecera sale de la trampa DEBUG (no de PS0), una vez por línea, y nada en una línea vacía.
+    const inVscode = ['exec 2>&1', `source '${unix}/bureau-prompt.bash'`, '', ...SESSION_LINES, ''].join('\n');
+    const session = spawnSync('bash', ['--norc', '-i'], { encoding: 'utf8', input: inVscode, cwd: dir, env: { ...SESSION_ENV, TERM_PROGRAM: 'vscode', HISTCONTROL: 'ignoreboth' }, timeout: 60000 }).stdout;
+    checkSession(session);
+    const plainSession = plain(session);
+    assert.equal(plainSession.match(/── ■ echo hola/g)?.length, 1, 'una sola cabecera por comando');
+    assert.equal(plainSession.match(/── ■ /g)?.length, 2, 'cabeceras solo para echo y false (no para la línea vacía, cd ni exit)');
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+/** El script de integración de shell de bash del VS Code instalado (common/scripts; browser/media en los antiguos), o null. */
+const vscodeBashIntegration = (() => {
+  const app = findAppRoot();
+  if (!app) return null;
+  const terminal = path.join(app, 'out', 'vs', 'workbench', 'contrib', 'terminal');
+  return [path.join(terminal, 'common', 'scripts', 'shellIntegration-bash.sh'), path.join(terminal, 'browser', 'media', 'shellIntegration-bash.sh')].find((f) => fs.existsSync(f)) ?? null;
+})();
+
+test('bash con la integración de shell de VS Code: la cabecera va después de su marca de comando (si VS Code está instalado)', { skip: (!bashFrames && 'sin bash 4.4') || (!vscodeBashIntegration && 'sin VS Code') }, () => {
+  // En Linux y macOS VS Code lee el comando de la pantalla al recibir la marca C: con la cabecera antes, no coincidiría.
+  const dir = scratch('bureau-prompt.bash');
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'bureau-home-'));
+  const unix = (/** @type {string} */ p) => p.replace(/\\/g, '/');
+  try {
+    fs.copyFileSync(path.join(ROOT, 'terminal', 'bureau-init.bash'), path.join(dir, 'bureau-init.bash'));
+    fs.writeFileSync(path.join(dir, 'prompt.conf'), SESSION_CONF);
+    const env = { ...SESSION_ENV, HOME: unix(home), HISTCONTROL: 'ignoreboth', TERM_PROGRAM: 'vscode', BUREAU_VSCODE_SI: unix(/** @type {string} */ (vscodeBashIntegration)), VSCODE_NONCE: 'bureau' };
+    const r = spawnSync('bash', ['--init-file', unix(path.join(dir, 'bureau-init.bash')), '-i'], { encoding: 'utf8', input: 'echo hola\nfalse\nexit\n', cwd: dir, env, timeout: 60000 });
+    const out = plain(r.stdout);
+    for (const [command, code] of [['echo hola', 0], ['false', 1]]) {
+      const started = out.indexOf(`\x1b]633;E;${command};bureau\x07`);
+      assert.ok(started >= 0, `VS Code recibe «${command}»: ${JSON.stringify(out)} ${r.stderr}`);
+      const executed = out.indexOf('\x1b]633;C\x07', started);
+      const header = out.indexOf(`── ■ ${command}`, started);
+      assert.ok(executed > started && header > executed, `la cabecera de «${command}» va después de la marca C: ${JSON.stringify(out)}`);
+      assert.ok(out.indexOf(`\x1b]633;D;${code}\x07`, header) > header, `y el final con el código ${code}`);
+    }
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(home, { recursive: true, force: true });
   }
 });
 
@@ -817,6 +859,59 @@ test('fish: la cabecera y el cierre de cada comando (si está instalado)', { ski
     ].join('\n');
     // -i: el script solo se carga en un shell interactivo.
     checkFrames(frames(spawnSync('fish', ['-i', '-c', script], { encoding: 'utf8', env: UTF8 }).stdout));
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+const PROMPT_SCRIPTS = ['bureau-prompt.ps1', 'bureau-prompt.bash', 'bureau-prompt.zsh', 'bureau-prompt.fish'];
+
+test('los cuatro scripts llaman a Git sin core.fsmonitor', () => {
+  for (const file of PROMPT_SCRIPTS) {
+    const calls = fs.readFileSync(path.join(ROOT, 'terminal', file), 'utf8').match(/(?:command|&) git\b[^\n]*/g) ?? [];
+    assert.ok(calls.length > 0, `${file}: git status`);
+    for (const call of calls) assert.match(call, /git -c core\.fsmonitor= /, `${file}: ${call}`);
+  }
+});
+
+test('ownGitColors: sin Git con ruta absoluta no lanza ninguno', async () => {
+  assert.deepEqual(await installer.ownGitColors({ find: () => null }), []);
+});
+
+test('Git en el prompt: el core.fsmonitor de un repositorio ajeno no se ejecuta (en cada shell instalado)', { skip: !hasGit() && 'sin git' }, () => {
+  const dir = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), 'bureau-fsmonitor-')));
+  try {
+    for (const file of PROMPT_SCRIPTS) fs.copyFileSync(path.join(ROOT, 'terminal', file), path.join(dir, file));
+    const home = path.join(dir, 'home');
+    const repo = path.join(dir, 'repo');
+    fs.mkdirSync(home);
+    fs.mkdirSync(repo);
+    // Sin tu configuración de Git ni las GIT_* de la terminal Bureau.
+    const env = { ...Object.fromEntries(Object.entries(UTF8).filter(([k]) => !/^GIT_/i.test(k))), HOME: home, USERPROFILE: home, XDG_CONFIG_HOME: home, GIT_CONFIG_NOSYSTEM: '1' };
+    const git = (/** @type {string[]} */ ...args) => spawnSync('git', args, { cwd: repo, env, encoding: 'utf8', timeout: 20000 });
+    for (const args of [['init', '-q'], ['symbolic-ref', 'HEAD', 'refs/heads/expediente']]) assert.equal(git(...args).status, 0, args.join(' '));
+    fs.writeFileSync(path.join(repo, 'a.txt'), 'a\n');
+    assert.equal(git('add', 'a.txt').status, 0);
+    assert.equal(git('-c', 'user.name=Bureau', '-c', 'user.email=bureau@example.com', '-c', 'commit.gpgsign=false', 'commit', '-q', '-m', 'a').status, 0);
+    // Lo que puede traer el .git/config de un archivo comprimido: un programa que git status ejecuta.
+    const marker = path.join(dir, 'fsmonitor-ran');
+    assert.equal(git('config', 'core.fsmonitor', `echo x > '${marker.replace(/\\/g, '/')}'; false`).status, 0);
+    git('--no-optional-locks', 'status', '--porcelain=v2', '--branch');
+    assert.ok(fs.existsSync(marker), 'sin -c core.fsmonitor=, git status lo ejecuta (si no, esta prueba no comprueba nada)');
+    fs.rmSync(marker);
+
+    const fwd = (/** @type {string} */ p) => p.replace(/\\/g, '/');
+    /** @type {Array<{shell: string, args: string[]}>} */
+    const runs = [];
+    if (has('bash', ['--version'])) runs.push({ shell: 'bash', args: ['--norc', '-i', '-c', `source '${fwd(dir)}/bureau-prompt.bash'; cd '${fwd(repo)}'; __bureau_git; printf '@@%s@@' "$__bg_branch"`] });
+    if (has('zsh', ['--version'])) runs.push({ shell: 'zsh', args: ['-f', '-i', '-c', `source '${dir}/bureau-prompt.zsh'; cd '${repo}'; __bureau_git; print -rn -- "@@$__bg_branch@@"`] });
+    if (has('fish', ['--version'])) runs.push({ shell: 'fish', args: ['-i', '-c', `source '${dir}/bureau-prompt.fish'; cd '${repo}'; __bureau_git; echo -n '@@'$__bg_branch'@@'`] });
+    if (powershell) runs.push({ shell: powershell, args: ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command', `. '${path.join(dir, 'bureau-prompt.ps1')}'; Set-Location -LiteralPath '${repo}'; [Console]::Out.Write('@@' + (__BureauGit (Get-Location).Path).Branch + '@@')`] });
+    for (const { shell, args } of runs) {
+      const r = spawnSync(shell, args, { cwd: repo, env, encoding: 'utf8', timeout: 30000 });
+      assert.ok(r.stdout.includes('@@expediente@@'), `${shell}: la rama sigue saliendo: ${JSON.stringify(r.stdout)} ${r.stderr}`);
+      assert.ok(!fs.existsSync(marker), `${shell}: ejecutó el core.fsmonitor del repositorio`);
+    }
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }

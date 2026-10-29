@@ -19,6 +19,7 @@ const { pickLine, isLateNight } = require('./board-lines');
 const S = require('./board-schedule');
 const rules = require('./rules');
 const { BOARD } = require('./config');
+const { inEditorTab } = require('./documents');
 
 const Global = vscode.ConfigurationTarget.Global;
 
@@ -260,9 +261,10 @@ class BoardComments {
         if (!session.parentSession) this.comment('debug');
       }),
       vscode.workspace.onDidChangeTextDocument((e) => {
-        if (e.contentChanges.length && e.document.uri.scheme !== 'output') this.errors?.edited();
+        if (e.contentChanges.length && e.document.uri.scheme !== 'output' && inEditorTab(e.document)) this.errors?.edited();
       }),
-      vscode.workspace.onDidSaveTextDocument(() => {
+      vscode.workspace.onDidSaveTextDocument((doc) => {
+        if (!inEditorTab(doc)) return;
         this.checkPending = true;
         this.armErrorTimer();
       }),

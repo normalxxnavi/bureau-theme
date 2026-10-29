@@ -328,13 +328,17 @@ test('Marketplace: categorías válidas y como mucho 30 etiquetas (palabras clav
   assert.ok(tags.size <= 30, `${tags.size} etiquetas: el Marketplace admite 30`);
 });
 
-test('las imágenes del README existen en el repositorio (la página de detalles las lee de GitHub)', () => {
-  const readme = fs.readFileSync(path.join(ROOT, 'README.md'), 'utf8');
-  const images = [...readme.matchAll(/!\[[^\]]*\]\(([^)]+)\)/g)].map((m) => m[1]);
-  assert.ok(images.length >= 5);
-  for (const img of images) {
-    assert.ok(!/^https?:/.test(img), `${img}: usa una ruta relativa del repositorio`);
-    assert.ok(fs.existsSync(path.join(ROOT, img)), `falta ${img}`);
-    assert.ok(img.endsWith('.png'), `${img}: el Marketplace no admite SVG propios`);
+test('las imágenes del README y del CHANGELOG existen en el repositorio (la página de detalles las lee de GitHub)', () => {
+  // Las insignias son SVG de los servicios en los que confía vsce; lo demás, PNG del repositorio.
+  const BADGES = /^https:\/\/(img\.shields\.io|vsmarketplacebadges\.dev)\//;
+  for (const file of ['README.md', 'README.es.md', 'CHANGELOG.md']) {
+    const text = fs.readFileSync(path.join(ROOT, file), 'utf8');
+    const images = [...text.matchAll(/!\[[^\]]*\]\(([^)]+)\)|<img [^>]*src="([^"]+)"/g)].map((m) => m[1] ?? m[2]).filter((img) => !BADGES.test(img));
+    if (file !== 'CHANGELOG.md') assert.ok(images.length >= 5, `${file}: sin capturas`);
+    for (const img of images) {
+      assert.ok(!/^https?:/.test(img), `${file}: ${img}: usa una ruta relativa del repositorio`);
+      assert.ok(fs.existsSync(path.join(ROOT, img)), `${file}: falta ${img}`);
+      assert.ok(img.endsWith('.png'), `${file}: ${img}: el Marketplace no admite SVG propios`);
+    }
   }
 });

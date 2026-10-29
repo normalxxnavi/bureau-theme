@@ -84,6 +84,9 @@ function main() {
       console.log(`✘ Test de integración fallido (código ${code}). Logs: ${path.join(tmp, 'user-data', 'logs')}`);
       const failed = lines.split('\n').filter((l) => l.trim().startsWith('✘'));
       ciError(CI_TITLE, failed.length ? failed.map((l) => l.trim()).join('\n') : `VS Code salió con el código ${code}${lines ? '' : ' sin escribir el informe'}`);
+      // El log de la extensión (sus avisos y errores), que en la CI no se ve de otra forma.
+      const extLog = findFile(path.join(tmp, 'user-data', 'logs'), (f) => f.includes('Normalxxnavi.bureau-theme') && f.endsWith('.log'));
+      if (extLog) ciError(`${CI_TITLE}: extension log`, fs.readFileSync(extLog, 'utf8').split('\n').slice(-40).join('\n'), 'warning');
       process.exit(code ?? 1);
     }
     console.log('✔ Test de integración superado');
@@ -94,6 +97,20 @@ function main() {
     }
     process.exit(0);
   });
+}
+
+/**
+ * El primer archivo de `dir` (y sus subcarpetas) cuya ruta cumple `match`.
+ * @param {string} dir @param {(file: string) => boolean} match @returns {string | undefined}
+ */
+function findFile(dir, match) {
+  if (!fs.existsSync(dir)) return undefined;
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    const found = entry.isDirectory() ? findFile(full, match) : match(full) ? full : undefined;
+    if (found) return found;
+  }
+  return undefined;
 }
 
 main();

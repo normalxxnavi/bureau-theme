@@ -140,19 +140,18 @@ test('portada: solo imágenes locales razonables (Windows en Base64, Linux file:
 
 test('Windows: cada respuesta va a su petición (una que llega tarde no desfasa las siguientes)', async () => {
   let clock = 0;
-  // El primer proceso tarda en contestar la portada y la contesta tarde, ya fuera de tiempo.
+  // El primer proceso no contesta la portada a tiempo; la respuesta llega después, cuando el test quiere.
   const ps = fakePowerShell((p, cmd) => {
-    if (p.n === 1 && cmd === 'cover') {
-      setTimeout(() => p.stdout.write('{"data":"tarde"}\n'), 60);
-      return null;
-    }
+    if (p.n === 1 && cmd === 'cover') return null;
     return cmd === 'read' ? SONG(`Canción ${p.n}`) : '{}';
   });
-  const source = windowsSource({ onlySpotify: false }, { spawn: ps.spawn, now: () => clock, answerMs: 20, firstAnswerMs: 20 });
+  // Sin tiempos justos: lo que contesta tiene 10 s (en un runner cargado, 20 ms no bastan); la portada que no llega agota 50 ms.
+  const source = windowsSource({ onlySpotify: false }, { spawn: ps.spawn, now: () => clock, answerMs: 50, firstAnswerMs: 10_000 });
   assert.equal((await source.read())?.title, 'Canción 1');
   assert.equal(await source.cover(), null, 'sin respuesta a tiempo: sin portada');
   assert.ok(ps.started[0].killed, 'el proceso que no contesta se cierra');
-  await new Promise((r) => setTimeout(r, 80));
+  ps.started[0].stdout.write('{"data":"tarde"}\n');
+  await new Promise((r) => setImmediate(r));
   assert.equal(await source.read(), null, 'justo después del fallo espera antes de volver a arrancar PowerShell');
   clock += 60_000;
   assert.equal((await source.read())?.title, 'Canción 2', 'un proceso nuevo, y la canción (no la portada que llegó tarde)');

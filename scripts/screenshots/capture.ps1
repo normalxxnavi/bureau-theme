@@ -1,15 +1,15 @@
+# Ventanas de VS Code para las capturas (la imagen la toma cdp.js, al doble de resolución):
+#   -Width/-Height  le da ese tamaño (con el borde invisible de Windows)
+#   -ParkCursor     saca el cursor de la ventana (antes de un popup puesto por CDP: si se moviera después, se cerraría)
+#   -Close          la cierra
 param(
   [Parameter(Mandatory)] [string] $TitleContains,
-  [Parameter(Mandatory)] [string] $OutFile,
-  [int] $Width = 1600,
-  [int] $Height = 1000,
-  [switch] $ResizeOnly,
-  # Saca el cursor de la ventana (antes de un popup puesto por CDP: si se moviera después, se cerraría).
+  [int] $Width = 0,
+  [int] $Height = 0,
   [switch] $ParkCursor,
   [switch] $Close
 )
 $ErrorActionPreference = 'Stop'
-Add-Type -AssemblyName System.Drawing
 Add-Type @"
 using System;
 using System.Text;
@@ -21,7 +21,6 @@ public static class W {
   [DllImport("user32.dll")] public static extern bool IsWindowVisible(IntPtr h);
   [DllImport("user32.dll")] public static extern bool MoveWindow(IntPtr h, int x, int y, int w, int hh, bool r);
   [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr h, int cmd);
-  [DllImport("user32.dll")] public static extern bool PrintWindow(IntPtr h, IntPtr hdc, uint flags);
   [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
   [StructLayout(LayoutKind.Sequential)] public struct POINT { public int X, Y; }
   [DllImport("user32.dll")] public static extern bool GetCursorPos(out POINT p);
@@ -46,23 +45,13 @@ $h = [W]::Find($TitleContains)
 if ($h -eq [IntPtr]::Zero) { throw "Ventana no encontrada: $TitleContains" }
 if ($Close) { [void][W]::PostMessage($h, 0x0010, [IntPtr]::Zero, [IntPtr]::Zero); "closed"; exit 0 }
 [void][W]::ShowWindow($h, 9)  # SW_RESTORE
-[void][W]::MoveWindow($h, 40, 40, $Width, $Height, $true)
-if ($ResizeOnly) { 'resized'; exit 0 }
+if ($Width -gt 0 -and $Height -gt 0) { [void][W]::MoveWindow($h, 40, 40, $Width, $Height, $true); 'resized' }
+if (-not $ParkCursor) { exit 0 }
 Start-Sleep -Milliseconds 400
 $r = New-Object W+RECT
 [void][W]::GetWindowRect($h, [ref]$r)
-$w = $r.R - $r.L; $hh = $r.B - $r.T
 $cur = New-Object W+POINT
 [void][W]::GetCursorPos([ref]$cur)
 $inside = $cur.X -ge $r.L -and $cur.X -le $r.R -and $cur.Y -ge $r.T -and $cur.Y -le $r.B
 if ($inside) { [void][W]::SetCursorPos($r.R + 40, $r.B + 40); Start-Sleep -Milliseconds 900 }
-if ($ParkCursor) { 'parked'; exit 0 }
-$bmp = New-Object System.Drawing.Bitmap $w, $hh
-$g = [System.Drawing.Graphics]::FromImage($bmp)
-$hdc = $g.GetHdc()
-[void][W]::PrintWindow($h, $hdc, 2)  # PW_RENDERFULLCONTENT
-$g.ReleaseHdc($hdc); $g.Dispose()
-$bmp.Save($OutFile, [System.Drawing.Imaging.ImageFormat]::Png)
-if ($inside) { [void][W]::SetCursorPos($cur.X, $cur.Y) }
-$bmp.Dispose()
-"captured $w x $hh"
+'parked'

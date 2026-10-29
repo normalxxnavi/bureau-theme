@@ -125,17 +125,21 @@ function writeGitColors(text, o = {}) {
  * Las claves de color de tu configuración de Git (`color.status.changed`…), para
  * dejarlas fuera de `bureau.gitconfig`. Sin las variables GIT_CONFIG_* (VS Code
  * abierto desde una terminal Bureau las hereda) y en tu carpeta personal. Sin
- * Git, ninguna.
+ * Git, ninguna. Git con su ruta absoluta, como los demás programas: con solo
+ * «git», Windows lo buscaría antes en la carpeta actual y en las entradas
+ * relativas del PATH.
  * @param {InstallerOptions} [o]
  * @returns {Promise<string[]>}
  */
 function ownGitColors(o = {}) {
   const r = resolve(o);
+  const git = r.find('git');
+  if (!git) return Promise.resolve([]);
   /** @type {NodeJS.ProcessEnv} */
   const env = Object.fromEntries(Object.entries(r.env).filter(([k]) => !/^GIT_CONFIG_(COUNT|KEY_\d+|VALUE_\d+|PARAMETERS)$/i.test(k)));
   return new Promise((done) => {
     // Sin claves de color, git config sale con 1 y sin salida: también vale.
-    execFile('git', ['config', '--includes', '--get-regexp', '^color[.]'], { cwd: r.home, env, windowsHide: true, timeout: 10000 }, (_err, stdout) => {
+    execFile(git, ['config', '--includes', '--get-regexp', '^color[.]'], { cwd: r.home, env, windowsHide: true, timeout: 10000 }, (_err, stdout) => {
       done(String(stdout ?? '').split(/\r?\n/).map((l) => l.split(/\s/)[0]).filter((k) => k.startsWith('color.')));
     });
   });

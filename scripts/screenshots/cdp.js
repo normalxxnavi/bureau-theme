@@ -16,6 +16,9 @@ const fs = require('node:fs');
 /** @param {number} ms */
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+/** Lo más que se espera la respuesta a una orden del protocolo de depuración. */
+const SEND_TIMEOUT_MS = 20000;
+
 /**
  * Se conecta a la ventana principal de VS Code (la página del workbench).
  * @param {number} port
@@ -27,7 +30,7 @@ async function connect(port, timeoutMs = 60000) {
   let page;
   while (!page) {
     try {
-      const list = /** @type {any[]} */ (await (await fetch(`http://127.0.0.1:${port}/json/list`)).json());
+      const list = /** @type {any[]} */ (await (await fetch(`http://127.0.0.1:${port}/json/list`, { signal: AbortSignal.timeout(5000) })).json());
       page = list.find((/** @type {any} */ t) => t.type === 'page' && /workbench/.test(t.url));
     } catch {
       // VS Code todavía no escucha
@@ -39,8 +42,9 @@ async function connect(port, timeoutMs = 60000) {
   }
   const ws = new WebSocket(page.webSocketDebuggerUrl);
   await new Promise((resolve, reject) => {
-    ws.addEventListener('open', resolve, { once: true });
-    ws.addEventListener('error', reject, { once: true });
+    const timer = setTimeout(() => reject(new Error(`La ventana de VS Code no acepta la conexión de depuración en ${SEND_TIMEOUT_MS / 1000} s`)), SEND_TIMEOUT_MS);
+    ws.addEventListener('open', () => (clearTimeout(timer), resolve(undefined)), { once: true });
+    ws.addEventListener('error', () => (clearTimeout(timer), reject(new Error('Error en la conexión de depuración con VS Code'))), { once: true });
   });
   let id = 0;
   /** @type {Map<number, {resolve: (v: any) => void, reject: (e: Error) => void}>} */
@@ -53,11 +57,24 @@ async function connect(port, timeoutMs = 60000) {
     if (msg.error) p.reject(new Error(msg.error.message));
     else p.resolve(msg.result);
   });
-  /** @param {string} method @param {object} [params] @returns {Promise<any>} */
+  /**
+   * Cada orden tiene su límite: si la ventana deja de pintar (en macOS, una
+   * ventana tapada o sin pantalla), Chromium no contesta a las capturas ni al
+   * ratón, y sin límite el proceso se quedaría esperando para siempre.
+   * @param {string} method @param {object} [params] @returns {Promise<any>}
+   */
   const send = (method, params = {}) =>
     new Promise((resolve, reject) => {
-      pending.set(++id, { resolve, reject });
-      ws.send(JSON.stringify({ id, method, params }));
+      const n = ++id;
+      const timer = setTimeout(() => {
+        pending.delete(n);
+        reject(new Error(`${method}: VS Code no contesta en ${SEND_TIMEOUT_MS / 1000} s`));
+      }, SEND_TIMEOUT_MS);
+      pending.set(n, {
+        resolve: (v) => (clearTimeout(timer), resolve(v)),
+        reject: (e) => (clearTimeout(timer), reject(e)),
+      });
+      ws.send(JSON.stringify({ id: n, method, params }));
     });
 
   /** @param {string} expression */
@@ -133,6 +150,16 @@ async function connect(port, timeoutMs = 60000) {
         await sleep(250);
       }
       await sleep(1200); // imágenes del popup
+    },
+    /**
+     * Pinta la ventana a `factor` veces su resolución sin cambiar su tamaño
+     * (como en un monitor con escala del 200 %), hasta que se cierra la
+     * conexión. Con una pantalla de 1080p, es la única forma de tener capturas
+     * nítidas de 2560 px.
+     * @param {number} factor
+     */
+    async scale(factor) {
+      await send('Emulation.setDeviceMetricsOverride', { width: 0, height: 0, deviceScaleFactor: factor, mobile: false });
     },
     /** Captura de la ventana (solo el contenido, sin el marco del sistema). @param {string} file */
     async screenshot(file) {
