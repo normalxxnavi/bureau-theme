@@ -167,11 +167,22 @@ class TerminalPrompt {
     return { cfg, label, theme, conf: P.confText(cfg, theme, vscode.env.language), cmdPrompt: P.cmdPrompt(cfg, theme), git };
   }
 
+  /**
+   * Lo de fuera de VS Code: la variable PROMPT de tu usuario, sin iconos (cmd no
+   * sabe en qué ventana está y la consola clásica, la de un cmd como
+   * administrador, no los dibuja), y el fragmento de Windows Terminal.
+   * @param {ReturnType<TerminalPrompt['data']>} d
+   */
+  outside({ cfg, label, theme }) {
+    return { cmdPrompt: P.cmdPrompt({ ...cfg, icons: false }, theme), fragment: this.fragment(cfg, label, theme) };
+  }
+
   async syncNow() {
     const wanted = readConfig();
     // Con el prompt o los colores apagados, bureau.gitconfig se queda sin colores: no hace falta preguntar a Git.
     this.ownGit = wanted.style !== 'off' && wanted.gitColors ? await installer.ownGitColors() : [];
-    const { cfg, conf, cmdPrompt, git } = this.data();
+    const data = this.data();
+    const { cfg, conf, cmdPrompt, git } = data;
     const on = cfg.style !== 'off';
     const dir = installer.resolve().dir;
     // Apagado también se escribe (style=off): los shells abiertos y los de fuera de VS Code devuelven tu prompt y los colores de Git.
@@ -190,7 +201,7 @@ class TerminalPrompt {
     await this.syncDefaultProfile(on && cfg.newTerminals);
     if (installer.isInstalledOutside()) {
       try {
-        await installer.refreshOutside({ cmdPrompt, fragment: this.fragment() });
+        await installer.refreshOutside(this.outside(data));
       } catch (err) {
         this.log.warn(`Terminal prompt outside VS Code: ${/** @type {Error} */ (err).message}`);
       }
@@ -270,10 +281,12 @@ class TerminalPrompt {
     return current === PROFILE_TITLE ? null : /** @type {string | null} */ (current ?? null);
   }
 
-  /** El fragmento de Windows Terminal (solo en Windows). */
-  fragment() {
+  /**
+   * El fragmento de Windows Terminal (solo en Windows).
+   * @param {P.PromptConfig} cfg @param {string | undefined} label @param {P.PromptTheme} theme
+   */
+  fragment(cfg, label, theme) {
     if (process.platform !== 'win32') return null;
-    const { cfg, label } = this.data();
     const r = installer.resolve();
     const pwsh = r.find('pwsh');
     const font = vscode.workspace.getConfiguration().get('bureauTheme.font');
@@ -285,6 +298,8 @@ class TerminalPrompt {
       font: font === 'bureau' ? 'Overpass Mono' : font === 'resonant' ? 'Space Mono' : 'Cascadia Mono',
       // Tus perfiles (Símbolo del sistema, Windows PowerShell…) también llevan la fuente de iconos.
       icons: cfg.style !== 'off' && cfg.icons,
+      // Windows Terminal sí los dibuja: su perfil de cmd lleva el PROMPT con iconos.
+      cmdPrompt: P.cmdPrompt(cfg, theme),
       settings: installer.windowsTerminalSettings(),
     });
   }
@@ -467,7 +482,7 @@ class TerminalPrompt {
       {
         modal: true,
         detail: vscode.l10n.t(
-          'Three lines are added to the end of the profiles of your installed shells (profile.ps1, .bashrc, .zshrc) and a file to fish conf.d. On Windows, also the PROMPT variable of your user for cmd, two Windows Terminal profiles with the colour schemes and the icon font behind the font of your Windows Terminal profiles. They only load the prompt if it exists, and you can remove everything from the Bureau terminal menu.'
+          'Three lines are added to the end of the profiles of your installed shells (profile.ps1, .bashrc, .zshrc) and a file to fish conf.d. On Windows, also the PROMPT variable of your user for cmd, two Windows Terminal profiles with the colour schemes, the icon font behind the font of your Windows Terminal profiles and, with Git Bash, in the mintty configuration. They only load the prompt if it exists, and you can remove everything from the Bureau terminal menu.'
         ),
       },
       install
@@ -475,10 +490,10 @@ class TerminalPrompt {
     if (choice !== install) return;
     // En la cola: una sincronización a medias no puede pisar installed.json.
     await this.serial(async () => {
-      const { conf, cmdPrompt, git } = this.data();
+      const data = this.data();
       try {
-        installer.prepare(this.context.extensionPath, { conf, board: boardLines(), git });
-        const changed = await installer.installOutside({ cmdPrompt, fragment: this.fragment() });
+        installer.prepare(this.context.extensionPath, { conf: data.conf, board: boardLines(), git: data.git });
+        const changed = await installer.installOutside(this.outside(data));
         this.log.info(`Terminal prompt installed outside VS Code: ${changed.join(', ')}`);
         vscode.window.showInformationMessage(vscode.l10n.t('<<THE PROTOCOL EXTENDS BEYOND THE HOUSE.>> Open a new terminal to see the Bureau prompt. Changed: {0}.', changed.map((f) => path.basename(f)).join(', ') || '—'));
       } catch (err) {

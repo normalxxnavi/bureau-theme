@@ -319,6 +319,25 @@ function profileBlock(shell, dir) {
 }
 
 /**
+ * El bloque de la configuración de mintty (Git Bash fuera de VS Code): toma de
+ * Bureau Prompt Icons los caracteres que no tiene tu fuente (`FontSubst`).
+ * mintty no los busca en otras fuentes por sí solo, y los iconos salían como
+ * cuadros. Va en %APPDATA%\mintty\config, que mintty lee antes que tu
+ * ~/.minttyrc: lo que pongas tú ahí manda.
+ */
+const minttyBlock = () => [BLOCK_START, `Font9=${PROMPT_FONT.family}`, 'FontSubst=9', BLOCK_END].join('\n');
+
+/**
+ * ¿Entiende este mintty `FontSubst`? Llegó en la 3.8.3: uno anterior avisaría
+ * de una opción desconocida al abrirse.
+ * @param {string} versionText la salida de `mintty --version` («mintty '3.8.3' …»)
+ */
+function minttyHasFontSubst(versionText) {
+  const m = /mintty\D*(\d+)\.(\d+)\.(\d+)/.exec(versionText);
+  return m !== null && Number(m[1]) * 10000 + Number(m[2]) * 100 + Number(m[3]) >= 30803;
+}
+
+/**
  * Añade (o actualiza) el bloque del prompt al final de un perfil.
  * @param {string} text contenido actual ('' si no existe) @param {string} block `profileBlock`
  */
@@ -405,7 +424,9 @@ function windowsTerminalUpdates(settings) {
  * (`windowsTerminalUpdates`). No toca tu settings.json.
  * `theme` es el tema activo (si es CONTROL, los perfiles usan su esquema),
  * `powershell` el ejecutable (pwsh.exe o powershell.exe), `font` la fuente
- * monoespaciada principal y `settings` tu settings.json de Windows Terminal.
+ * monoespaciada principal, `cmdPrompt` el PROMPT con iconos del perfil de cmd
+ * (tu variable PROMPT va sin ellos: la consola clásica no los dibuja) y
+ * `settings` tu settings.json de Windows Terminal.
  * @param {{
  *   dir: string,
  *   palettes: Array<{label: string, bg: {sidebar: string}, fg: {main: string}, accent: {main: string, line: string}, ansi: Record<string, string>}>,
@@ -413,11 +434,12 @@ function windowsTerminalUpdates(settings) {
  *   powershell: string,
  *   font: string,
  *   icons?: boolean,
+ *   cmdPrompt?: string,
  *   settings?: any,
  * }} o
  * @returns {{$help: string, schemes: Array<Record<string, string>>, profiles: Array<Record<string, any>>}}
  */
-function windowsTerminalFragment({ dir, palettes, theme, powershell, font, icons = false, settings = null }) {
+function windowsTerminalFragment({ dir, palettes, theme, powershell, font, icons = false, cmdPrompt = '', settings = null }) {
   const scheme = palettes.find((p) => p.label === theme)?.label ?? palettes[0].label;
   const face = `${font}, ${PROMPT_FONT.family}`;
   const icon = path.win32.join(dir, 'icon.png');
@@ -455,7 +477,8 @@ function windowsTerminalFragment({ dir, palettes, theme, powershell, font, icons
         font: { face },
         icon,
       },
-      { guid: WT_GUIDS.cmd, name: 'Bureau · Command Prompt', commandline: 'cmd.exe', colorScheme: scheme, font: { face }, icon },
+      // El comando prompt toma el resto de la línea tal cual (sin < ni >: van como $L y $G).
+      { guid: WT_GUIDS.cmd, name: 'Bureau · Command Prompt', commandline: cmdPrompt ? `cmd.exe /k prompt ${cmdPrompt}` : 'cmd.exe', colorScheme: scheme, font: { face }, icon },
       ...(icons ? windowsTerminalUpdates(settings) : []),
     ],
   };
@@ -497,6 +520,8 @@ module.exports = {
   accentCode,
   lineCode,
   cmdPrompt,
+  minttyBlock,
+  minttyHasFontSubst,
   shellFromProfileName,
   dataDir,
   powershellLoader,

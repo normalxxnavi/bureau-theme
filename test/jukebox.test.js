@@ -108,15 +108,52 @@ test('barra de estado: «Título — Artista» recortado y sin iconos colados', 
 test('nombre de la app y enlaces a las bandas sonoras', () => {
   assert.equal(P.appName('SpotifyAB.SpotifyMusic_zpdnekdrzrea0!Spotify'), 'Spotify');
   assert.equal(P.appName('org.mpris.MediaPlayer2.firefox.instance_1_23'), 'Firefox');
-  assert.equal(P.appName('Microsoft.ZuneMusic_8wekyb3d8bbwe!Microsoft.ZuneMusic'), 'Music');
+  assert.equal(P.appName('Microsoft.ZuneMusic_8wekyb3d8bbwe!Microsoft.ZuneMusic'), 'Media Player');
   assert.equal(P.appName('MSEdge'), 'Edge');
   assert.equal(P.appName('vlc.exe'), 'VLC');
+  assert.equal(P.appName('308046B0AF4A39CB'), 'Firefox', 'Firefox en Windows, por el identificador de su instalación');
+  assert.equal(P.appName('com.github.th-ch.youtube-music'), 'YouTube Music');
+  assert.equal(P.appName('org.mpris.MediaPlayer2.chromium.instance42'), 'Chromium');
   assert.ok(P.isSpotify('SpotifyAB.SpotifyMusic_zpdnekdrzrea0!Spotify'));
   const ids = P.SOUNDTRACKS.map((s) => s.id);
   assert.deepEqual(ids, ['control', 'resonant', 'zoe', 'takeControl', 'rebirth']);
   for (const s of P.SOUNDTRACKS) assert.match(s.spotify, /^[0-9A-Za-z]{22}$/, `${s.id}: id de álbum de Spotify`);
   assert.equal(P.soundtrackUri('0cS6rif4qDxklIaFKME68N', true), 'spotify:album:0cS6rif4qDxklIaFKME68N');
   assert.equal(P.soundtrackUri('0cS6rif4qDxklIaFKME68N', false), 'https://open.spotify.com/album/0cS6rif4qDxklIaFKME68N');
+});
+
+test('logotipo del reproductor en el popup de la gramola (o su nombre, si no hay)', () => {
+  const { LOGOS, logoUri } = require('../src/extension/player-logos');
+  /** @type {Array<[string, string | null]>} identificador del sistema → logotipo */
+  const cases = [
+    ['SpotifyAB.SpotifyMusic_zpdnekdrzrea0!Spotify', 'spotify'],
+    ['Spotify', 'spotify'],
+    ['org.mpris.MediaPlayer2.spotify', 'spotify'],
+    ['Chrome', 'chrome'],
+    ['org.mpris.MediaPlayer2.firefox.instance_1_23', 'firefox'],
+    ['308046B0AF4A39CB', 'firefox'],
+    ['AppleInc.AppleMusicWin_nzyj5cx40ttqa!App', 'appleMusic'],
+    ['Music', 'appleMusic'],
+    ['org.mpris.MediaPlayer2.vlc', 'vlc'],
+    ['org.mpris.MediaPlayer2.mpv', 'mpv'],
+    ['MSEdge', null],
+    ['Microsoft.ZuneMusic_8wekyb3d8bbwe!Microsoft.ZuneMusic', null],
+    ['org.mpris.MediaPlayer2.rhythmbox', null],
+    ['DesconocidoPlayer', null],
+  ];
+  for (const [app, logo] of cases) assert.equal(P.appLogo(app), logo, app);
+  assert.equal(P.appLogo('impvlayer'), null, 'mpv solo como nombre completo');
+  for (const [id, l] of Object.entries(LOGOS)) {
+    assert.match(l.color, /^#[0-9A-F]{6}$/, `${id}: color`);
+    assert.match(l.d, /^[MmLlHhVvCcSsQqTtAaZz0-9.,\s-]+$/, `${id}: solo un trazado, sin nada que ejecutar`);
+    const svg = Buffer.from(/** @type {string} */ (logoUri(id)).split(',')[1], 'base64').toString();
+    assert.match(svg, /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg" viewBox="0 0 24 24"><path fill="#[0-9A-F]{6}" d="[^"]+"\/><\/svg>$/, id);
+  }
+  assert.equal(logoUri(null), null);
+  // Cada logotipo que nombra la lista de reproductores existe.
+  for (const app of ['Spotify', 'Chrome', 'firefox', 'brave', 'opera', 'vlc', 'itunes', 'Music', 'foobar2000', 'TIDAL', 'Deezer', 'youtube-music', 'mpv', 'Winamp', 'Plexamp', 'Kodi', 'Pandora']) {
+    assert.ok(LOGOS[/** @type {string} */ (P.appLogo(app))], app);
+  }
 });
 
 test('portada: solo imágenes locales razonables (Windows en Base64, Linux file://)', () => {

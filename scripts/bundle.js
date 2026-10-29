@@ -22,10 +22,10 @@ const ROOT = path.resolve(__dirname, '..');
 // el motor de sonido (solo con los sonidos activados), la consola de sonido
 // (solo al abrirla), las tipografías (solo si hay algo pendiente), cada
 // protocolo de la Agencia (solo si está activado), el Consejo, los comandos
-// de la guía de bienvenida, la Casa Inmemorial, la gramola y la terminal Bureau (al usarlos o activarlos). Cada uno lleva sus módulos pequeños
+// de la guía de bienvenida, la Casa Inmemorial, la gramola, el HUD y la terminal Bureau (al usarlos o activarlos). Cada uno lleva sus módulos pequeños
 // compartidos (config, catálogo…): se duplican unos pocos cientos de bytes a
 // cambio de no leer ni compilar código que no se usa.
-const CHUNKS = ['controller', 'sound-menu', 'fonts', 'classified', 'alert-level', 'board', 'setup', 'panel', 'music', 'terminal-prompt'];
+const CHUNKS = ['controller', 'sound-menu', 'fonts', 'classified', 'alert-level', 'board', 'setup', 'panel', 'music', 'hud', 'terminal-prompt'];
 /** Lo que cada archivo carga de otro en lugar de llevar su propia copia. */
 const SHARED = { panel: ['./setup', './sound-menu', './board', './music', './terminal-prompt'] };
 

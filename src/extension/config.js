@@ -80,6 +80,9 @@ const TERMINAL_ACTIVE_KEY = 'terminalActive';
 /** Versión de la extensión con la que se instaló la fuente de iconos del prompt. */
 const TERMINAL_FONT_INSTALLED_KEY = 'terminalIconFontInstalled';
 
+/** El HUD del Bureau (posición, sangría, codificación, fin de línea y lenguaje en la barra de estado). */
+const HUD = 'bureauTheme.hud.enabled';
+
 /** Icono CONTROL de la barra de estado (abre el panel). Antes era solo de sonido y se llamaba así: */
 const STATUS_BAR_ITEM = 'bureauTheme.statusBarItem';
 const LEGACY_STATUS_BAR_ITEM = 'bureauTheme.sounds.statusBarItem';
@@ -95,6 +98,7 @@ module.exports = {
   BOARD,
   PROTOCOL_SWITCHES,
   MUSIC,
+  HUD,
   TERMINAL_PROMPT,
   TERMINAL_ACTIVE_KEY,
   TERMINAL_FONT_INSTALLED_KEY,

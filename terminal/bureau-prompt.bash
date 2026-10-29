@@ -33,6 +33,34 @@ __bureau_g_clear=$'\xee\x86\xba' __bureau_g_anomaly=$'\xee\x86\xbb'
 __bureau_g_alert=$'\xee\x86\xbc' __bureau_g_incursion=$'\xee\x86\xbd'
 __bureau_g_board=$'\xee\x86\xbe' __bureau_g_classified=$'\xee\x86\xbf'
 
+# Can the terminal draw the icons? They come from a font of their own, which
+# the terminal has to look for behind yours: VS Code, Windows Terminal and the
+# terminals of macOS and Linux do. On Windows, mintty (Git Bash) only does it
+# from 3.8.3 on, with the FontSubst line the extension adds to its config when
+# you use the prompt outside VS Code; the classic console never does. There
+# the prompt goes without icons. BUREAU_PROMPT_ICONS=1 or 0 decides instead.
+__bureau_icons_ok() {
+  case ${BUREAU_PROMPT_ICONS:-} in 1) return 0 ;; 0) return 1 ;; esac
+  case ${TERM:-} in linux | dumb) return 1 ;; esac
+  [ "$__bureau_os" = windows ] || return 0
+  [ "${TERM_PROGRAM:-}" = vscode ] || [ -n "${WT_SESSION:-}" ] && return 0
+  [ "${TERM_PROGRAM:-}" = mintty ] || return 1
+  local a b c line font=0 subst=0
+  IFS=. read -r a b c <<< "${TERM_PROGRAM_VERSION:-0}"
+  a=${a%%[!0-9]*} b=${b%%[!0-9]*} c=${c%%[!0-9]*}
+  [ $(( ${a:-0} * 10000 + ${b:-0} * 100 + ${c:-0} )) -ge 30803 ] || return 1
+  [ -r "${APPDATA//\\//}/mintty/config" ] || return 1
+  while IFS= read -r line || [ -n "$line" ]; do
+    case ${line%$'\r'} in
+      'Font9=Bureau Prompt Icons') font=1 ;;
+      'FontSubst=9') subst=1 ;;
+    esac
+  done < "${APPDATA//\\//}/mintty/config"
+  [ $font = 1 ] && [ $subst = 1 ]
+}
+__bureau_noicons=0
+__bureau_icons_ok || __bureau_noicons=1
+
 # prompt.conf: one key per line, letters only (it is never evaluated).
 __bureau_conf() {
   __bc_style='' __bc_icons=1 __bc_windows=controlPoints __bc_macos=command __bc_linux=tux __bc_frame=1 __bc_theme=other __bc_lang=en
@@ -51,6 +79,8 @@ __bureau_conf() {
       lang) __bc_lang=$v ;;
     esac
   done < "$__bureau_dir/prompt.conf"
+  [ "$__bureau_noicons" = 1 ] && __bc_icons=0
+  return 0
 }
 
 # Git: branch, commits ahead/behind and changed files. Only inside a repository

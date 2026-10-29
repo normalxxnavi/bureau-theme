@@ -50,12 +50,34 @@ if (-not (Test-Path variable:global:__BureauState)) {
         foreach ($line in [IO.File]::ReadAllLines($file)) {
           if ($line -match '^\s*([A-Za-z]+)\s*=\s*([A-Za-z0-9]*)\s*$') { $c[$Matches[1]] = $Matches[2] }
         }
+        if ($s.NoIcons) { $c['icons'] = '0' }
         $s.Conf = $c
         $s.ConfStamp = $stamp
       }
     } catch { }
     $s.Conf
   }
+
+  # Can the terminal draw the icons? They come from a font of their own, which
+  # the terminal has to look for behind yours: VS Code and Windows Terminal do
+  # (the extension sets them up), and so do the terminals of macOS and Linux.
+  # The classic Windows console (conhost: an elevated PowerShell opens there)
+  # only uses its own font and drew them as boxes, so there the prompt goes
+  # without icons. Windows Terminal (also when Windows hands it a console,
+  # without WT_SESSION) has a buffer as tall as the window; conhost keeps its
+  # scrollback in it. BUREAU_PROMPT_ICONS=1 or 0 decides instead.
+  function global:__BureauCanDrawIcons([string]$os, [string]$force, [string]$term, [string]$program, [string]$wt, [int]$buffer, [int]$window) {
+    if ($force -eq '1') { return $true }
+    if ($force -eq '0') { return $false }
+    if ($term -in @('linux', 'dumb')) { return $false }
+    if ($os -ne 'windows' -or $program -eq 'vscode' -or $wt) { return $true }
+    $buffer -gt 0 -and $buffer -eq $window
+  }
+  $__bureauBuffer = 0
+  $__bureauWindow = 0
+  try { $__bureauBuffer = [Console]::BufferHeight; $__bureauWindow = [Console]::WindowHeight } catch { }
+  $global:__BureauState.NoIcons = -not (__BureauCanDrawIcons $global:__BureauState.Os $env:BUREAU_PROMPT_ICONS $env:TERM $env:TERM_PROGRAM $env:WT_SESSION $__bureauBuffer $__bureauWindow)
+  Remove-Variable __bureauBuffer, __bureauWindow -ErrorAction SilentlyContinue
 
   $global:__BureauGlyphs = @{
     controlPoints = [char]0xE1B0; house = [char]0xE1B1; command = [char]0xE1B2; apple = [char]0xE1B3

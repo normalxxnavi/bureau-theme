@@ -16,6 +16,7 @@ test-workspace/**
 docs/**
 references/**
 images/screenshots/**
+images/changelog/**
 **/*.map
 **/*.ts
 .gitignore

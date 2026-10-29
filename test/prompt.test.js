@@ -21,6 +21,10 @@ const { isOwnValue, settingsFor, fallbackFonts } = require('../src/extension/fon
 const { findAppRoot } = require('../scripts/lib/vscode-install');
 
 const ROOT = path.resolve(__dirname, '..');
+// Los scripts quitan los iconos en las terminales que no los dibujan (la consola
+// clásica de Windows…), y la de los tests depende de dónde se lancen: aquí se
+// fuerzan, salvo en las pruebas de esa decisión.
+process.env.BUREAU_PROMPT_ICONS = '1';
 const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
 const properties = Object.assign({}, ...pkg.contributes.configuration.map((/** @type {any} */ c) => c.properties));
 const ESC = '\x1b';
@@ -246,6 +250,10 @@ test('fragmento de Windows Terminal: los cuatro esquemas y dos perfiles con la f
   assert.ok(f.profiles[0].commandline.includes(P.powershellLoader(dir)));
   assert.equal(P.windowsTerminalFragment({ dir, palettes, theme: 'Dark Modern', powershell: 'powershell.exe', font: 'Cascadia Mono' }).profiles[1].colorScheme, 'CONTROL Dark');
   assert.ok(f.profiles.every((p) => !('updates' in p)), 'con los iconos apagados no se tocan tus perfiles');
+  // El perfil de cmd lleva su PROMPT con iconos: tu variable PROMPT va sin ellos (la consola clásica no los dibuja).
+  assert.equal(f.profiles[1].commandline, 'cmd.exe', 'con el prompt apagado, cmd tal cual');
+  const prompt = P.cmdPrompt({ ...defaults(), style: 'signage' }, 'resonant');
+  assert.equal(P.windowsTerminalFragment({ dir, palettes, theme: 'CONTROL Resonant', powershell: 'pwsh.exe', font: 'Cascadia Mono', cmdPrompt: prompt }).profiles[1].commandline, `cmd.exe /k prompt ${prompt}`);
   // El cargador funciona aunque la directiva de ejecución no deje ejecutar scripts.
   assert.match(P.powershellLoader(dir), /try \{ \. '.+bureau-prompt\.ps1' \} catch \{ Invoke-Expression \(\[IO\.File\]::ReadAllText\('.+'\)\) \}/);
   assert.doesNotMatch(P.powershellLoader(dir), /"/, 'sin comillas dobles: va dentro de -Command "…"');
@@ -282,6 +290,15 @@ test('fragmento de Windows Terminal: la fuente de iconos detrás de la tuya en t
   // Ya la llevaba, o el formato antiguo (profiles como lista y fontFace).
   assert.equal(P.windowsTerminalUpdates({ profiles: { defaults: { font: { face: 'Consolas, Bureau Prompt Icons' } } } })[0].font.face, 'Consolas, Bureau Prompt Icons');
   assert.ok(!P.windowsTerminalUpdates({ profiles: [{ guid: cmd, fontFace: 'Consolas' }] }).some((p) => p.updates === cmd));
+});
+
+test('mintty: FontSubst solo desde la 3.8.3 y su bloque con la fuente de iconos', () => {
+  assert.equal(P.minttyHasFontSubst("mintty '3.8.3' 2026-06-09_19:56 (Msys-x86_64)\n© 2026 Thomas Wolff"), true);
+  assert.equal(P.minttyHasFontSubst("mintty '3.10.0'"), true);
+  assert.equal(P.minttyHasFontSubst("mintty '3.8.2' 2025-…"), false);
+  assert.equal(P.minttyHasFontSubst("mintty '3.7.8'"), false);
+  assert.equal(P.minttyHasFontSubst(''), false, 'sin salida (no se pudo ejecutar)');
+  assert.deepEqual(P.minttyBlock().split('\n').slice(1, -1), ['Font9=Bureau Prompt Icons', 'FontSubst=9']);
 });
 
 test('settings.json de Windows Terminal: JSON con comentarios y comas finales', () => {
@@ -475,6 +492,55 @@ test('fuera de VS Code en Windows: profile.ps1, la variable PROMPT (con su valor
     assert.ok(!fs.existsSync(fragmentFile));
     assert.equal(fs.readFileSync(profile, 'utf8'), '');
     assert.deepEqual(await installer.refreshOutside({ cmdPrompt: cmd, fragment }, o), [], 'sin instalar, no se toca nada');
+  }));
+
+test('fuera de VS Code en Windows: con Git Bash, la fuente de iconos en la configuración de mintty (3.8.3 o posterior)', { skip: process.platform !== 'win32' && 'rutas de Windows' }, () =>
+  withHome(async ({ home, env }) => {
+    const git = path.join(home, 'Programs', 'Git');
+    for (const exe of [path.join(git, 'bin', 'bash.exe'), path.join(git, 'usr', 'bin', 'mintty.exe')]) {
+      fs.mkdirSync(path.dirname(exe), { recursive: true });
+      fs.writeFileSync(exe, '');
+    }
+    const appdata = path.join(home, 'AppData', 'Roaming');
+    const config = path.join(appdata, 'mintty', 'config');
+    const version = { text: "mintty '3.8.3' 2026-06-09_19:56 (Msys-x86_64)\n" };
+    const run = (/** @type {string} */ cmd, /** @type {string[]} */ args) => {
+      if (path.basename(cmd) === 'mintty.exe') return { status: args[0] === '--version' ? 0 : 1, stdout: version.text };
+      // La variable PROMPT de cmd (sin valor).
+      return { status: args[args.length - 1].includes('EnvironmentVariable') ? 0 : 1, stdout: '' };
+    };
+    const o = { platform: /** @type {NodeJS.Platform} */ ('win32'), home, env: { ...env, APPDATA: appdata, ProgramFiles: path.join(home, 'Programs') }, find: () => null, run };
+    const data = { cmdPrompt: '', fragment: null };
+
+    await installer.installOutside(data, o);
+    assert.equal(fs.readFileSync(config, 'utf8'), `${P.minttyBlock()}\n`, 'sin configuración de mintty, solo el bloque');
+    assert.ok(P.hasBlock(fs.readFileSync(path.join(home, '.bashrc'), 'utf8')), 'y el prompt en .bashrc');
+    installer.removeOutside(o);
+    assert.ok(!fs.existsSync(config), 'al quitarlo, el archivo que solo tenía el bloque se borra');
+
+    // Tu configuración se queda como estaba.
+    fs.mkdirSync(path.dirname(config), { recursive: true });
+    fs.writeFileSync(config, 'Columns=100\r\nRows=27\r\n');
+    await installer.installOutside(data, o);
+    assert.ok(fs.readFileSync(config, 'utf8').startsWith('Columns=100\r\nRows=27\r\n\r\n# >>> Bureau prompt'));
+    installer.removeOutside(o);
+    assert.equal(fs.readFileSync(config, 'utf8'), 'Columns=100\r\nRows=27\r\n');
+
+    // Instalado fuera de VS Code antes de esto: lo recibe al sincronizar, una vez.
+    fs.rmSync(config);
+    const dir = P.dataDir('win32', o.env, home);
+    fs.writeFileSync(path.join(dir, 'installed.json'), JSON.stringify({ files: [path.join(home, '.bashrc')], cmdPrompt: { backup: null, value: null } }));
+    assert.deepEqual(await installer.refreshOutside(data, o), [config]);
+    assert.ok(P.hasBlock(fs.readFileSync(config, 'utf8')));
+    assert.deepEqual(await installer.refreshOutside(data, o), [], 'la segunda vez, nada');
+    installer.removeOutside(o);
+    assert.ok(!fs.existsSync(config));
+
+    // Un mintty anterior a la 3.8.3 avisaría de una opción desconocida: nada.
+    version.text = "mintty '3.7.8' 2025-04-01 (Msys-x86_64)\n";
+    await installer.installOutside(data, o);
+    assert.ok(!fs.existsSync(config));
+    installer.removeOutside(o);
   }));
 
 test('la fuente de iconos se instala con las demás y se borra al desinstalar (o se queda con la terminal Bureau encendida)', () => {
@@ -865,6 +931,144 @@ test('fish: la cabecera y el cierre de cada comando (si está instalado)', { ski
 });
 
 const PROMPT_SCRIPTS = ['bureau-prompt.ps1', 'bureau-prompt.bash', 'bureau-prompt.zsh', 'bureau-prompt.fish'];
+
+/**
+ * ¿Dibuja la terminal los iconos? Los casos, iguales en bash, zsh y fish:
+ * nombre, sistema, variables y lo esperado. `appdata` es la carpeta con la
+ * configuración de mintty que escribe la extensión.
+ * @param {string} appdata
+ * @returns {Array<[string, string, Record<string, string>, 0 | 1]>}
+ */
+const iconCases = (appdata) => [
+  ['classic', 'windows', {}, 0],
+  ['vscode', 'windows', { TERM_PROGRAM: 'vscode' }, 1],
+  ['wt', 'windows', { WT_SESSION: 'abc' }, 1],
+  ['force-on', 'windows', { BUREAU_PROMPT_ICONS: '1' }, 1],
+  ['force-off', 'windows', { TERM_PROGRAM: 'vscode', BUREAU_PROMPT_ICONS: '0' }, 0],
+  ['linux', 'linux', { TERM: 'xterm-256color' }, 1],
+  ['linux-console', 'linux', { TERM: 'linux' }, 0],
+  ['macos', 'macos', {}, 1],
+  ['mintty-noconf', 'windows', { TERM_PROGRAM: 'mintty', TERM_PROGRAM_VERSION: '3.8.3', APPDATA: path.join(appdata, 'nada') }, 0],
+  ['mintty', 'windows', { TERM_PROGRAM: 'mintty', TERM_PROGRAM_VERSION: '3.8.3', APPDATA: appdata }, 1],
+  ['mintty-old', 'windows', { TERM_PROGRAM: 'mintty', TERM_PROGRAM_VERSION: '3.8.2', APPDATA: appdata }, 0],
+  ['mintty-new', 'windows', { TERM_PROGRAM: 'mintty', TERM_PROGRAM_VERSION: '3.10.0', APPDATA: appdata }, 1],
+];
+const ICON_VARS = ['BUREAU_PROMPT_ICONS', 'TERM', 'TERM_PROGRAM', 'TERM_PROGRAM_VERSION', 'WT_SESSION', 'APPDATA'];
+
+/** La carpeta APPDATA con la configuración de mintty de la extensión (con CRLF, como en Windows). @param {string} dir */
+function minttyAppdata(dir) {
+  const appdata = path.join(dir, 'appdata');
+  fs.mkdirSync(path.join(appdata, 'mintty'), { recursive: true });
+  fs.writeFileSync(path.join(appdata, 'mintty', 'config'), `Columns=100\r\n${P.minttyBlock().replace(/\n/g, '\r\n')}\r\n`);
+  return appdata;
+}
+
+/** Lo que han contestado los shells: `@@caso=0|1`. @param {string} stdout */
+const iconAnswers = (stdout) => Object.fromEntries([...stdout.matchAll(/@@([\w-]+)=([01])/g)].map((m) => [m[1], Number(m[2])]));
+
+test('PowerShell: los iconos solo donde la terminal los dibuja (la consola clásica no)', { skip: !powershell && 'sin PowerShell' }, () => {
+  const dir = scratch('bureau-prompt.ps1');
+  try {
+    fs.writeFileSync(path.join(dir, 'prompt.conf'), 'style=signage\nicons=1\ntheme=dark\nlang=en\n');
+    /** @type {Array<[string, string, string]>} nombre, argumentos (sistema, forzado, TERM, TERM_PROGRAM, WT_SESSION, búfer, ventana), lo esperado */
+    const cases = [
+      ['conhost', "'windows' '' '' '' '' 9001 30", 'False'],
+      ['conpty', "'windows' '' '' '' '' 30 30", 'True'],
+      ['no-console', "'windows' '' '' '' '' 0 0", 'False'],
+      ['vscode', "'windows' '' '' 'vscode' '' 9001 30", 'True'],
+      ['wt', "'windows' '' '' '' 'abc' 9001 30", 'True'],
+      ['force-on', "'windows' '1' '' '' '' 9001 30", 'True'],
+      ['force-off', "'windows' '0' '' 'vscode' '' 30 30", 'False'],
+      ['linux', "'linux' '' 'xterm-256color' '' '' 0 0", 'True'],
+      ['linux-console', "'linux' '' 'linux' '' '' 0 0", 'False'],
+    ];
+    const script = [
+      `. '${path.join(dir, 'bureau-prompt.ps1')}'`,
+      ...cases.map(([name, args]) => `[Console]::Out.Write('@@${name}=' + (__BureauCanDrawIcons ${args}))`),
+      // Sin iconos, prompt.conf se lee con icons=0 y el prompt va sin ellos.
+      "$global:__BureauState.NoIcons = $true; $global:__BureauState.ConfStamp = [datetime]::MinValue",
+      "[Console]::Out.Write('@@conf=' + (__BureauConf)['icons'] + '@@prompt=' + (prompt))",
+    ].join('\n');
+    const r = spawnSync(/** @type {string} */ (powershell), ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command', `[Console]::OutputEncoding = [Text.Encoding]::UTF8; ${script}`], { encoding: 'utf8' });
+    for (const [name, , expected] of cases) assert.ok(r.stdout.includes(`@@${name}=${expected}`), `${name}: ${expected} (${r.stdout}${r.stderr})`);
+    assert.ok(r.stdout.includes('@@conf=0'), 'prompt.conf con icons=0');
+    const prompt = r.stdout.split('@@prompt=')[1] ?? '';
+    assert.ok(prompt.includes(' FBC '), `la insignia sin iconos: ${prompt}`);
+    assert.ok(![...prompt].some((c) => (c.codePointAt(0) ?? 0) >= 0xe000 && (c.codePointAt(0) ?? 0) <= 0xf8ff), 'ningún icono');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('bash: los iconos solo donde la terminal los dibuja (mintty con FontSubst, nunca la consola clásica)', { skip: !has('bash', ['--version']) && 'sin bash' }, () => {
+  const dir = scratch('bureau-prompt.bash');
+  try {
+    const appdata = minttyAppdata(dir);
+    const script = [
+      `cd '${dir.replace(/\\/g, '/')}'`,
+      'source ./bureau-prompt.bash',
+      `unset ${ICON_VARS.join(' ')}`,
+      ...iconCases(appdata).map(([name, os, vars]) => {
+        const env = Object.entries({ TERM: 'xterm-256color', ...vars }).map(([k, v]) => `${k}='${v}'`).join(' ');
+        return `__bureau_os=${os}; if ${env} __bureau_icons_ok; then printf '@@${name}=1'; else printf '@@${name}=0'; fi`;
+      }),
+      // Sin iconos, prompt.conf se lee con icons=0.
+      "printf 'style=signage\\nicons=1\\n' > prompt.conf; __bureau_noicons=1; __bureau_conf; printf '@@conf=%s' $__bc_icons",
+    ].join('\n');
+    const r = spawnSync('bash', ['--norc', '-i', '-c', script], { encoding: 'utf8', env: UTF8 });
+    const got = iconAnswers(r.stdout);
+    for (const [name, , , expected] of iconCases(appdata)) assert.equal(got[name], expected, `${name} (${r.stdout}${r.stderr})`);
+    assert.equal(got.conf, 0, 'prompt.conf con icons=0');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('zsh: los iconos solo donde la terminal los dibuja (si está instalado)', { skip: !has('zsh', ['--version']) && 'sin zsh' }, () => {
+  const dir = scratch('bureau-prompt.zsh');
+  try {
+    const appdata = minttyAppdata(dir);
+    const script = [
+      `cd '${dir}'`,
+      'source ./bureau-prompt.zsh',
+      `unset ${ICON_VARS.join(' ')}`,
+      ...iconCases(appdata).map(([name, os, vars]) => {
+        const env = Object.entries({ TERM: 'xterm-256color', ...vars }).map(([k, v]) => `${k}='${v}'`).join(' ');
+        return `__bureau_os=${os}; if ${env} __bureau_icons_ok; then print -rn -- '@@${name}=1'; else print -rn -- '@@${name}=0'; fi`;
+      }),
+      "printf 'style=signage\\nicons=1\\n' > prompt.conf; __bureau_noicons=1; __bureau_conf; print -rn -- \"@@conf=$__bc_icons\"",
+    ].join('\n');
+    const r = spawnSync('zsh', ['-f', '-i', '-c', script], { encoding: 'utf8', env: UTF8 });
+    const got = iconAnswers(r.stdout);
+    for (const [name, , , expected] of iconCases(appdata)) assert.equal(got[name], expected, `${name} (${r.stdout}${r.stderr})`);
+    assert.equal(got.conf, 0, 'prompt.conf con icons=0');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('fish: los iconos solo donde la terminal los dibuja (si está instalado)', { skip: !has('fish', ['--version']) && 'sin fish' }, () => {
+  const dir = scratch('bureau-prompt.fish');
+  try {
+    const appdata = minttyAppdata(dir);
+    const script = [
+      `cd '${dir}'`,
+      'source ./bureau-prompt.fish',
+      ...iconCases(appdata).map(([name, os, vars]) => {
+        // Globales: una función de fish no ve las variables locales de quien la llama.
+        const env = Object.entries({ TERM: 'xterm-256color', ...vars }).map(([k, v]) => `set -gx ${k} '${v}'`).join('; ');
+        return `${ICON_VARS.map((k) => `set -e ${k}`).join('; ')}; ${env}; set __bureau_os ${os}; if __bureau_icons_ok; echo -n '@@${name}=1'; else; echo -n '@@${name}=0'; end`;
+      }),
+      "printf 'style=signage\\nicons=1\\n' > prompt.conf; set __bureau_noicons 1; __bureau_conf; echo -n '@@conf='$__bc_icons",
+    ].join('\n');
+    const r = spawnSync('fish', ['-i', '-c', script], { encoding: 'utf8', env: UTF8 });
+    const got = iconAnswers(r.stdout);
+    for (const [name, , , expected] of iconCases(appdata)) assert.equal(got[name], expected, `${name} (${r.stdout}${r.stderr})`);
+    assert.equal(got.conf, 0, 'prompt.conf con icons=0');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
 
 test('los cuatro scripts llaman a Git sin core.fsmonitor', () => {
   for (const file of PROMPT_SCRIPTS) {

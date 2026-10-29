@@ -10,8 +10,9 @@
  *     icono; los usa el perfil Bureau de VS Code;
  *   - «también fuera de VS Code»: un bloque marcado al final del perfil de
  *     PowerShell (profile.ps1), ~/.bashrc y ~/.zshrc, un archivo en conf.d de
- *     fish, la variable PROMPT de tu usuario para cmd y un fragmento de Windows
- *     Terminal. Quitarlo deja cada archivo como estaba (y PROMPT con su valor
+ *     fish, la variable PROMPT de tu usuario para cmd, un fragmento de Windows
+ *     Terminal y, con Git Bash, la fuente de iconos en la configuración de
+ *     mintty. Quitarlo deja cada archivo como estaba (y PROMPT con su valor
  *     anterior).
  *
  * Solo se toca el perfil de los shells instalados, y en bash y zsh solo si ya
@@ -147,8 +148,9 @@ function ownGitColors(o = {}) {
 
 /**
  * Lo instalado fuera de VS Code: los perfiles tocados, la variable PROMPT (su
- * valor anterior y el escrito) y si hay fragmento de Windows Terminal.
- * @param {string} dir @returns {{files: string[], cmdPrompt?: {backup: string | null, value?: string | null}, windowsTerminal?: boolean}}
+ * valor anterior y el escrito), si hay fragmento de Windows Terminal y si ya se
+ * ha mirado mintty (true: su configuración está en `files`).
+ * @param {string} dir @returns {{files: string[], cmdPrompt?: {backup: string | null, value?: string | null}, windowsTerminal?: boolean, mintty?: boolean}}
  */
 function readState(dir) {
   try {
@@ -232,6 +234,22 @@ function profileTargets(r) {
   if (r.find('zsh')) rc('zsh', [path.join(r.env.ZDOTDIR || r.home, '.zshrc')]);
   if (r.find('fish')) targets.push({ shell: 'fish', file: path.join(r.env.XDG_CONFIG_HOME || path.join(r.home, '.config'), 'fish', 'conf.d', 'bureau-theme.fish'), own: true });
   return targets;
+}
+
+/**
+ * La configuración de mintty donde va la fuente de iconos (Git Bash fuera de
+ * VS Code), o null si no hay Git Bash o su mintty no entiende `FontSubst`.
+ * @param {ReturnType<typeof resolve>} r
+ * @returns {Promise<string | null>}
+ */
+async function minttyConfig(r) {
+  const bash = gitBash(r);
+  if (!bash) return null;
+  // bash.exe está en Git\bin o en Git\usr\bin; mintty, en Git\usr\bin.
+  const dir = path.win32.dirname(bash);
+  const exe = [path.win32.join(dir, 'mintty.exe'), path.win32.join(dir, '..', 'usr', 'bin', 'mintty.exe')].find((f) => fs.existsSync(f));
+  if (!exe || !P.minttyHasFontSubst((await r.runAsync(exe, ['--version'])).stdout)) return null;
+  return path.win32.join(r.env.APPDATA || path.win32.join(r.home, 'AppData', 'Roaming'), 'mintty', 'config');
 }
 
 /** Carpeta del fragmento de Windows Terminal. @param {ReturnType<typeof resolve>} r */
@@ -348,6 +366,27 @@ async function installOutside(data, o = {}) {
 }
 
 /**
+ * Git Bash abre en mintty, que solo dibuja los iconos con la fuente detrás de
+ * la tuya: el bloque en su configuración. Se mira una vez por instalación
+ * (también en las de antes de que existiera), porque pregunta su versión.
+ * @param {ReturnType<typeof resolve>} r @param {ReturnType<typeof readState>} state @param {string[]} changed
+ */
+async function addMinttyBlock(r, state, changed) {
+  if (state.mintty !== undefined) return;
+  const file = await minttyConfig(r);
+  state.mintty = file !== null;
+  if (!file) return;
+  const before = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
+  const after = P.addBlock(before, P.minttyBlock());
+  if (after !== before) {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, after);
+    changed.push(file);
+  }
+  if (!state.files.includes(file)) state.files.push(file);
+}
+
+/**
  * Lo de fuera de VS Code que depende de los ajustes y del tema: la variable
  * PROMPT de cmd y el fragmento de Windows Terminal (los shells leen
  * `prompt.conf` solos). No hace nada si no está instalado. PowerShell (para
@@ -376,6 +415,7 @@ async function refreshOutside(data, o = {}, installing = false) {
       if (writeIfChanged(path.win32.join(fragmentDir(r), 'bureau-theme.json'), `${JSON.stringify(data.fragment, null, 2)}\n`)) changed.push('Windows Terminal');
       state.windowsTerminal = true;
     }
+    await addMinttyBlock(r, state, changed);
   }
   writeState(r.dir, state);
   return changed;
@@ -399,7 +439,8 @@ function removeOutside(o = {}) {
       const before = fs.readFileSync(file, 'utf8');
       if (!P.hasBlock(before)) continue;
       const after = P.removeBlock(before);
-      if (after.trim() === '' && path.basename(path.dirname(file)) === 'conf.d') fs.rmSync(file);
+      // El archivo de fish y la configuración de mintty, si solo tenían el bloque, se borran.
+      if (after.trim() === '' && ['conf.d', 'mintty'].includes(path.basename(path.dirname(file)))) fs.rmSync(file);
       else fs.writeFileSync(file, after);
       changed.push(file);
     } catch {
@@ -447,4 +488,4 @@ function removeEverything(o = {}) {
   }
 }
 
-module.exports = { SCRIPTS, ZSH_FILES, GIT_COLORS_FILE, prepare, writeConf, writeGitColors, ownGitColors, installOutside, refreshOutside, removeOutside, removeEverything, isInstalledOutside, profileTargets, resolve, gitBash, windowsPowerShell, parseJsonc, windowsTerminalSettings };
+module.exports = { SCRIPTS, ZSH_FILES, GIT_COLORS_FILE, prepare, writeConf, writeGitColors, ownGitColors, installOutside, refreshOutside, removeOutside, removeEverything, isInstalledOutside, profileTargets, resolve, gitBash, minttyConfig, windowsPowerShell, parseJsonc, windowsTerminalSettings };

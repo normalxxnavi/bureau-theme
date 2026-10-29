@@ -36,18 +36,91 @@ const ps = (args) =>
 
 /**
  * La sesión multimedia de prueba de la gramola (media-session.ps1): una
- * canción inventada que suena en silencio, para no tocar la música del usuario.
+ * canción inventada que suena en silencio, para no tocar la música del usuario,
+ * con el identificador de app que se le pase (la gramola enseña su logotipo).
  */
-function startMediaSession() {
+function startMediaSession(appId) {
   const { cover, wav } = writeCover(path.join(profile, 'jukebox'));
-  const args = ['-Cover', cover, '-Wav', wav, '-Title', TRACK.title, '-Artist', TRACK.artist, '-Album', TRACK.album, '-Seconds', '120'];
+  const args = ['-Cover', cover, '-Wav', wav, '-Title', TRACK.title, '-Artist', TRACK.artist, '-Album', TRACK.album, '-AppId', appId, '-Seconds', '120'];
   return spawn('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', path.join(__dirname, 'media-session.ps1'), ...args], { stdio: 'ignore', windowsHide: true });
 }
 
 const NL = String.fromCharCode(10);
-const put = (rel, content) => {
-  fs.mkdirSync(path.dirname(path.join(ws, rel)), { recursive: true });
-  fs.writeFileSync(path.join(ws, rel), content);
+const put = (rel, content, folder = ws) => {
+  fs.mkdirSync(path.dirname(path.join(folder, rel)), { recursive: true });
+  fs.writeFileSync(path.join(folder, rel), content);
+};
+
+// Archivos de prueba del repositorio sin sus comentarios de cabecera («Archivo de prueba
+// del tema…»): en las capturas solo debe verse código normal.
+const tw = path.join(repo, 'test-workspace');
+const stripHeader = (text) => {
+  // También la que va detrás de la primera línea (`<?php`).
+  const lines = text.split(NL).filter((l, i) => !(i < 3 && /Archivo de prueba/.test(l)));
+  while (lines.length && (/^\s*(\/\/|--\s)/.test(lines[0]) || /Archivo de prueba/.test(lines[0]))) lines.shift();
+  while (lines.length && !lines[0].trim()) lines.shift();
+  return lines.join(NL);
+};
+const sample = (rel) => stripHeader(fs.readFileSync(path.join(tw, rel), 'utf8'));
+
+/** Los iconos del lore: el Moho (Claude Code), las celdas del Panóptico (Docker) y la cinta del Bureau en verde (GitHub Actions). */
+const loreFiles = () => ({
+  '.claude/settings.json': '{ "permissions": { "allow": ["Bash(npm test)"] } }' + NL,
+  '.devcontainer/devcontainer.json': '{ "name": "Bureau Archive", "dockerComposeFile": "../docker-compose.yml", "service": "archive" }' + NL,
+  '.github/workflows/release.yml': ['name: Release', 'on:', '  push:', "    tags: ['v*']", 'jobs:', '  test:', '    runs-on: ubuntu-latest', '    steps:', '      - uses: actions/checkout@v4', '      - run: npm ci && npm test', ''].join(NL),
+  'docker/nginx.conf': 'server { listen 80; }' + NL,
+  'src/archive.ts': sample('typescript.ts'),
+  '.dockerignore': 'node_modules' + NL,
+  '.gitignore': 'node_modules/' + NL,
+  '.mcp.json': '{ "mcpServers": {} }' + NL,
+  'CLAUDE.md': [
+    '# Bureau Archive',
+    '',
+    'Notes for Claude Code in this repository.',
+    '',
+    '## Commands',
+    '',
+    '- `npm test`: runs the archive tests.',
+    '- `docker compose up`: starts the archive and its database.',
+    '',
+    '## Rules',
+    '',
+    '- Every Object of Power is catalogued in `src/archive.ts`.',
+    '- Never commit the contents of `.env`.',
+    '- Ask the Board before changing a containment protocol.',
+    '',
+  ].join(NL),
+  'Dockerfile': ['FROM node:22', 'WORKDIR /archive', 'COPY . .', 'RUN npm ci', 'CMD ["npm", "start"]', ''].join(NL),
+  'docker-compose.yml': ['services:', '  archive:', '    build: .', '  db:', '    image: postgres:17', ''].join(NL),
+  'package.json': JSON.stringify({ name: 'bureau-archive', version: '1.0.0', private: true }, null, 2) + NL,
+  'README.md': '# Bureau Archive' + NL,
+});
+
+/** Un archivo por lenguaje, con su logotipo (20: los que caben en el explorador); el de PHP abierto, con el código de prueba. */
+const languageFiles = () => {
+  const files = {
+    'archive.php': 'languages/sample.php',
+    'astral.rs': 'languages/sample.rs',
+    'board.rb': 'languages/sample.rb',
+    'Bureau.cs': 'csharp.cs',
+    'Bureau.java': 'languages/Sample.java',
+    'containment.cpp': 'languages/sample.cpp',
+    'dossier.py': 'python.py',
+    'hedron.swift': 'languages/sample.swift',
+    'hiss.kt': 'languages/sample.kt',
+    'hotline.js': 'javascript.js',
+    'index.html': 'html.html',
+    'jukebox.dart': 'languages/sample.dart',
+    'mold.lua': 'languages/sample.lua',
+    'oldest-house.ts': 'typescript.ts',
+    'panopticon.go': 'languages/sample.go',
+    'Polaris.vue': 'languages/sample.vue',
+    'Signage.svelte': 'languages/sample.svelte',
+    'styles.css': 'css.css',
+    'theme.scss': 'scss.scss',
+    'Threshold.tsx': 'languages/sample.tsx',
+  };
+  return Object.fromEntries(Object.entries(files).map(([name, from]) => [name, sample(from)]));
 };
 
 /**
@@ -75,10 +148,18 @@ const SHOTS = [
   { theme: 'CONTROL Dark', out: 'icons-dark.png', file: 'package.json', line: 2, size: CLOSE_UP_SIZE, workspace: 'dossiers', extra: { ...CLOSE_UP, ...COLOR_ICONS } },
   // Con el explorador arriba: las carpetas y sus emblemas (el de CONTROL Dark muestra los archivos).
   { theme: 'CONTROL Astral', out: 'icons-astral.png', file: 'package.json', line: 2, size: CLOSE_UP_SIZE, workspace: 'dossiers', extra: { ...CLOSE_UP, 'explorer.autoReveal': false } },
+  // Los iconos del lore y los logotipos de los lenguajes, cada uno en su propio proyecto
+  // (`files`). Las pestañas de `open` se abren junto a la de `file`, y el explorador
+  // despliega sus carpetas (la de workflows).
+  { theme: 'CONTROL Dark', out: 'icons-lore.png', file: 'CLAUDE.md', line: 3, open: ['.github/workflows/release.yml'], size: CLOSE_UP_SIZE, workspace: 'lore/bureau-archive', files: loreFiles, extra: { ...CLOSE_UP, ...COLOR_ICONS } },
+  { theme: 'CONTROL Dark', out: 'icons-languages.png', file: 'archive.php', line: 3, open: ['astral.rs', 'panopticon.go', 'dossier.py'], size: [800, 640], workspace: 'languages/bureau-archive', files: languageFiles, extra: { ...CLOSE_UP, ...COLOR_ICONS } },
   // Lo que no tiene ningún otro tema, cada uno en un tema distinto.
   { theme: 'CONTROL Dark', out: 'oldest-house.png', file: 'src/archive.ts', line: 18, extra: { 'cmdProbe.command': 'bureauTheme.openOldestHouse' } },
   // La gramola con la sesión de prueba; el popup sale con el ratón virtual (cdp.js), sin mover el del usuario.
-  { theme: 'CONTROL Resonant', out: 'jukebox.png', file: 'src/sectors.py', line: 17, extra: { ...COLOR_ICONS, 'bureauTheme.music.enabled': true }, mediaSession: true, hover: 'bureauTheme.music' },
+  // La sesión se presenta como Spotify para que el popup enseñe el logotipo del reproductor.
+  { theme: 'CONTROL Resonant', out: 'jukebox.png', file: 'src/sectors.py', line: 17, extra: { ...COLOR_ICONS, 'bureauTheme.music.enabled': true }, mediaSession: 'Spotify', hover: 'bureauTheme.music' },
+  // El HUD del Bureau con su popup (su aviso de la primera vez salió en el arranque de calentamiento).
+  { theme: 'CONTROL Black', out: 'hud.png', file: 'src/archive.ts', line: 18, size: [1000, 640], extra: { ...COLOR_ICONS, 'bureauTheme.hud.enabled': true }, hover: 'bureauTheme.hud' },
   // Modo Clasificado: el cursor baja una línea «con el teclado» y solo esa se revela.
   { theme: 'CONTROL Black', out: 'classified.png', file: '.env', line: 2, extra: { ...COLOR_ICONS, 'bureauTheme.classified.enabled': true }, keys: ['ArrowDown'] },
   // La guía cambia el título de la ventana: se busca por la carpeta.
@@ -174,10 +255,12 @@ function settings(theme, extra = {}) {
   );
 }
 
-async function launch(file, line, folder = ws, port = 0) {
+async function launch(file, line, folder = ws, port = 0, open = []) {
   const args = [`--user-data-dir=${ud}`, `--extensions-dir=${ext}`, '--force-device-scale-factor=1', '--new-window', folder];
   if (port) args.push(`--remote-debugging-port=${port}`);
   if (file) args.push('--goto', `${path.join(folder, file)}:${line}:5`);
+  // Pestañas de más: VS Code deja activa la primera de la línea de comandos.
+  for (const rel of open) args.push(path.join(folder, rel));
   const child = spawn(exe, args, { env: vsEnv(folder), detached: true, stdio: 'ignore' });
   child.unref();
 }
@@ -211,14 +294,16 @@ async function shoot(s, i) {
   const folder = s.workspace ? path.join(profile, s.workspace) : ws;
   if (!fs.existsSync(folder)) {
     fs.mkdirSync(path.dirname(folder), { recursive: true });
-    fs.cpSync(ws, folder, { recursive: true });
+    // Su propio proyecto (`files`) o una copia del de demostración.
+    if (s.files) for (const [rel, content] of Object.entries(s.files())) put(rel, content, folder);
+    else fs.cpSync(ws, folder, { recursive: true });
   }
   let extra = s.extra;
   settings(s.theme, extra);
-  const session = s.mediaSession ? startMediaSession() : null;
+  const session = s.mediaSession ? startMediaSession(s.mediaSession) : null;
   const port = 9333 + i;
   try {
-    await launch(s.file, s.line, folder, port);
+    await launch(s.file, s.line, folder, port, s.open);
     const title = s.title ?? titleOf(s.file, folder);
     await waitForWindow(titleOf(s.file, folder), s.size);
     // El cursor de verdad, fuera: encima de la ventana abriría popups y resaltados.
@@ -268,19 +353,7 @@ const ONLY = process.env.ONLY;
   cli([`--user-data-dir=${ud}`, `--extensions-dir=${ext}`, '--install-extension', probeVsix]);
 
   // --- Proyecto de demostración con estructura real -------------------------
-  const tw = path.join(repo, 'test-workspace');
-  // Sin los comentarios de cabecera de los archivos de prueba («Archivo de prueba del
-  // tema…»): en las capturas solo debe verse código normal.
-  const stripHeader = (text) => {
-    const lines = text.split(NL);
-    while (lines.length && (/^\s*(\/\/|--\s)/.test(lines[0]) || /Archivo de prueba/.test(lines[0]))) lines.shift();
-    while (lines.length && !lines[0].trim()) lines.shift();
-    return lines.join(NL);
-  };
-  const copy = (from, to) => {
-    fs.mkdirSync(path.dirname(path.join(ws, to)), { recursive: true });
-    fs.writeFileSync(path.join(ws, to), stripHeader(fs.readFileSync(path.join(tw, from), 'utf8')));
-  };
+  const copy = (from, to) => put(to, sample(from));
   copy('typescript.ts', 'src/archive.ts');
   copy('csharp.cs', 'src/Bureau.cs');
   copy('python.py', 'src/sectors.py');
@@ -355,7 +428,8 @@ const ONLY = process.env.ONLY;
   fs.appendFileSync(path.join(ws, 'config', 'bureau.yaml'), '# revisado' + NL);
 
   // --- 1er arranque: la extensión instala las tipografías ----------------------
-  settings('CONTROL Dark');
+  // Con el HUD encendido: su aviso de la primera vez sale aquí y no en su captura.
+  settings('CONTROL Dark', { 'bureauTheme.hud.enabled': true });
   await launch(null);
   await sleep(14000);
   try {

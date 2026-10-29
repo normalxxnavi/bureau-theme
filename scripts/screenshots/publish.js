@@ -21,7 +21,7 @@ const path = require('node:path');
 const { decodePng, encodePng, cropRgba, halveRgba, edgeRgba } = require('../lib/png');
 
 const [, , rawDir, outDir, only] = process.argv;
-const IMAGES = ['control-dark', 'control-black', 'control-resonant', 'control-astral', 'sounds', 'icons-dark', 'icons-astral', 'oldest-house', 'jukebox', 'classified', 'welcome', 'terminal-styles'];
+const IMAGES = ['control-dark', 'control-black', 'control-resonant', 'control-astral', 'sounds', 'icons-dark', 'icons-astral', 'icons-lore', 'icons-languages', 'oldest-house', 'jukebox', 'hud', 'classified', 'welcome', 'terminal-styles'];
 /** @type {[number, number, number]} */
 const EDGE = [0x55, 0x55, 0x55];
 const wanted = (/** @type {string} */ name) => !only || only.split(',').includes(name);

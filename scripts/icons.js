@@ -12,25 +12,33 @@
  * a 16 px se ven nítidas también en pantallas al 100 %.
  *
  * Diseño:
- *   - ARCHIVOS: la etiqueta de un expediente del Bureau: el código (TS, C#,
- *     {}…) o un pictograma en el color del lenguaje, sobre la franja de
- *     clasificación con su muesca. Sin hoja de fondo, para que a 16 px se lea.
+ *   - ARCHIVOS: la etiqueta de un expediente del Bureau sobre la franja de
+ *     clasificación con su muesca: el logotipo oficial del lenguaje (el óvalo
+ *     «php», el cuadrado «JS», las serpientes de Python…) dibujado a mano en la
+ *     rejilla y en el color de su marca (scripts/lib/language-logos.js); el
+ *     código (JSON, YAML, XML…) en los que no tienen logotipo propio; o un
+ *     pictograma. Sin hoja de fondo, para que a 16 px se lea.
  *   - CARPETAS: carpeta sólida del color de su categoría con un EMBLEMA (</> en
  *     src, check en test, montaña en images, onda en sounds, la rama de cinta de
  *     los Puntos de Control en .git…).
  *   - Carpeta raíz: la Casa Inmemorial (torre brutalista).
  * Guiños de lore: los .env son un documento clasificado (tachado), los tests
- * llevan el hexágono de la Hedron y los archivos de IA (CLAUDE.md, AGENTS.md,
- * *.prompt.md…) llevan a Polaris, los cristales que guían a Jesse.
+ * llevan el hexágono de la Hedron, los archivos de IA (AGENTS.md,
+ * *.prompt.md…) llevan a Polaris, los cristales que guían a Jesse, los de
+ * Claude Code (CLAUDE.md, .claude/) el Moho, Docker las celdas del Panóptico
+ * donde se contienen los Objetos de Poder y los workflows de GitHub Actions la
+ * cinta del Bureau de Git.
  *
  * Cada icono tiene dos variantes: temas oscuros y temas claros (CONTROL Astral).
- * Todo es original: no se usan logos de terceros.
+ * Todo está dibujado aquí; los logotipos de los lenguajes son marcas de sus
+ * dueños y solo dicen de qué lenguaje es un archivo.
  */
 
 const fs = require('node:fs');
 const path = require('node:path');
 const K = require('./lib/glyph-kit');
 const { label } = require('./lib/label-font');
+const { LOGOS } = require('./lib/language-logos');
 
 /** @typedef {import('./lib/glyph-kit').Poly} Poly */
 
@@ -71,6 +79,90 @@ function darken(/** @type {string} */ hex, /** @type {number} */ t) {
   const f = (/** @type {number} */ v) => Math.round(v * (1 - t)).toString(16).padStart(2, '0');
   return `#${f((n >> 16) & 255)}${f((n >> 8) & 255)}${f(n & 255)}`.toUpperCase();
 }
+
+/** El fondo del explorador en CONTROL Dark y en CONTROL Astral. */
+const BACKGROUND = ['#121315', '#F1F0EB'];
+const channels = (/** @type {string} */ hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+function luminance(/** @type {string} */ hex) {
+  const [r, g, b] = channels(hex).map((c) => c / 255).map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+const contrast = (/** @type {string} */ a, /** @type {string} */ b) => {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+};
+/** Mezcla `hex` con `to` (t de 0 a 1). @param {string} hex @param {string} to @param {number} t */
+const mixColor = (hex, to, t) => `#${channels(hex).map((c, i) => Math.round(c + (channels(to)[i] - c) * t).toString(16).padStart(2, '0')).join('').toUpperCase()}`;
+
+/**
+ * El color oficial de un logotipo, ajustado al fondo: más claro en los temas
+ * oscuros y más oscuro en CONTROL Astral, solo lo justo para llegar a 3:1 (el
+ * negro de Rust o el amarillo de JavaScript no se verían en uno de los dos).
+ * @param {string} hex @param {number} v 0 oscuro, 1 claro
+ */
+function fitColor(hex, v) {
+  const toward = v === 0 ? '#FFFFFF' : '#000000';
+  for (let i = 0; i <= 50; i++) {
+    const c = mixColor(hex, toward, i / 50);
+    if (contrast(c, BACKGROUND[v]) >= 3) return c;
+  }
+  return toward;
+}
+
+/**
+ * Las capas de un dibujo por filas (filas 1–11, como en language-logos.js):
+ * '#' y las diagonales son el primer color; 'a' y 'b', los demás.
+ * @param {string[]} rows @param {number} count
+ */
+function rowLayers(rows, count) {
+  return ['#', 'a', 'b'].slice(0, count).map((key) => {
+    const only = rows.map((r) => [...r].map((ch) => (key === '#' ? ('#JLF7'.includes(ch) ? ch : '.') : ch === key ? '#' : '.')).join(''));
+    return K.art(['.'.repeat(16), ...only, ...Array(4).fill('.'.repeat(16))].join('\n'), 16);
+  });
+}
+
+/**
+ * Dibujos del lore de varios colores, con sus colores [oscuro, claro].
+ * @type {Record<string, {colors: string[][], rows: string[]}>}
+ */
+const LORE = {
+  // Claude Code: el Moho del Sector de Investigación, un estallido de esporas
+  // (la forma del logo de Claude) con los brotes volátiles en las puntas.
+  mold: {
+    colors: [['#6E6C68', '#3A3936'], ['#E6B04F', '#8A6100']],
+    rows: [
+      '.....a....a.....',
+      '..a...#..#...a..',
+      '...#..#..#..#...',
+      '....#.####.#....',
+      '.aa..######..aa.',
+      '...##########...',
+      '.aa..######..aa.',
+      '....#.####.#....',
+      '...#..#..#..#...',
+      '..a...#..#...a..',
+      '.....a....a.....',
+    ],
+  },
+  // Docker: las celdas apiladas del Panóptico (los «crisoles»), donde la
+  // Agencia contiene los Objetos de Poder.
+  crucibles: {
+    colors: [['#9CC2E6', '#2867A4']],
+    rows: [
+      '......####......',
+      '.##############.',
+      '.#.##.#..#.##.#.',
+      '.##############.',
+      '.#.##.#..#.##.#.',
+      '.##############.',
+      '.#.##.#..#.##.#.',
+      '.##############.',
+      '......####......',
+      '......####......',
+      '....########....',
+    ],
+  },
+};
 
 // --- Pictogramas de archivo --------------------------------------------------------------
 // Zona: x 1–15, y 1–12 (debajo va la franja de clasificación, y 13–15). Bordes
@@ -356,6 +448,22 @@ const EMBLEM = {
     ..........
     ##########
     .7######F.`),
+  // El Moho (Claude Code): el estallido de esporas.
+  mold: () => K.art(`
+    #...##...#
+    .#.####.#.
+    ..######..
+    ..######..
+    .#.####.#.
+    #...##...#`),
+  // Las celdas del Panóptico (Docker).
+  crucibles: () => K.art(`
+    ##########
+    #..#..#..#
+    ##########
+    #..#..#..#
+    ##########
+    ...####...`),
 };
 
 /** Posición del emblema dentro de la carpeta. */
@@ -367,8 +475,15 @@ const EMBLEM_AT = /** @type {const} */ ([3, 7]);
 const band = (/** @type {string} */ c, /** @type {number} */ v) =>
   `<rect x="2" y="13" width="12" height="2" fill="${c}" fill-opacity=".85"/><rect x="2" y="13" width="3" height="2" fill="${NOTCH[v]}"/>`;
 
-/** Etiqueta de expediente: código o pictograma sobre la franja de clasificación. */
+/** Etiqueta de expediente: logotipo, código o pictograma sobre la franja de clasificación. */
 function fileIcon(/** @type {Spec} */ spec, /** @type {number} */ v) {
+  if (spec.kind === 'logo') {
+    const lore = LORE[spec.value];
+    const logo = LOGOS[spec.value];
+    const colors = lore ? lore.colors.map((c) => c[v]) : (spec.colors ?? logo.colors).map((c) => fitColor(c, v));
+    const layers = logo?.draw ? logo.draw() : rowLayers(/** @type {string[]} */ ((lore ?? logo).rows), colors.length);
+    return svg(`${layers.map((p, i) => path_(colors[i], p)).join('')}${band(colors[0], v)}`);
+  }
   const c = C[spec.color][v];
   if (spec.kind === 'picto') {
     const p = PICTO[spec.value]();
@@ -413,27 +528,32 @@ function oldestHouse(/** @type {boolean} */ open, /** @type {number} */ v) {
 
 // --- Catálogo -------------------------------------------------------------------------------
 
-/** @typedef {{kind: 'label' | 'picto', value: string, color: ColorName}} Spec */
+/** @typedef {{kind: 'label' | 'picto' | 'logo', value: string, color: ColorName, colors?: string[]}} Spec */
 const L = (/** @type {string} */ value, /** @type {ColorName} */ color) => /** @type {Spec} */ ({ kind: 'label', value, color });
 const P = (/** @type {keyof typeof PICTO} */ value, /** @type {ColorName} */ color) => /** @type {Spec} */ ({ kind: 'picto', value, color });
+/** Logotipo de language-logos.js (o dibujo de LORE), con otros colores si se dan. @param {string} value @param {string[]} [colors] */
+const G = (value, colors) => {
+  if (!LOGOS[value] && !LORE[value]) throw new Error(`Logotipo sin dibujo: ${value}`);
+  return /** @type {Spec} */ ({ kind: 'logo', value, color: 'bone', colors });
+};
 
 const DEFAULT_FILE = P('text', 'concrete');
 
 /** Especificaciones con nombre (se reutilizan en extensiones, nombres y languageIds). */
 const S = {
-  ts: L('TS', 'steel'), dts: L('TS', 'concrete'), tsx: L('TX', 'steel'), js: L('JS', 'amber'), jsx: L('JX', 'amber'),
-  json: L('{}', 'paper'), cs: L('C#', 'violet'), vb: L('VB', 'violet'), fs: L('F#', 'cyan'), razor: L('@', 'violet'), xaml: L('XA', 'ice'),
-  c: L('C', 'steel'), cpp: L('C+', 'steel'), h: L('H', 'violet'), objc: L('OC', 'ice'), java: L('JV', 'red'), kotlin: L('KT', 'violet'),
-  scala: L('SC', 'red'), groovy: L('GV', 'teal'), go: L('GO', 'cyan'), rust: L('RS', 'orange'), py: L('PY', 'ice'), nb: L('NB', 'amber'),
-  ruby: L('RB', 'red'), php: L('PH', 'violet'), swift: L('SW', 'orange'), dart: L('DT', 'cyan'), lua: L('LU', 'steel'), r: L('R', 'ice'),
-  julia: L('JL', 'violet'), elixir: L('EX', 'violet'), erlang: L('ER', 'red'), haskell: L('HS', 'violet'), clojure: L('CL', 'green'),
-  elm: L('EL', 'cyan'), ocaml: L('ML', 'orange'), nim: L('NI', 'amber'), zig: L('ZG', 'amber'), vlang: L('V', 'steel'), solidity: L('SO', 'concrete'),
-  asm: L('AS', 'concrete'), perl: L('PL', 'steel'), coffee: L('CF', 'paper'), haxe: L('HX', 'orange'), dlang: L('D', 'red'), crystal: L('CR', 'bone'),
-  nix: L('NX', 'ice'), gdscript: L('GD', 'steel'), terraform: L('TF', 'violet'), powershell: L('>_', 'steel'), shell: L('$_', 'green'),
-  bat: L('>_', 'concrete'), sql: P('database', 'amber'), graphql: L('GQ', 'rose'), proto: L('PB', 'teal'), wasm: L('WA', 'violet'),
-  vue: L('V', 'green'), svelte: L('SV', 'orange'), astro: L('AT', 'orange'), html: L('<>', 'red'), css: L('#', 'teal'), scss: L('S', 'rose'),
-  less: L('L', 'ice'), stylus: L('ST', 'green'), pug: L('PG', 'bone'), handlebars: L('HB', 'amber'), ejs: L('EJ', 'paper'), twig: L('TW', 'green'),
-  liquid: L('LQ', 'teal'), jinja: L('JN', 'red'), md: L('MD', 'bone'), mdx: L('MX', 'amber'), rst: L('RT', 'bone'), adoc: L('AD', 'red'),
+  ts: G('ts'), dts: G('ts', ['#8E8B85']), tsx: G('reactTs'), js: G('js'), jsx: G('react'),
+  json: L('{}', 'paper'), cs: G('csharp'), vb: G('vb'), fs: G('fsharp'), razor: L('@', 'violet'), xaml: L('XA', 'ice'),
+  c: G('c'), cpp: G('cpp'), h: L('H', 'violet'), objc: L('OC', 'ice'), java: G('java'), kotlin: G('kotlin'),
+  scala: G('scala'), groovy: G('groovy'), go: G('go'), rust: G('rust'), py: G('python'), nb: G('jupyter'),
+  ruby: G('ruby'), php: G('php'), swift: G('swift'), dart: G('dart'), lua: G('lua'), r: G('r'),
+  julia: G('julia'), elixir: G('elixir'), erlang: G('erlang'), haskell: G('haskell'), clojure: G('clojure'),
+  elm: G('elm'), ocaml: G('ocaml'), nim: G('nim'), zig: G('zig'), vlang: G('v'), solidity: G('solidity'),
+  asm: L('AS', 'concrete'), perl: G('perl'), coffee: G('coffee'), haxe: G('haxe'), dlang: G('d'), crystal: G('crystal'),
+  nix: G('nix'), gdscript: G('godot'), terraform: G('terraform'), powershell: G('powershell'), shell: L('$_', 'green'),
+  bat: L('>_', 'concrete'), sql: P('database', 'amber'), graphql: G('graphql'), proto: L('PB', 'teal'), wasm: G('wasm'),
+  vue: G('vue'), svelte: G('svelte'), astro: G('astro'), html: G('html'), css: G('css'), scss: G('sass'),
+  less: G('less'), stylus: L('ST', 'green'), pug: G('pug'), handlebars: G('handlebars'), ejs: L('EJ', 'paper'), twig: G('twig'),
+  liquid: G('liquid'), jinja: G('jinja'), md: G('markdown'), mdx: G('mdx'), rst: L('RT', 'bone'), adoc: L('AD', 'red'),
   tex: L('TE', 'teal'), text: P('text', 'concrete'), log: P('text', 'paper'), xml: L('</>', 'orange'), svg: P('vector', 'amber'), yaml: L('Y', 'rose'),
   config: P('config', 'concrete'), csv: P('grid', 'green'), sheet: L('X', 'green'), doc: L('W', 'steel'), slides: L('P', 'orange'), pdf: L('PD', 'red'),
   epub: L('EP', 'paper'), image: P('image', 'green'), audio: P('audio', 'rose'), video: P('video', 'rose'), font: L('Aa', 'bone'),
@@ -441,7 +561,8 @@ const S = {
   binary: L('01', 'dim'), nupkg: P('archive', 'violet'), vsix: P('archive', 'red'), whl: P('archive', 'ice'), key: P('key', 'amber'), signature: P('key', 'green'),
   lock: P('lock', 'dim'), diff: P('diff', 'green'), db: P('database', 'paper'), env: P('classified', 'amber'), license: P('license', 'amber'),
   readme: P('readme', 'steel'), changelog: P('changelog', 'teal'), contributing: P('changelog', 'green'), conduct: P('changelog', 'violet'),
-  security: P('shield', 'red'), todo: P('changelog', 'amber'), test: P('test', 'cyan'), ai: P('polaris', 'cyan'), docker: P('docker', 'ice'),
+  security: P('shield', 'red'), todo: P('changelog', 'amber'), test: P('test', 'cyan'), ai: P('polaris', 'cyan'), claude: G('mold'), docker: G('crucibles'),
+  actions: P('git', 'green'),
   git: P('git', 'orange'), npm: P('cube', 'red'), project: P('cube', 'violet'), dotnetConfig: P('config', 'violet'), npmConfig: P('config', 'red'),
   tsconfig: P('config', 'steel'), jsconfig: P('config', 'amber'), vite: L('VT', 'violet'), webpack: L('WP', 'ice'), rollup: L('RL', 'red'),
   babel: L('BB', 'amber'), eslint: L('ES', 'violet'), prettier: L('PR', 'teal'), stylelint: L('SL', 'bone'), jest: L('JE', 'red'),
@@ -449,7 +570,7 @@ const S = {
   next: L('NX', 'bone'), nuxt: L('NU', 'green'), angular: L('NG', 'red'), nest: L('NE', 'red'), turbo: L('TB', 'rose'), vercel: L('VC', 'bone'),
   netlify: L('NT', 'teal'), firebase: L('FB', 'amber'), make: L('MK', 'orange'), cmake: L('CM', 'teal'), bazel: L('BZ', 'green'),
   gradle: L('GR', 'teal'), maven: L('MV', 'red'), cargo: P('config', 'orange'), gomod: P('config', 'cyan'), pyconfig: P('config', 'ice'),
-  requirements: P('changelog', 'ice'), gemfile: L('RB', 'red'), composer: L('CP', 'paper'), podfile: L('PO', 'red'), pubspec: L('DT', 'cyan'),
+  requirements: P('changelog', 'ice'), gemfile: G('ruby'), composer: L('CP', 'paper'), podfile: L('PO', 'red'), pubspec: G('dart'),
   procfile: L('PF', 'violet'), jenkins: L('JK', 'red'), ci: L('CI', 'orange'), prisma: L('PS', 'violet'), http: L('HT', 'green'),
   workspace: P('workspace', 'steel'), shellrc: L('$_', 'green'), favicon: P('image', 'red'), robots: P('text', 'green'), webConfig: P('config', 'steel'),
   nginx: L('NG', 'green'), editorconfig: P('config', 'bone'), browserslist: P('config', 'amber'), dotnetTool: P('cube', 'violet'),
@@ -506,7 +627,7 @@ const FILE_NAMES = {
   'pnpm-workspace.yaml': S.npmConfig, license: S.license, 'license.md': S.license, 'license.txt': S.license, licence: S.license, copying: S.license,
   notice: S.license, 'notice.md': S.license, 'readme.md': S.readme, readme: S.readme, 'readme.txt': S.readme, 'changelog.md': S.changelog,
   changelog: S.changelog, 'history.md': S.changelog, 'changes.md': S.changelog, 'contributing.md': S.contributing, 'code_of_conduct.md': S.conduct,
-  'security.md': S.security, 'todo.md': S.todo, todo: S.todo, 'claude.md': S.ai, 'agents.md': S.ai, 'gemini.md': S.ai, '.cursorrules': S.ai,
+  'security.md': S.security, 'todo.md': S.todo, todo: S.todo, 'claude.md': S.claude, 'claude.local.md': S.claude, '.mcp.json': S.claude, 'agents.md': S.ai, 'gemini.md': S.ai, '.cursorrules': S.ai,
   '.windsurfrules': S.ai, 'copilot-instructions.md': S.ai, 'llms.txt': S.ai,
   '.gitignore': S.git, '.gitattributes': S.git, '.gitmodules': S.git, '.gitkeep': S.git, '.mailmap': S.git, '.git-blame-ignore-revs': S.git,
   '.env': S.env, '.env.local': S.env, '.env.development': S.env, '.env.production': S.env, '.env.test': S.env, '.env.example': S.env,
@@ -552,6 +673,7 @@ const LANGUAGE_IDS = {
   terraform: S.terraform, graphql: S.graphql, proto3: S.proto, vue: S.vue, svelte: S.svelte, astro: S.astro, pug: S.pug, handlebars: S.handlebars,
   twig: S.twig, latex: S.tex, bibtex: S.tex, makefile: S.make, cmake: S.cmake, prisma: S.prisma, http: S.http, dotenv: S.env, 'git-commit': S.git,
   'git-rebase': S.git, 'code-workspace': S.workspace, jupyter: S.nb, csv: S.csv, tsv: S.csv, prompt: S.ai, instructions: S.ai, chatagent: S.ai,
+  'github-actions-workflow': S.actions,
 };
 
 // --- Carpetas: nombre → [color, emblema] -------------------------------------------------------
@@ -566,6 +688,7 @@ const FOLDER_KINDS = {
   temp: ['dim', 'clock'], logs: ['paper', 'docs'], mocks: ['teal', 'flask'], ai: ['cyan', 'polaris'], mobile: ['green', 'phone'], fonts: ['bone', 'font'],
   migrations: ['paper', 'arrow'], middleware: ['teal', 'layers'], services: ['violet', 'layers'], coverage: ['green', 'target'],
   secrets: ['amber', 'key'], styles: ['rose', 'palette'], scripts: ['amber', 'terminal'], infra: ['ice', 'container'], store: ['paper', 'database'],
+  claude: ['amber', 'mold'], docker: ['ice', 'crucibles'], actions: ['green', 'branch'],
 };
 
 const FOLDER_NAMES = /** @type {Record<string, keyof typeof FOLDER_KINDS>} */ ({
@@ -578,8 +701,8 @@ const FOLDER_NAMES = /** @type {Record<string, keyof typeof FOLDER_KINDS>} */ ({
   assets: 'assets', asset: 'assets', public: 'assets', static: 'assets', resources: 'assets', res: 'assets', www: 'assets', wwwroot: 'assets',
   sounds: 'audio', sound: 'audio', audio: 'audio', music: 'audio', sfx: 'audio', video: 'video', videos: 'video', movies: 'video',
   '.git': 'git', '.github': 'git', '.gitlab': 'git', '.husky': 'git', '.githooks': 'git', githooks: 'git',
-  workflows: 'ci', '.circleci': 'ci', ci: 'ci', pipelines: 'ci', '.azure-pipelines': 'ci', '.buildkite': 'ci',
-  '.vscode': 'vscode', '.vscode-test': 'vscode', '.idea': 'ide', '.vs': 'ide', '.fleet': 'ide', '.devcontainer': 'infra',
+  workflows: 'actions', '.circleci': 'ci', ci: 'ci', pipelines: 'ci', '.azure-pipelines': 'ci', '.buildkite': 'ci',
+  '.vscode': 'vscode', '.vscode-test': 'vscode', '.idea': 'ide', '.vs': 'ide', '.fleet': 'ide', '.devcontainer': 'docker',
   packages: 'packages', package: 'packages', plugins: 'packages', plugin: 'packages', extensions: 'packages', addons: 'packages',
   vendor: 'packages', third_party: 'packages', 'third-party': 'packages', external: 'packages', node_modules: 'modules', bower_components: 'modules',
   '.yarn': 'modules', '.pnpm-store': 'modules', jspm_packages: 'modules',
@@ -603,7 +726,7 @@ const FOLDER_NAMES = /** @type {Record<string, keyof typeof FOLDER_KINDS>} */ ({
   logs: 'logs', log: 'logs',
   mocks: 'mocks', __mocks__: 'mocks', mock: 'mocks', fixtures: 'mocks', stubs: 'mocks', samples: 'mocks', sample: 'mocks', examples: 'mocks',
   example: 'mocks', demo: 'mocks', demos: 'mocks', playground: 'mocks', sandbox: 'mocks',
-  ai: 'ai', prompts: 'ai', agents: 'ai', '.claude': 'ai', '.cursor': 'ai', '.copilot': 'ai', llm: 'ai', '.windsurf': 'ai',
+  ai: 'ai', prompts: 'ai', agents: 'ai', '.claude': 'claude', '.cursor': 'ai', '.copilot': 'ai', llm: 'ai', '.windsurf': 'ai',
   android: 'mobile', ios: 'mobile', mobile: 'mobile', fonts: 'fonts', font: 'fonts', typography: 'fonts',
   middleware: 'middleware', middlewares: 'middleware', interceptors: 'middleware', pipes: 'middleware', filters: 'middleware',
   services: 'services', service: 'services', providers: 'services', provider: 'services',
@@ -611,7 +734,7 @@ const FOLDER_NAMES = /** @type {Record<string, keyof typeof FOLDER_KINDS>} */ ({
   secrets: 'secrets', certs: 'secrets', certificates: 'secrets', keys: 'secrets', ssl: 'secrets', '.ssh': 'secrets',
   themes: 'styles', theme: 'styles', styles: 'styles', style: 'styles', css: 'styles', scss: 'styles', sass: 'styles', stylesheets: 'styles',
   scripts: 'scripts', script: 'scripts', cli: 'scripts', commands: 'scripts', tasks: 'scripts',
-  docker: 'infra', '.docker': 'infra', k8s: 'infra', kubernetes: 'infra', helm: 'infra', deploy: 'infra', deployment: 'infra', infra: 'infra',
+  docker: 'docker', '.docker': 'docker', k8s: 'infra', kubernetes: 'infra', helm: 'infra', deploy: 'infra', deployment: 'infra', infra: 'infra',
   infrastructure: 'infra', terraform: 'infra', ansible: 'infra',
   'product-icons': 'images',
 });
@@ -619,7 +742,9 @@ const FOLDER_NAMES = /** @type {Record<string, keyof typeof FOLDER_KINDS>} */ ({
 // --- Generación ---------------------------------------------------------------------------
 
 const specId = (/** @type {Spec} */ s) =>
-  `f_${s.kind}_${s.kind === 'label' ? [...s.value].map((ch) => (/[a-z0-9]/i.test(ch) ? ch.toLowerCase() : ch.codePointAt(0)?.toString(16))).join('') : s.value}_${s.color}`;
+  s.kind === 'logo'
+    ? `f_logo_${s.value}${s.colors ? `_${s.colors.join('_').replace(/#/g, '').toLowerCase()}` : ''}`
+    : `f_${s.kind}_${s.kind === 'label' ? [...s.value].map((ch) => (/[a-z0-9]/i.test(ch) ? ch.toLowerCase() : ch.codePointAt(0)?.toString(16))).join('') : s.value}_${s.color}`;
 
 function main() {
   fs.rmSync(SVG_DIR, { recursive: true, force: true });

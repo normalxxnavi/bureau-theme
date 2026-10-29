@@ -2,7 +2,7 @@
   "name": "bureau-theme",
   "displayName": "%displayName%",
   "description": "%description%",
-  "version": "0.8.828102026",
+  "version": "0.9.929102026",
   "preview": true,
   "publisher": "Normalxxnavi",
   "author": {
@@ -261,6 +261,11 @@
         "category": "CONTROL"
       },
       {
+        "command": "bureauTheme.toggleHud",
+        "title": "%command.toggleHud%",
+        "category": "CONTROL"
+      },
+      {
         "command": "bureauTheme.openSoundtrack",
         "title": "%command.openSoundtrack%",
         "category": "CONTROL"
@@ -449,6 +454,11 @@
             "type": "boolean",
             "default": true,
             "markdownDescription": "%config.statusBarItem%"
+          },
+          "bureauTheme.hud.enabled": {
+            "type": "boolean",
+            "default": false,
+            "markdownDescription": "%config.hud.enabled%"
           }
         }
       },

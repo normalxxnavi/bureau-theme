@@ -61,6 +61,16 @@ function pill(text, background, color = '#ffffff') {
 }
 
 /**
+ * Imagen pequeña dentro de una línea (el logotipo de un reproductor), con su
+ * nombre como texto alternativo.
+ * @param {string} uri imagen `data:` @param {number} size @param {string} alt
+ */
+function inlineImage(uri, size, alt) {
+  if (!uri.startsWith('data:image/')) throw new Error('Solo imágenes data: en un popup');
+  return `<img src="${uri}" width="${size}" height="${size}" alt="${escapeHtml(alt)}" title="${escapeHtml(alt)}">`;
+}
+
+/**
  * Botón: enlace a un comando, con su icono. Hay que permitir el comando en
  * `isTrusted.enabledCommands` del MarkdownString.
  * @param {string} icon id del icono (sin `$( )`) @param {string} label @param {string} command @param {unknown[]} [args]
@@ -144,4 +154,4 @@ function setItem(item, props) {
   }
 }
 
-module.exports = { escapeHtml, pill, button, card, hoverImage, setItem, COLOR, ACCENT, NEUTRAL, MAX_MARKDOWN };
+module.exports = { escapeHtml, pill, inlineImage, button, card, hoverImage, setItem, COLOR, ACCENT, NEUTRAL, MAX_MARKDOWN };

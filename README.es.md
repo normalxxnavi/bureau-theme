@@ -45,10 +45,11 @@ Cuatro temas para VS Code inspirados en *Control* y *Control Resonant* de Remedy
 
 - 🎨 **687 colores de interfaz por tema**, los 16 colores de la terminal y resaltado semántico. Todos los colores de texto se comprueban con WCAG.
 - 🧪 **Cualquier lenguaje**: los colores de la sintaxis se prueban con 142 lenguajes, de TypeScript y Python a Zig, Elixir y COBOL.
-- 🗂️ **Bureau Icons**: 498 iconos de archivo y carpeta dibujados en la rejilla de 16 px, nítidos al 100 % de escala.
-- 🧩 **Bureau Product Icons**: 350 iconos propios de VS Code redibujados a partir del juego, en el color del tema o en **Color**.
+- 🗂️ **Bureau Icons** 🆕: 514 iconos de archivo y carpeta dibujados en la rejilla de 16 px, nítidos al 100 % de escala, con el logotipo de cada lenguaje.
+- 🧩 **Bureau Product Icons**: 354 iconos propios de VS Code redibujados a partir del juego, en el color del tema o en **Color**.
 - 🖥️ **La terminal Bureau** 🆕: un prompt para PowerShell, cmd, bash, zsh y fish con cinco estilos. Sin Oh My Posh ni Nerd Fonts.
 - 🏛️ **La Casa Inmemorial**: todo el tema desde un botón de la barra de estado.
+- 📟 **HUD del Bureau** 🆕: cursor, sangría, codificación y lenguaje en un solo elemento de la barra de estado con el diseño del tema, opcional.
 - 🎵 **Gramola Songmaster**: lo que suena en tu ordenador, con sus controles.
 - 🕶️ **Modo Clasificado**: barras de censura sobre tus secretos mientras compartes pantalla.
 - 🔊 **Efectos de sonido** y 🔤 **tipografía** de los juegos, opcionales.
@@ -79,7 +80,7 @@ Cinco estilos de prompt contados con el lore de la Agencia. Desactivada por defe
 
 ![Bureau Icons y Bureau Product Icons (Color) en CONTROL Dark](images/screenshots/icons-dark.png)
 
-Los archivos llevan su código (`TS`, `C#`, `PY`…) sobre una franja de clasificación; las carpetas van del color de su categoría. Los iconos de producto salen del juego: la cinta del Bureau para el control de código fuente, las ranuras de Mods de Jesse para las extensiones, el patito de goma para depurar y la Hedron para las pruebas.
+Los archivos llevan el logotipo de su lenguaje —el óvalo de PHP, las serpientes de Python, el engranaje de Rust, el gopher de Go…, dibujados a mano en la rejilla de píxeles en el color de cada marca— o su código (`JSON`, `YAML`…) sobre una franja de clasificación; las carpetas van del color de su categoría. Los iconos de producto salen del juego: la cinta del Bureau para el control de código fuente, las ranuras de Mods de Jesse para las extensiones, el patito de goma para depurar y la Hedron para las pruebas.
 
 <details>
 <summary>🌕 <b>En el tema claro</b>, y cada objeto del juego</summary>
@@ -98,6 +99,10 @@ Los archivos llevan su código (`TS`, `C#`, `PY`…) sobre una franja de clasifi
 | Copilot y chat | Polaris, cristales alrededor de un ojo como en el primer juego |
 | Notificaciones | La Hotline |
 | Remoto | El Umbral |
+| Lenguaje del archivo (`{}`) | Llaves alrededor de un Punto de Control |
+| Archivos de Claude Code (`CLAUDE.md`, `.claude`) | El Moho |
+| Archivos y carpetas de Docker | Las celdas del Panóptico, donde la Agencia contiene los Objetos de Poder |
+| Workflows de GitHub Actions | La cinta del Bureau, en verde |
 
 </details>
 
@@ -111,7 +116,7 @@ Pulsa el monolito sin ventanas de la barra de estado para cambiar el tema, los i
 
 ![La gramola Songmaster en CONTROL Resonant, con una canción inventada](images/screenshots/jukebox.png)
 
-Spotify o **cualquier reproductor** (el navegador, Apple Music, VLC…) en la barra de estado, con anterior, reproducir/pausar y siguiente. Sin cuenta ni inicio de sesión: lee la música de tu sistema. También abre en Spotify las bandas sonoras oficiales de los dos juegos. Desactivada por defecto.
+Spotify o **cualquier reproductor** (el navegador, Apple Music, VLC…) en la barra de estado, con anterior, reproducir/pausar y siguiente. Sin cuenta ni inicio de sesión: lee la música de tu sistema. Se mantiene al día aunque trabajes en otra aplicación, su popup enseña la portada y el logotipo del reproductor, y su menú abre en Spotify las bandas sonoras oficiales de los dos juegos. Desactivada por defecto.
 
 ### 🕶️ Modo Clasificado y protocolos de la Agencia
 
@@ -183,6 +188,7 @@ Los comentarios y los parámetros van en *cursiva*. Para quitarla:
 | Ajuste | Por defecto | Descripción |
 |---|---|---|
 | `bureauTheme.statusBarItem` | `true` | Enseña el icono de la Casa Inmemorial en la barra de estado. |
+| `bureauTheme.hud.enabled` | `false` | HUD del Bureau: cursor, sangría, codificación, fin de línea y lenguaje en un solo elemento de la barra de estado. |
 | `bureauTheme.font` | `none` | `bureau`, `resonant`, `auto` (según el tema) o `none`. |
 | `bureauTheme.sounds.enabled` | `false` | Interruptor general de los sonidos. |
 | `bureauTheme.sounds.pack` | `auto` | `auto`, `control` o `resonant`. |
@@ -226,7 +232,7 @@ Los comentarios y los parámetros van en *cursiva*. Para quitarla:
 - En Linux, los sonidos necesitan `paplay`, `pw-play` o `aplay`; el sonido de *comando de terminal fallido* necesita la shell integration.
 - El Modo Clasificado pinta barras sobre el editor: los valores se pueden ver donde no llega (resultados de búsqueda, el minimapa, los hovers de otras extensiones), y VS Code enseña el archivo un instante antes de pintar las barras. Actívalo antes de abrir el archivo que quieras proteger.
 - La gramola muestra lo que cuenta el sistema: en macOS solo Spotify y Música, sin portada; en Linux necesita `gdbus` y solo enseña la portada si el reproductor la guarda como archivo local de 48 KB como mucho.
-- La terminal Bureau: el prompt de cmd es texto fijo (sin rama de Git, error ni Clasificado), y Clasificado funciona en PowerShell, zsh y fish, no en bash. Los iconos necesitan una terminal con fuente de respaldo: VS Code, Windows Terminal y casi todas las de Linux la tienen; la consola clásica de Windows no (apaga `bureauTheme.terminal.icons`), y en la Terminal de macOS o en iTerm2 puede que tengas que elegir *Bureau Prompt Icons* como fuente para los caracteres no ASCII. La primera vez, reinicia VS Code si ves recuadros en lugar de iconos. Si Windows PowerShell no deja ejecutar scripts (`Restricted`), el prompt funciona igual en VS Code, pero fuera de VS Code tu `profile.ps1` no se ejecuta.
+- La terminal Bureau: el prompt de cmd es texto fijo (sin rama de Git, error ni Clasificado), y Clasificado funciona en PowerShell, zsh y fish, no en bash. Los iconos necesitan una terminal con fuente de respaldo: VS Code, Windows Terminal y casi todas las de Linux la tienen; la consola clásica de Windows (donde se abren PowerShell y cmd como administrador) no, así que ahí el prompt va sin ellos; en Git Bash fuera de VS Code, mintty los enseña desde la versión 3.8.3 (la extensión lo prepara). Pon `BUREAU_PROMPT_ICONS=1` o `0` en tu entorno para decidirlo tú, y en la Terminal de macOS o en iTerm2 puede que tengas que elegir *Bureau Prompt Icons* como fuente para los caracteres no ASCII. La primera vez, reinicia VS Code si ves recuadros en lugar de iconos. Si Windows PowerShell no deja ejecutar scripts (`Restricted`), el prompt funciona igual en VS Code, pero fuera de VS Code tu `profile.ps1` no se ejecuta.
 - Fuentes en Windows: una fuente que siga abierta al desinstalar se queda, sin usar, en `%LOCALAPPDATA%\Microsoft\Windows\Fonts` (sus archivos empiezan por `BureauTheme-`); puedes borrarla después.
 
 </details>
@@ -237,6 +243,6 @@ Sin conexiones de red ni telemetría. Los sonidos usan el reproductor de audio d
 
 ## 🙌 Créditos
 
-Hecho por **Normalxxnavi** · [Cambios](CHANGELOG.md) · [Licencia MIT](LICENSE). Fuentes: Overpass, Overpass Mono, Space Mono y Space Grotesk (SIL Open Font License, ver [`fonts/`](fonts/README.md)). Los colores, los iconos y los sonidos son originales.
+Hecho por **Normalxxnavi** · [Cambios](CHANGELOG.md) · [Licencia MIT](LICENSE). Fuentes: Overpass, Overpass Mono, Space Mono y Space Grotesk (SIL Open Font License, ver [`fonts/`](fonts/README.md)). Los colores, los iconos y los sonidos son originales; los logotipos de los reproductores del popup de la gramola son de [Simple Icons](https://simpleicons.org) (CC0) y marcas de sus dueños, como los logotipos de los lenguajes, dibujados a mano para los iconos de archivo.
 
 <sub>*Beta · Obra fan no oficial, sin aprobación ni respaldo de Remedy Entertainment Plc ni de sus filiales. CONTROL y CONTROL Resonant son marcas de sus respectivos propietarios y solo se usan para describir en qué se inspira este tema. No incluye recursos de los juegos. Windows, macOS y Linux son marcas de sus respectivos propietarios.*</sub>

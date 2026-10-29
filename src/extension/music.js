@@ -9,13 +9,15 @@
  * `bureauTheme.music.enabled` y lee la música del propio sistema
  * (music-source.js): sin cuentas ni internet.
  *
- * Solo pregunta al sistema con la ventana de VS Code en primer plano; al
- * volver a ella, actualiza al momento.
+ * Pregunta al sistema cada 3 s, también con VS Code en segundo plano: la
+ * canción cambia mientras trabajas en otra aplicación, y al volver la barra de
+ * estado ya la tiene. Al volver a la ventana, además, lee al momento.
  */
 
 const vscode = require('vscode');
 const parse = require('./music-parse');
 const H = require('./hover');
+const { logoUri } = require('./player-logos');
 const { MUSIC } = require('./config');
 
 const Global = vscode.ConfigurationTarget.Global;
@@ -23,7 +25,7 @@ const POLL_MS = 3000;
 /** Largo máximo del título, el artista y el álbum en el popup. */
 const POPUP_TEXT = 120;
 /** Comandos que se pueden pulsar desde el popup. */
-const POPUP_COMMANDS = ['bureauTheme.musicPrevious', 'bureauTheme.musicPlayPause', 'bureauTheme.musicNext', 'bureauTheme.openSoundtrack'];
+const POPUP_COMMANDS = ['bureauTheme.musicPrevious', 'bureauTheme.musicPlayPause', 'bureauTheme.musicNext'];
 /** @returns {{enabled: boolean, onlySpotify: boolean, controls: boolean}} */
 function readMusicConfig() {
   const c = vscode.workspace.getConfiguration(MUSIC);
@@ -123,7 +125,6 @@ class Jukebox {
     };
     this.focusListener = vscode.window.onDidChangeWindowState((state) => {
       if (state.focused) this.poll();
-      else clearTimeout(this.timer);
     });
     this.poll();
   }
@@ -177,7 +178,7 @@ class Jukebox {
       return;
     }
     clearTimeout(this.timer);
-    if (vscode.window.state.focused) this.timer = setTimeout(() => this.poll(), POLL_MS);
+    this.timer = setTimeout(() => this.poll(), POLL_MS);
   }
 
   /** Pide la portada cuando cambia la canción (solo local: nunca se descarga nada). */
@@ -200,13 +201,16 @@ class Jukebox {
 
   /**
    * El popup: la portada (o la gramola) a la izquierda, la canción a la
-   * derecha con sus pastillas de estado y, debajo, los controles y las bandas
-   * sonoras, que se pueden pulsar.
+   * derecha con el logotipo del reproductor y, debajo, los controles, que se
+   * pueden pulsar.
    * @param {import('./music-parse').Track} t
    */
   popup(t) {
     const playing = t.playing;
     const jukebox = H.hoverImage(this.context.extensionPath, 'jukebox');
+    // El reproductor, con su logotipo (o su nombre, si no hay): si suena o no ya lo dice el botón de pausa.
+    const name = parse.appName(t.app);
+    const logo = logoUri(parse.appLogo(t.app));
     const md = H.card({
       image: this.cover ?? jukebox,
       fallbackImage: jukebox,
@@ -215,10 +219,7 @@ class Jukebox {
       lines: [
         t.artist ? H.escapeHtml(parse.clip(t.artist, POPUP_TEXT)) : '',
         t.album ? `<i>${H.escapeHtml(parse.clip(t.album, POPUP_TEXT))}</i>` : '',
-        [
-          playing ? H.pill(`● ${vscode.l10n.t('PLAYING')}`, H.ACCENT.background, H.ACCENT.color) : H.pill(`❚❚ ${vscode.l10n.t('PAUSED')}`, H.NEUTRAL.background, H.NEUTRAL.color),
-          H.pill(parse.appName(t.app).toUpperCase(), H.NEUTRAL.background, H.NEUTRAL.color),
-        ].join(' '),
+        logo ? H.inlineImage(logo, 16, name) : H.pill(name.toUpperCase(), H.NEUTRAL.background, H.NEUTRAL.color),
       ].filter(Boolean),
       rows: [
         [
@@ -226,7 +227,6 @@ class Jukebox {
           H.button(playing ? 'debug-pause' : 'play', playing ? vscode.l10n.t('Pause') : vscode.l10n.t('Play'), 'bureauTheme.musicPlayPause'),
           H.button('chevron-right', vscode.l10n.t('Next'), 'bureauTheme.musicNext'),
         ],
-        [H.button('bureau-cassette', vscode.l10n.t('Official CONTROL soundtracks…'), 'bureauTheme.openSoundtrack')],
       ],
     });
     const tooltip = new vscode.MarkdownString(md, true);

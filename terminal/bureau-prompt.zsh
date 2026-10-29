@@ -29,6 +29,31 @@ typeset -gA __bureau_g=(
   alert $'\xee\x86\xbc' incursion $'\xee\x86\xbd' board $'\xee\x86\xbe' classified $'\xee\x86\xbf'
 )
 
+# Can the terminal draw the icons? They come from a font of their own, which
+# the terminal has to look for behind yours: VS Code, Windows Terminal and the
+# terminals of macOS and Linux do. On Windows, mintty only does it from 3.8.3
+# on, with the FontSubst line the extension adds to its config when you use the
+# prompt outside VS Code; the classic console never does. There the prompt goes
+# without icons. BUREAU_PROMPT_ICONS=1 or 0 decides instead.
+__bureau_icons_ok() {
+  case ${BUREAU_PROMPT_ICONS-} in 1) return 0 ;; 0) return 1 ;; esac
+  [[ ${TERM-} == (linux|dumb) ]] && return 1
+  [[ $__bureau_os == windows ]] || return 0
+  [[ ${TERM_PROGRAM-} == vscode || -n ${WT_SESSION-} ]] && return 0
+  [[ ${TERM_PROGRAM-} == mintty ]] || return 1
+  local -a v lines
+  v=(${(s:.:)${TERM_PROGRAM_VERSION:-0}})
+  (( ${${v[1]%%[^0-9]*}:-0} * 10000 + ${${v[2]%%[^0-9]*}:-0} * 100 + ${${v[3]%%[^0-9]*}:-0} >= 30803 )) || return 1
+  local file=${APPDATA//\\//}/mintty/config
+  [[ -r $file ]] || return 1
+  lines=("${(@f)$(<$file)}")
+  lines=(${lines%$'\r'})
+  local font='Font9=Bureau Prompt Icons' subst='FontSubst=9'
+  (( ${lines[(Ie)$font]} && ${lines[(Ie)$subst]} ))
+}
+typeset -g __bureau_noicons=0
+__bureau_icons_ok || __bureau_noicons=1
+
 # prompt.conf: one key per line, letters only (it is never evaluated).
 __bureau_conf() {
   typeset -g __bc_style='' __bc_classified=0 __bc_icons=1 __bc_windows=controlPoints __bc_macos=command __bc_linux=tux __bc_frame=1 __bc_theme=other __bc_lang=en
@@ -48,6 +73,8 @@ __bureau_conf() {
       lang) __bc_lang=$v ;;
     esac
   done < $__bureau_dir/prompt.conf
+  [[ $__bureau_noicons == 1 ]] && __bc_icons=0
+  return 0
 }
 
 # Git: branch, commits ahead/behind and changed files. Only inside a repository

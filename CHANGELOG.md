@@ -5,77 +5,46 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 **Beta.** Until 1.0.0 the version is **0.*attempt*.*attempt*DDMMYYYY**: the minor number counts the release attempts (every version tag pushed, continuing from 0.6.0) and the patch is that same number followed by the release date — day, month and year, without separators. For example, attempt 7 on 16/10/2026 is 0.7.716102026. Version 1.0.0 will be the first stable release. (Up to 0.6.0 the minor number counted the days of development and the patch the builds of that day; the earliest builds, never published, were numbered 0.5.0–0.10.1 and are listed here with their new numbers.)
 
-## [0.8.820102026] — 2026-10-20
+## [0.9.929102026] — 2026-10-29
 
 ### Added
 
-- **The Bureau terminal** (off by default): a prompt for PowerShell, cmd, bash, zsh and fish, without Oh My Posh or Nerd Fonts, in five styles based on the families of Oh My Posh themes and told in the Bureau's terms — **Signage** (solid blocks like the signs of the Oldest House), **Dossier** (two lines framed like a case file, ending in the Control Point), **Control Point** (minimal; the Point empties when a command fails), **The Board** (`<<IN ITS VOICE.>>` with its echoes, and a Board message when the terminal opens) and **Alert level** (*Clear*, *Anomaly*, *Alert* or *Hiss Incursion* on the right, with the time). They show the system, the folder, the Git branch with commits ahead/behind and changed files, how long the last command took and its error, in the ANSI colours of the active theme (the Hedron cyan in CONTROL Resonant, astral-white lines in CONTROL Black).
-  - **System icons** drawn on the Bureau grid: Windows as four Control Points or the Oldest House with windows, macOS as a ⌘ of Control Points joined by a ring or an octagonal apple, Linux as the Bureau Tux or Tux with Ahti's mop. They come from **Bureau Prompt Icons**, a font of 16 original glyphs installed only for your user and added behind your terminal font; it uses Unicode private-use code points outside the Nerd Fonts ranges, which VS Code draws at full size.
-  - **Classified** for the terminal: the prompt of each command you run is covered with a redaction bar (PowerShell, zsh and fish), for streaming.
-  - **A header and a closing line for each command** (npm, git…): `── ■ npm run build ──── 12:04 ──` when it starts and `── DONE · 3.2 s ────` (or *FAILED · code 1*, *INTERRUPTED*) when it ends, in the colours of the theme; not for `cd`, `clear` or `exit`. PowerShell, bash 4.4 or later, zsh and fish. Setting `bureauTheme.terminal.commandFrame`.
-  - **Git in the Bureau colours** in the shells with the prompt: `git status`, `log`, `branch` and `diff` with the branch in the accent, changes in amber, untracked files in grey, remote branches in cyan and tags in magenta. Only colours (never `color.ui`), through `GIT_CONFIG_*` (Git 2.31 or later), and the ones you set in your own Git configuration come first. Setting `bureauTheme.terminal.gitColors`.
-  - New VS Code terminals open with it: the extension adds a **Bureau** terminal profile and makes it the default (your previous default comes back when you turn it off). Changes apply at once in the terminals already open. cmd gets its `PROMPT` in every VS Code terminal.
-  - **Also outside VS Code**, if you ask for it: three lines at the end of your shell profiles (`profile.ps1`, `.bashrc`, `.zshrc`), a file in fish `conf.d`, the `PROMPT` variable of your user for cmd, two Windows Terminal profiles with the four colour schemes and the icon font behind the font of the Windows Terminal profiles you already have, so the icons also show in *Command Prompt* and *Windows PowerShell* (Windows Terminal does not look for them in other fonts by itself). Removing it — or uninstalling the extension — leaves each file as it was and `PROMPT` with its previous value.
-  - In the Oldest House (*Bureau terminal…*: one line per option with its state; the system icon only lists the ones for your system), in a new step of the welcome guide and with **CONTROL: Choose the Terminal Prompt…**, **CONTROL: Open a Bureau Terminal**, **CONTROL: Configure the Bureau Terminal…**, **CONTROL: Use the Bureau Prompt Outside VS Code** and **CONTROL: Remove the Bureau Prompt from Your Shells**. Settings `bureauTheme.terminal.*`.
-- **Uninstalling the extension removes its fonts**: the `BureauTheme-` copies in your user fonts folder and, on Windows, their registry entries. Your previous font now stays behind the game font in each setting, so after uninstalling VS Code goes back to it by itself, without touching your settings. On Windows, a font that is still open (for example, in another VS Code window) is uninstalled, but its file stays in the fonts folder until you delete it.
-- New screenshots on the details page: the Oldest House, the Songmaster jukebox popup, Classified mode, the welcome guide and the Bureau terminal.
-- The release workflow also runs the integration test on the oldest VS Code the extension supports (1.93), and checks the popups in a real VS Code on Windows, macOS and Linux — on Linux, the jukebox with a test player —, keeping a screenshot of each one. The unit tests draw the Bureau prompt in every shell the runner has (PowerShell and Git Bash on Windows, bash and zsh on macOS and Linux, fish on Linux) and the header and closing line of each command — in bash and zsh also in a real interactive session —, check that Git accepts the Bureau colours, and the integration test opens a real Bureau terminal on each system.
+- **The Bureau HUD** (off by default): the cursor position, indentation, encoding, end of line and language of the file in one status bar item with the theme's design — `13:1 │ ␣2 │ UTF-8 · LF │ {▪} MARKDOWN` — and a dossier popup with the logo of the language and buttons to go to a line or change the language, indentation, encoding and end of line (also when you click it). Turn it on in the Oldest House or with **CONTROL: Show/Hide the Bureau HUD**; setting `bureauTheme.hud.enabled`. VS Code does not let an extension hide its own items, so the first time it tells you how to hide them (right-click the status bar).
 
-### Changed
+  ![The Bureau HUD and its popup on CONTROL Black, next to the items of VS Code](images/changelog/0.9.929102026/hud.png)
 
-- **Marketplace description**: *A VS Code theme collection inspired by CONTROL and CONTROL Resonant, featuring four color themes, custom file and product icons, and optional typography and sound effects. Unofficial fan project.*
-- **Icons redrawn from the game**, with the fan wiki (control.fandom.com) as reference:
-  - **Polaris** — Copilot, chat and AI — is now the cyan crystals around an eye that Jesse sees in the first game, instead of a yellow star. The icons of AI files (`CLAUDE.md`, `*.prompt.md`…) and AI folders follow it.
-  - **Source control and the Git branch** are the Bureau tape that links the Control Points — the "ley lines" of the Oldest House —, instead of the Ashtray Maze and the inverted pyramid: a Git branch that turns at right angles, with a step like the corridors of the House, between two square Points. The marks for changes, staged changes, conflicts and a deleted branch take the place of the tip Point, apart from the tape so they also read in the single-colour icons, and the corner of the activity bar where VS Code draws the change counter stays free. The Git files (`.gitignore`, `.gitattributes`…) and folders (`.git`, `.github`…) follow it.
-  - **Extensions** are Jesse's mod slots: three mods with their symbol and a free slot.
-- **Songmaster jukebox**: the status bar and the Oldest House show the song first and then the artist (*Take Control — Old Gods of Asgard*), instead of the other way round.
-- **The status bar icons appear much sooner**: the extension now activates as soon as VS Code starts, instead of waiting for every other extension to finish starting. With slow extensions (C# Dev Kit, for example) the Oldest House icon took up to 40 seconds to appear; now it takes about 3. The sounds, the jukebox, the protocols and the typography start right after it, so activating takes about 20 ms even with all of them on.
+- **Icons from the lore for Claude Code, Docker and GitHub Actions** files: `CLAUDE.md`, `CLAUDE.local.md`, `.mcp.json` and the `.claude` folder are the Mold (a burst of spores with amber buds, the shape of Claude's logo); `Dockerfile`, Compose files, `.dockerignore` and the `docker`, `.docker` and `.devcontainer` folders are the cells of the Panopticon where the Bureau contains the Objects of Power; GitHub Actions workflows (with the GitHub Actions extension) and the `workflows` folder are the Bureau tape of Git, in green. Their icons in the activity bar cannot change: each extension draws its own image, which no theme can replace.
 
-### Fixed
-
-- **Songmaster jukebox on Windows**:
-  - After an answer that came too late (the cover of a song, for example), every later answer went to the wrong request — the song could disappear or its cover never show — until VS Code was restarted. Now each request gets its own answer: a PowerShell that does not answer in time is closed and replaced.
-  - If PowerShell could not start, it was started again on every read, every 3 seconds. After a failure it now waits longer each time, up to 5 minutes. After four slow answers it used to stop for the rest of the session; now it recovers by itself.
-- **Songmaster jukebox**: going back to the VS Code window or pressing a control while it was reading added another round of reads every 3 seconds, and they piled up over the day. Now there is only one read at a time.
-- **Sounds on Windows**: the audio player gave up for the rest of the session once it had closed four times, even hours apart. Now only failures in a row count.
-- **Git commits** could sound, or get a comment from the Board, twice if the sounds or the comments were turned off and on again while Git was starting.
-- **Updating a font on Windows while it is open**: installing a new copy of a font the extension installs (a typography, or the terminal icons) failed when a program — the terminal itself — had the previous one open, because Windows does not let it be replaced. The new copy now goes next to it and the old one is removed as soon as it is closed.
-- **Typography on older versions of VS Code** (and on editors based on them): choosing a typography stopped halfway with an error, because `chat.fontFamily` does not exist there. Settings that do not exist are now skipped.
-- **CONTROL Resonant**: the popups showed *Playing*, the active protocols and *Classified* in red, which in Resonant belongs only to the Hiss. Those labels now use the accent of the active theme, and the neutral ones (*Off*, *Paused*, the player's name) are grey in every theme.
-
-## [0.7.720102026] — 2026-10-20
-
-### Added
-
-- **The Oldest House**: the status bar icon is now the Oldest House — drawn as it looks in the game from outside: a plain windowless concrete monolith, the front in the light and the side in shadow, a few vents and the red antenna — and opens the whole theme in one place: colour theme, full set, file and product icons, light/dark mode, typography, the sound console, the Songmaster jukebox, the official soundtracks and the Bureau protocols, each with its current state. Also with **CONTROL: Open the Oldest House…**. The root folder of Bureau Icons uses the same drawing.
-- **Songmaster jukebox** (off by default): what is playing in Spotify or any player in the status bar, with previous, play/pause and next. It reads the system media session (Windows), Spotify and Music (macOS) or MPRIS (Linux): no account, no login, nothing leaves your computer. Settings `bureauTheme.music.*`.
-- **Official soundtracks**: links that open in Spotify *Control (Original Soundtrack)*, *CONTROL Resonant (Original Soundtrack)*, *Zoe's Mixtape* and Old Gods of Asgard's *Take Control* and *Rebirth – Greatest Hits*. Only links: no audio is included.
-- **Popups with a design**: the popups of the jukebox, the Oldest House, the alert level and Classified mode are small cards with a picture, coloured status labels and buttons you can click. The jukebox shows the album cover that your system provides (Windows, and local files on Linux; never downloaded), or the jukebox itself.
-- The Songmaster jukebox icon is redrawn as in the game: the arched cabinet with its neon tube, magenta trims, wooden body, grille with the star and chrome base.
-- **Random messages from the Board** (off by default): at random moments of the day — 3 a day, as a notification with *Another message* and *No more today* — never while debugging, and waiting while VS Code is in the background. Configurable times a day, hours, where they appear (notification, status bar or both), and your own messages mixed with the Board's or alone: **CONTROL: Configure the Board…**.
-- **Welcome guide** (*Welcome to the Bureau*): nine steps to choose a theme, apply the full set, follow the system light/dark mode, pick the typography and the sounds and turn on the Bureau protocols. Each step has its own picture, drawn with the Objects of Power of the product icons and the colours of the four themes, and a line from the Board. It opens after installing; open it again with **CONTROL: Open Welcome Guide**.
-- **CONTROL: Apply the Full Set (Theme and Icons)…** — a CONTROL theme, Bureau Icons and Bureau Product Icons in one step, with *Undo*.
-- **CONTROL: Follow the System Light/Dark Mode…** — CONTROL Astral in light mode and the dark CONTROL theme you choose in dark mode. **CONTROL: Choose a CONTROL Theme…** lists only the four themes, with their lore.
-- **Bureau protocols**, all off by default:
-  - **Classified mode** covers secrets with redaction bars to share your screen or stream safely: every value in `.env` files, PEM keys and certificates, values whose name looks like a secret in JSON, YAML, TOML, INI, `.npmrc` and XML, and passwords in connection strings and URLs. The line with the cursor is revealed; the status bar icon reveals the whole file. Settings: `bureauTheme.classified.enabled`, `.files` and `.keywords` (plain words, never regular expressions, so a workspace cannot slow VS Code down with them).
-  - **Bureau alert level** in the status bar: *Clear*, *Anomaly*, *Alert* or *Hiss Incursion*, from the errors and warnings of the workspace. Settings: `bureauTheme.alertLevel.enabled` and `.incursionThreshold`.
-  - **Messages from the Board**: **CONTROL: Message from the Board** and, with `bureauTheme.board.comments`, quiet comments in the status bar on commits, tasks, debugging, the last error fixed and the first start of the day. 87 original messages in English and Spanish.
-- New product icons for the status bar: the classified dossier and the Bureau alert beacon.
-- **Syntax colours for any language**: new general rules for the standard TextMate scopes (sections, labels, modules, character classes, built-in variables, macros…) and semantic token colours for rust-analyzer, Pylance, Java, C/C++ and Dart. Checked token by token against new samples of the 70 languages VS Code ships and 72 languages from extensions (`npm run preview -- --check`), and scope by scope against the grammars of about 240 languages (`test/languages.test.js`).
-- **macOS and Linux**: the release workflow runs the unit tests and the integration test in a real VS Code on Windows, macOS and Linux (with a real PulseAudio server on Linux). Sounds also work with VS Code installed as a Flatpak (through `flatpak-spawn --host`).
-
-### Changed
-
-- **Beta versioning**: until 1.0.0 the version is 0.*attempt*.*attempt*DDMMYYYY (see the top of this file). `npm run version:next` sets it and the release workflow rejects a tag that does not follow it.
-- The typography is offered in the welcome guide instead of a notification the first time the extension starts.
-- The *resonance* sound icon of the status bar is replaced by the Oldest House; the sound console is one of its options. The setting is now `bureauTheme.statusBarItem` (if you had hidden the old icon, the new one stays hidden) and the command **CONTROL: Show/Hide the Oldest House Icon in the Status Bar**.
-- **Louder sounds**: they are now mastered for the frequencies every speaker can play. Several sounds of the Control pack (save, startup, breakpoint, typing) had most of their energy below 200 Hz and could hardly be heard on a laptop or with small headphones; the quietest one is now about 10 dB louder there. The volume goes up to **200 %** (above 100, amplified up to +6 dB with a soft limiter) and the default is 80.
-
-## [0.6.0] — 2026-10-15
+  ![The Mold, the cells of the Panopticon and the green Bureau tape in the explorer, on CONTROL Dark](images/changelog/0.9.929102026/icons-lore.png)
 
 ### Changed
 
 - **A shorter details page, with sharp screenshots**: screenshots first, then the features with their icons, how to install and how to change the colours, with the settings and the known limitations folded away. The screenshots are taken at twice the resolution (2560 × 1600), so their text stays sharp on any screen, and a new one shows the five prompts of the Bureau terminal in the same terminal (under 0.8.828102026). The Spanish version has its own page, [README.es.md](README.es.md).
+- **Language icons with their official logos**: each language had a dossier label with two letters (PH, JS, TS…) and they all looked alike. Now 59 languages show their own logo, drawn by hand on the 16-pixel grid in the colour of its brand (adjusted just enough to read on dark themes and on CONTROL Astral) and keeping the classification band: the PHP oval, the JavaScript and TypeScript squares, the two Python snakes, the C#, C and C++ hexagons, the Java cup, the Rust cog, the Go gopher, the Ruby gem, the HTML shield and the CSS square, the React atom (`.jsx`, `.tsx`), Kotlin, Swift, Dart, Lua, R, Julia, Elixir, Haskell, Vue, Svelte, Sass, Markdown, PowerShell, Terraform and more. Languages without a logo of their own (JSON, YAML, XML, LaTeX, Razor…) keep their label.
+
+  ![Files of 20 languages with their logos in the explorer and the tabs, on CONTROL Dark](images/changelog/0.9.929102026/icons-languages.png)
+
+- **The language of the file in the status bar** (the `{}` of VS Code) is drawn in the Bureau product icons: straight braces around a Control Point, an amber diamond with warnings and a red cross with errors.
+- **A shorter Oldest House**: one line per option, with its state next to it — what each one does is explained in its own menu. The file icons and the product icons are now one list (*Icons…*), the official soundtracks are inside the Songmaster jukebox, and the welcome guide, all the settings and hiding the icon are under *More…*. From 21 lines to 13 (with the new Bureau HUD).
+
+  ![The Oldest House with 13 lines, on CONTROL Dark](images/changelog/0.9.929102026/oldest-house.png)
+
+- **Songmaster jukebox popup**: the player now shows as its logo — Spotify, Apple Music, iTunes, Chrome, Firefox, Brave, Opera, VLC, foobar2000, TIDAL, Deezer, YouTube Music, Winamp, Plex, Kodi, Pandora or mpv, from [Simple Icons](https://simpleicons.org) (CC0) — instead of its name (players without a logo keep their name). The *Playing* label is gone (the pause/play button already says it) and so is the soundtracks button: they are in the jukebox menu.
+
+  ![The jukebox popup with the logo of the player, on CONTROL Resonant, with an invented song](images/changelog/0.9.929102026/jukebox.png)
+
+### Fixed
+
+- **The Bureau terminal in the classic Windows console**: an elevated PowerShell or cmd (*Run as administrator*) opens in the classic console even when Windows Terminal is your default terminal, and that console only uses its own font, so the icons of the prompt showed as boxes with a question mark. The prompt now draws its version without icons where the terminal cannot show them — the classic console, the Linux text console — and keeps them in VS Code, Windows Terminal (also when Windows hands it a console) and the terminals of macOS and Linux. Set `BUREAU_PROMPT_ICONS=1` (or `0`) in your environment to decide yourself.
+
+  ![The Bureau prompt in the classic Windows console: FBC instead of the system icon, and no boxes](images/changelog/0.9.929102026/terminal-console.png)
+
+- **The Bureau terminal in Git Bash outside VS Code**: mintty did not look for the icons in other fonts and drew them as empty boxes. *Use the Bureau Prompt Outside VS Code* now adds the icon font to the mintty configuration (`%APPDATA%\mintty\config`, which your own `~/.minttyrc` overrides), with mintty 3.8.3 or later; with an older mintty the prompt goes without icons. Removing it leaves the file as it was.
+
+  ![The Bureau prompt with its icons in Git Bash (mintty 3.8.3)](images/changelog/0.9.929102026/terminal-mintty.png)
+
+- **cmd outside VS Code**: your `PROMPT` variable now goes without icons, because cmd cannot tell which window it is in and the classic console does not draw them. The *Bureau · Command Prompt* profile of Windows Terminal, and every terminal in VS Code, keep them.
+- **Songmaster jukebox**: it stopped reading the music as soon as VS Code lost the focus, so the song in the status bar was out of date while you worked in another application. It now keeps reading every 3 seconds in the background too, and reads at once when you come back.
 
 ### Security
 

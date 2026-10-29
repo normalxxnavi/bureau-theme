@@ -45,6 +45,36 @@ if not set -q __bureau_loaded
     set -g __bureau_g_board \ue1be
     set -g __bureau_g_classified \ue1bf
 
+    # Can the terminal draw the icons? They come from a font of their own,
+    # which the terminal has to look for behind yours: VS Code, Windows
+    # Terminal and the terminals of macOS and Linux do. On Windows, mintty only
+    # does it from 3.8.3 on, with the FontSubst line the extension adds to its
+    # config when you use the prompt outside VS Code; the classic console never
+    # does. There the prompt goes without icons. BUREAU_PROMPT_ICONS=1 or 0
+    # decides instead.
+    function __bureau_icons_ok
+        set -q BUREAU_PROMPT_ICONS; and test "$BUREAU_PROMPT_ICONS" = 1; and return 0
+        set -q BUREAU_PROMPT_ICONS; and test "$BUREAU_PROMPT_ICONS" = 0; and return 1
+        set -q TERM; and contains -- $TERM linux dumb; and return 1
+        test $__bureau_os = windows; or return 0
+        if test "$TERM_PROGRAM" = vscode; or test -n "$WT_SESSION"
+            return 0
+        end
+        test "$TERM_PROGRAM" = mintty; or return 1
+        set -l v (string split . -- "$TERM_PROGRAM_VERSION") 0 0 0
+        for i in 1 2 3
+            set v[$i] (string replace -r '[^0-9].*$' '' -- $v[$i])
+            test -n "$v[$i]"; or set v[$i] 0
+        end
+        test (math "$v[1] * 10000 + $v[2] * 100 + $v[3]") -ge 30803; or return 1
+        set -l file (string replace -a '\\' / -- "$APPDATA")/mintty/config
+        test -r $file; or return 1
+        set -l lines (string trim -r -c \r -- (cat $file))
+        contains -- 'Font9=Bureau Prompt Icons' $lines; and contains -- FontSubst=9 $lines
+    end
+    set -g __bureau_noicons 0
+    __bureau_icons_ok; or set __bureau_noicons 1
+
     # Your prompt, to give it back with style=off.
     if functions -q fish_prompt; and not functions -q __bureau_original_fish_prompt
         functions -c fish_prompt __bureau_original_fish_prompt
@@ -70,6 +100,8 @@ if not set -q __bureau_loaded
                     set -g __bc_$kv[1] $kv[2]
             end
         end <$__bureau_dir/prompt.conf
+        test $__bureau_noicons = 1; and set -g __bc_icons 0
+        return 0
     end
 
     # Git: branch, commits ahead/behind and changed files. Only inside a

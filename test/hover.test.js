@@ -16,6 +16,16 @@ const ROOT = path.resolve(__dirname, '..');
 const VSCODE_SPAN_STYLE =
   /^(color\:(#[0-9a-fA-F]+|var\(--vscode(-[a-zA-Z0-9]+)+\));)?(background-color\:(#[0-9a-fA-F]+|var\(--vscode(-[a-zA-Z0-9]+)+\));)?(display\:inline-block;)?(border-radius:[0-9]+px;)?$/;
 
+test('imagen en línea (logotipo del reproductor): solo data: y con los atributos que deja VS Code', () => {
+  const uri = 'data:image/svg+xml;base64,PHN2Zy8+';
+  const html = H.inlineImage(uri, 16, 'Spotify <b>"x"</b>');
+  assert.equal(html, `<img src="${uri}" width="16" height="16" alt="Spotify &lt;b&gt;&quot;x&quot;&lt;/b&gt;" title="Spotify &lt;b&gt;&quot;x&quot;&lt;/b&gt;">`);
+  // Los atributos que el sanitizador de Markdown de VS Code permite en una imagen.
+  const allowed = new Set(['src', 'alt', 'title', 'width', 'height']);
+  for (const [, attr] of html.matchAll(/ ([a-z]+)="/g)) assert.ok(allowed.has(attr), attr);
+  assert.throws(() => H.inlineImage('https://example.com/logo.svg', 16, 'x'), /data:/, 'nada que se descargue');
+});
+
 test('pastillas: el estilo pasa el sanitizador de VS Code y el texto va escapado', () => {
   for (const [bg, fg] of [['#E0352B', '#ffffff'], ['var(--vscode-badge-background)', 'var(--vscode-badge-foreground)'], ['#2E9C8E', '#fff']]) {
     const html = H.pill('<b>SONANDO</b>', bg, fg);

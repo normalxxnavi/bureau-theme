@@ -28,7 +28,7 @@
  */
 
 const vscode = require('vscode');
-const { SECTION, FONT_SETTING, FONT_APPLIED_KEY, FONT_FALLBACK_KEY, PROTOCOL_SWITCHES, MUSIC, TERMINAL_PROMPT, TERMINAL_ACTIVE_KEY } = require('./config');
+const { SECTION, FONT_SETTING, FONT_APPLIED_KEY, FONT_FALLBACK_KEY, PROTOCOL_SWITCHES, MUSIC, HUD, TERMINAL_PROMPT, TERMINAL_ACTIVE_KEY } = require('./config');
 const { ControlStatus } = require('./status');
 
 /**
@@ -193,6 +193,18 @@ function activate(context) {
     return jukeboxInstance;
   };
 
+  /** @type {InstanceType<typeof import('./hud').BureauHud> | undefined} */
+  let hudInstance;
+  /** El HUD del Bureau: se crea al activarlo (apagado no escucha al cursor). */
+  const hud = () => {
+    if (!hudInstance) {
+      const { BureauHud } = require('./hud');
+      hudInstance = new BureauHud(context);
+      hudInstance.init();
+    }
+    return hudInstance;
+  };
+
   /** @type {InstanceType<typeof import('./terminal-prompt').TerminalPrompt> | undefined} */
   let terminalInstance;
   /** La terminal Bureau: se crea si el prompt está encendido, al abrir una terminal Bureau o al usar sus comandos. */
@@ -241,6 +253,10 @@ function activate(context) {
     vscode.commands.registerCommand('bureauTheme.musicNext', () => jukebox().command('next')),
     vscode.commands.registerCommand('bureauTheme.musicPrevious', () => jukebox().command('previous')),
     vscode.commands.registerCommand('bureauTheme.toggleMusic', () => require('./setup').toggleMusic()),
+    vscode.commands.registerCommand('bureauTheme.toggleHud', () => {
+      const c = vscode.workspace.getConfiguration();
+      return c.update(HUD, c.get(HUD) !== true, vscode.ConfigurationTarget.Global);
+    }),
     vscode.commands.registerCommand('bureauTheme.terminalMenu', () => terminalPrompt().openMenu()),
     vscode.commands.registerCommand('bureauTheme.chooseTerminalPrompt', () => terminalPrompt().chooseStyle()),
     vscode.commands.registerCommand('bureauTheme.newBureauTerminal', () => terminalPrompt().openTerminal()),
@@ -262,6 +278,7 @@ function activate(context) {
   whenEnabled(context, PROTOCOL_SWITCHES.board, boardComments);
   whenEnabled(context, PROTOCOL_SWITCHES.boardRandom, boardRandom);
   whenEnabled(context, `${MUSIC}.enabled`, jukebox);
+  whenEnabled(context, HUD, hud);
 
   // La terminal Bureau: con el prompt encendido, o con algo que deshacer si lo
   // apagaste con VS Code cerrado (perfil predeterminado, fuente de iconos, PROMPT de cmd).

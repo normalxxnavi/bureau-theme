@@ -58,7 +58,36 @@ function svgPolys(svg) {
   return polys;
 }
 
-test('Bureau Icons: todos los bordes rectos de los 498 SVG caen en píxeles enteros', () => {
+test('Bureau Icons: los logotipos de los lenguajes caben en su sitio y se ven en los dos fondos', () => {
+  const { LOGOS } = require('../scripts/lib/language-logos');
+  for (const [id, logo] of Object.entries(LOGOS)) {
+    assert.ok(logo.colors.length >= 1 && logo.colors.every((c) => /^#[0-9A-F]{6}$/i.test(c)), `${id}: colores`);
+    if (logo.rows) {
+      // Filas 1–11: debajo va la franja de clasificación.
+      assert.equal(logo.rows.length, 11, `${id}: 11 filas`);
+      for (const r of logo.rows) assert.match(r, /^[.#JLF7ab]{16}$/, `${id}: «${r}»`);
+      // Una letra por color: '#' (y las diagonales) el primero, 'a' el segundo, 'b' el tercero.
+      const letters = new Set([...logo.rows.join('')].filter((ch) => ch !== '.').map((ch) => ('JLF7'.includes(ch) ? '#' : ch)));
+      assert.deepEqual([...letters].sort(), ['#', 'a', 'b'].slice(0, logo.colors.length).sort(), `${id}: una letra por color`);
+    } else assert.equal(typeof logo.draw, 'function', id);
+    // Todos se usan: scripts/icons.js solo genera los que tienen algún archivo.
+    assert.ok(fs.existsSync(path.join(ROOT, 'icons', 'svg', `f_logo_${id}.svg`)), `${id}: sin archivos que lo usen`);
+  }
+  // Los colores ajustados (scripts/icons.js) llegan a 3:1 en CONTROL Dark y en CONTROL Astral.
+  const dir = path.join(ROOT, 'icons', 'svg');
+  const lum = (/** @type {string} */ h) => {
+    const c = [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  };
+  const ratio = (/** @type {string} */ a, /** @type {string} */ b) => (Math.max(lum(a), lum(b)) + 0.05) / (Math.min(lum(a), lum(b)) + 0.05);
+  for (const f of fs.readdirSync(dir).filter((n) => n.startsWith('f_logo_') && !n.includes('mold') && !n.includes('crucibles'))) {
+    const bg = f.endsWith('_light.svg') ? '#F1F0EB' : '#121315';
+    const fills = [...fs.readFileSync(path.join(dir, f), 'utf8').matchAll(/<path fill="(#[0-9A-F]{6})"/gi)].map((m) => m[1]);
+    for (const c of fills) assert.ok(ratio(c, bg) >= 3 - 1e-9, `${f}: ${c} sobre ${bg}`);
+  }
+});
+
+test('Bureau Icons: todos los bordes rectos de cada SVG caen en píxeles enteros', () => {
   const dir = path.join(ROOT, 'icons', 'svg');
   const files = fs.readdirSync(dir).filter((f) => f.endsWith('.svg'));
   assert.ok(files.length > 400);

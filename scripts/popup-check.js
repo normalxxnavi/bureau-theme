@@ -7,6 +7,7 @@
  *
  *   npm run test:popups                   # la Casa Inmemorial
  *   npm run test:popups -- --test-player  # y la gramola con el reproductor de prueba (solo Linux)
+ *   npm run test:popups -- --system-player  # y la gramola con lo que suene en tu equipo (solo la lee)
  *
  * Arranca VS Code con un perfil temporal y el puerto de depuración de
  * Chromium, pone el ratón (virtual, sin mover el tuyo) sobre la Casa
@@ -40,6 +41,7 @@ function fail(message) {
 
 async function main() {
   const testPlayer = process.argv.includes('--test-player');
+  const systemPlayer = process.argv.includes('--system-player');
   if (testPlayer && process.platform !== 'linux') throw new Error('--test-player solo funciona en Linux');
   fs.rmSync(OUT, { recursive: true, force: true });
   fs.mkdirSync(OUT, { recursive: true });
@@ -51,7 +53,7 @@ async function main() {
   const userData = path.join(tmp, 'user-data');
   fs.mkdirSync(path.join(userData, 'User'), { recursive: true });
   const settings = {
-    'bureauTheme.music.enabled': testPlayer,
+    'bureauTheme.music.enabled': testPlayer || systemPlayer,
     'workbench.startupEditor': 'none',
     'workbench.tips.enabled': false,
     'update.mode': 'none',
@@ -93,6 +95,7 @@ async function main() {
     /** @type {Array<{id: string, file: string, expect: string[]}>} */
     const checks = [{ id: 'bureauTheme.panel', file: 'oldest-house.png', expect: ['The Oldest House'] }];
     if (testPlayer) checks.push({ id: 'bureauTheme.music', file: 'jukebox.png', expect: [TEST_TRACK.title, TEST_TRACK.artist, TEST_TRACK.album] });
+    else if (systemPlayer) checks.push({ id: 'bureauTheme.music', file: 'jukebox.png', expect: [] });
     for (const c of checks) {
       try {
         phase = `el ratón sobre ${c.id}`;

@@ -2,19 +2,21 @@
 # Reproduce en bucle un WAV en silencio y con el volumen a 0, con la canción y
 # la portada inventadas de cover.js, para que la gramola tenga algo que leer
 # sin tocar la música del usuario. Se cierra sola a los -Seconds segundos.
-#   powershell -File media-session.ps1 -Cover cover.png -Wav silence.wav -Title … -Artist … -Album …
+#   powershell -File media-session.ps1 -Cover cover.png -Wav silence.wav -Title … -Artist … -Album … [-AppId Spotify]
 param(
   [Parameter(Mandatory)] [string] $Cover,
   [Parameter(Mandatory)] [string] $Wav,
   [Parameter(Mandatory)] [string] $Title,
   [Parameter(Mandatory)] [string] $Artist,
   [Parameter(Mandatory)] [string] $Album,
+  [string] $AppId = 'Bureau.Songmaster',
   [int] $Seconds = 120
 )
 $ErrorActionPreference = 'Stop'
-# Nombre propio de la sesión (la gramola lo enseña como la app que suena).
+# Identificador de app de la sesión: la gramola enseña el logotipo del reproductor
+# que reconoce en él (Spotify…) o, si no, su nombre.
 Add-Type -Namespace Bureau -Name Shell -MemberDefinition '[DllImport("shell32.dll", CharSet = CharSet.Unicode)] public static extern int SetCurrentProcessExplicitAppUserModelID(string id);'
-[void][Bureau.Shell]::SetCurrentProcessExplicitAppUserModelID('Bureau.Songmaster')
+[void][Bureau.Shell]::SetCurrentProcessExplicitAppUserModelID($AppId)
 
 Add-Type -AssemblyName System.Runtime.WindowsRuntime
 $null = [Windows.Media.Playback.MediaPlayer, Windows.Media, ContentType = WindowsRuntime]

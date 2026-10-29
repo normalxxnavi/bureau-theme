@@ -45,10 +45,11 @@ Four VS Code themes inspired by Remedy's *Control* and *Control Resonant*, with 
 
 - 🎨 **687 interface colours per theme**, the 16 terminal colours and semantic highlighting. Every text colour is checked against WCAG.
 - 🧪 **Any language**: syntax colours tested against 142 languages, from TypeScript and Python to Zig, Elixir and COBOL.
-- 🗂️ **Bureau Icons**: 498 file and folder icons drawn on the 16 px pixel grid, sharp at 100 % scaling.
-- 🧩 **Bureau Product Icons**: 350 of VS Code's own icons redrawn from the game, in the theme colour or in **Color**.
+- 🗂️ **Bureau Icons** 🆕: 514 file and folder icons drawn on the 16 px pixel grid, sharp at 100 % scaling, with the logo of each language.
+- 🧩 **Bureau Product Icons**: 354 of VS Code's own icons redrawn from the game, in the theme colour or in **Color**.
 - 🖥️ **The Bureau terminal** 🆕: a prompt for PowerShell, cmd, bash, zsh and fish in five styles. No Oh My Posh, no Nerd Fonts.
 - 🏛️ **The Oldest House**: the whole theme from one button in the status bar.
+- 📟 **Bureau HUD** 🆕: cursor, indentation, encoding and language in one status bar item with the theme's design, optional.
 - 🎵 **Songmaster jukebox**: what is playing on your computer, with its controls.
 - 🕶️ **Classified mode**: redaction bars over your secrets while you share your screen.
 - 🔊 **Sound effects** and 🔤 **typography** from the games, optional.
@@ -79,7 +80,7 @@ Five prompt styles, told in the Bureau's terms. Off by default: **CONTROL: Choos
 
 ![Bureau Icons and Bureau Product Icons (Color) on CONTROL Dark](images/screenshots/icons-dark.png)
 
-Files carry their code (`TS`, `C#`, `PY`…) over a classification band; folders are coloured by category. The product icons come from the game: the Bureau tape for source control, Jesse's mod slots for extensions, the rubber duck for debugging, the Hedron for testing.
+Files carry the logo of their language — the PHP oval, the Python snakes, the Rust cog, the Go gopher… drawn by hand on the pixel grid in the colour of each brand — or their code (`JSON`, `YAML`…) over a classification band; folders are coloured by category. The product icons come from the game: the Bureau tape for source control, Jesse's mod slots for extensions, the rubber duck for debugging, the Hedron for testing.
 
 <details>
 <summary>🌕 <b>On the light theme</b>, and every object from the game</summary>
@@ -98,6 +99,10 @@ Files carry their code (`TS`, `C#`, `PY`…) over a classification band; folders
 | Copilot and chat | Polaris, crystals around an eye as in the first game |
 | Notifications | The Hotline |
 | Remote | The Threshold |
+| Language of the file (`{}`) | Braces around a Control Point |
+| Claude Code files (`CLAUDE.md`, `.claude`) | The Mold |
+| Docker files and folders | The cells of the Panopticon, where the Bureau contains the Objects of Power |
+| GitHub Actions workflows | The Bureau tape, in green |
 
 </details>
 
@@ -111,7 +116,7 @@ Click the windowless monolith in the status bar to change the theme, the icons, 
 
 ![The Songmaster jukebox on CONTROL Resonant, with an invented song](images/screenshots/jukebox.png)
 
-Spotify or **any player** (the browser, Apple Music, VLC…) in the status bar, with previous, play/pause and next. No account and no login: it reads the music from your system. It also opens the official soundtracks of both games in Spotify. Off by default.
+Spotify or **any player** (the browser, Apple Music, VLC…) in the status bar, with previous, play/pause and next. No account and no login: it reads the music from your system. It keeps up to date while you work in another application, its popup shows the cover and the logo of the player, and its menu opens the official soundtracks of both games in Spotify. Off by default.
 
 ### 🕶️ Classified mode and the Bureau protocols
 
@@ -183,6 +188,7 @@ Comments and parameters are *italic*. To turn italics off:
 | Setting | Default | Description |
 |---|---|---|
 | `bureauTheme.statusBarItem` | `true` | Show the Oldest House icon in the status bar. |
+| `bureauTheme.hud.enabled` | `false` | Bureau HUD: cursor, indentation, encoding, end of line and language in one status bar item. |
 | `bureauTheme.font` | `none` | `bureau`, `resonant`, `auto` (follow the theme) or `none`. |
 | `bureauTheme.sounds.enabled` | `false` | Master switch for sounds. |
 | `bureauTheme.sounds.pack` | `auto` | `auto`, `control` or `resonant`. |
@@ -226,7 +232,7 @@ Comments and parameters are *italic*. To turn italics off:
 - On Linux, sounds need `paplay`, `pw-play` or `aplay`; the *terminal command failed* sound needs shell integration.
 - Classified mode draws bars over the editor: values can still be seen where it does not reach (search results, the minimap, hovers of other extensions), and VS Code shows a file for an instant before the bars are drawn. Turn it on before opening the file you want to protect.
 - The jukebox shows what the system reports: on macOS only Spotify and Music, without album covers; on Linux it needs `gdbus` and shows the cover only when the player saves it as a local file of up to 48 KB.
-- The Bureau terminal: cmd's prompt is fixed text (no Git branch, error or Classified), and Classified works in PowerShell, zsh and fish, not bash. The icons need a terminal with a fallback font: VS Code, Windows Terminal and most Linux terminals have one; the classic Windows console does not (turn off `bureauTheme.terminal.icons`), and in macOS Terminal or iTerm2 you may have to choose *Bureau Prompt Icons* as the font for non-ASCII characters. The first time, restart VS Code if you see boxes instead of icons. If Windows PowerShell does not allow scripts (`Restricted`), the prompt still works in VS Code, but outside VS Code your `profile.ps1` does not run.
+- The Bureau terminal: cmd's prompt is fixed text (no Git branch, error or Classified), and Classified works in PowerShell, zsh and fish, not bash. The icons need a terminal with a fallback font: VS Code, Windows Terminal and most Linux terminals have one; the classic Windows console (where an elevated PowerShell or cmd opens) does not, so there the prompt goes without them; in Git Bash outside VS Code, mintty shows them from version 3.8.3 on (the extension sets it up). Set `BUREAU_PROMPT_ICONS=1` or `0` in your environment to decide yourself, and in macOS Terminal or iTerm2 you may have to choose *Bureau Prompt Icons* as the font for non-ASCII characters. The first time, restart VS Code if you see boxes instead of icons. If Windows PowerShell does not allow scripts (`Restricted`), the prompt still works in VS Code, but outside VS Code your `profile.ps1` does not run.
 - Fonts on Windows: a font that is still open when you uninstall stays, unused, in `%LOCALAPPDATA%\Microsoft\Windows\Fonts` (its files start with `BureauTheme-`); you can delete it later.
 
 </details>
@@ -237,6 +243,6 @@ No network connections and no telemetry. The sounds use the system audio player,
 
 ## 🙌 Credits
 
-Made by **Normalxxnavi** · [Changelog](CHANGELOG.md) · [MIT license](LICENSE). Fonts: Overpass, Overpass Mono, Space Mono and Space Grotesk (SIL Open Font License, see [`fonts/`](fonts/README.md)). Colours, icons (Bureau Prompt Icons too) and sounds are original.
+Made by **Normalxxnavi** · [Changelog](CHANGELOG.md) · [MIT license](LICENSE). Fonts: Overpass, Overpass Mono, Space Mono and Space Grotesk (SIL Open Font License, see [`fonts/`](fonts/README.md)). Colours, icons and sounds are original; the logos of the music players in the jukebox popup come from [Simple Icons](https://simpleicons.org) (CC0) and are trademarks of their owners; so are the logos of the languages, drawn by hand for the file icons.
 
 <sub>*Beta · Unofficial fan work, not approved or endorsed by Remedy Entertainment Plc or its affiliates. CONTROL and CONTROL Resonant are trademarks of their respective owners and are only used to describe what inspired this theme. No game assets are included. Windows, macOS and Linux are trademarks of their respective owners.*</sub>

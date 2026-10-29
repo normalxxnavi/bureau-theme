@@ -175,19 +175,38 @@ function clip(s, max) {
   return s.length > max ? `${s.slice(0, max - 1).trimEnd()}…` : s;
 }
 
-/** Reproductores conocidos: [patrón del identificador, nombre]. */
+/**
+ * Reproductores conocidos: [patrón del identificador, nombre, logotipo de
+ * player-logos.js ('' si no hay)]. Firefox en Windows se presenta con el
+ * identificador de su instalación (308046B0AF4A39CB en la carpeta de siempre).
+ */
 const KNOWN_APPS = /** @type {const} */ ([
-  [/spotify/i, 'Spotify'],
-  [/msedge|edge/i, 'Edge'],
-  [/chrom/i, 'Chrome'],
-  [/firefox/i, 'Firefox'],
-  [/brave/i, 'Brave'],
-  [/opera/i, 'Opera'],
-  [/vlc/i, 'VLC'],
-  [/zunemusic|itunes|applemusic|^music$/i, 'Music'],
-  [/foobar/i, 'foobar2000'],
-  [/rhythmbox/i, 'Rhythmbox'],
+  [/spotify/i, 'Spotify', 'spotify'],
+  [/msedge|edge/i, 'Edge', ''],
+  [/youtube.?music/i, 'YouTube Music', 'youtubeMusic'],
+  [/chromium/i, 'Chromium', ''],
+  [/chrom/i, 'Chrome', 'chrome'],
+  [/firefox|308046B0AF4A39CB/i, 'Firefox', 'firefox'],
+  [/brave/i, 'Brave', 'brave'],
+  [/opera/i, 'Opera', 'opera'],
+  [/vlc/i, 'VLC', 'vlc'],
+  [/zunemusic/i, 'Media Player', ''],
+  [/itunes/i, 'iTunes', 'itunes'],
+  [/applemusic|^music$/i, 'Music', 'appleMusic'],
+  [/foobar/i, 'foobar2000', 'foobar2000'],
+  [/tidal/i, 'TIDAL', 'tidal'],
+  [/deezer/i, 'Deezer', 'deezer'],
+  [/amazon/i, 'Amazon Music', ''],
+  [/winamp/i, 'Winamp', 'winamp'],
+  [/plex/i, 'Plex', 'plex'],
+  [/kodi|xbmc/i, 'Kodi', 'kodi'],
+  [/pandora/i, 'Pandora', 'pandora'],
+  [/(^|[.!_])mpv($|[.!_])/i, 'mpv', 'mpv'],
+  [/rhythmbox/i, 'Rhythmbox', ''],
 ]);
+
+/** El identificador sin lo que añaden Linux (MPRIS) y Windows (.exe). @param {string} app */
+const appId = (app) => app.replace(/^org\.mpris\.MediaPlayer2\./, '').replace(/\.exe$/i, '');
 
 /**
  * Nombre corto de la app (Spotify, Chrome, VLC…) a partir de su identificador
@@ -195,7 +214,7 @@ const KNOWN_APPS = /** @type {const} */ ([
  * @param {string} app
  */
 function appName(app) {
-  const id = app.replace(/^org\.mpris\.MediaPlayer2\./, '').replace(/\.exe$/i, '');
+  const id = appId(app);
   const known = KNOWN_APPS.find(([re]) => re.test(id));
   if (known) return known[1];
   const parts = id.split(/[\\/!._]/).filter(Boolean);
@@ -203,4 +222,10 @@ function appName(app) {
   return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
-module.exports = { MAX_COVER_BYTES, parseCover, sniffImage, coverType, SOUNDTRACKS, soundtrackUri, noIcons, parseWindowsLine, parseMacOutput, parseGdbusNames, parseGdbusPlayer, pickTrack, isSpotify, statusText, clip, appName };
+/** El logotipo del reproductor (clave de player-logos.js), o null si no hay. @param {string} app */
+function appLogo(app) {
+  const id = appId(app);
+  return KNOWN_APPS.find(([re]) => re.test(id))?.[2] || null;
+}
+
+module.exports = { MAX_COVER_BYTES, parseCover, sniffImage, coverType, SOUNDTRACKS, soundtrackUri, noIcons, parseWindowsLine, parseMacOutput, parseGdbusNames, parseGdbusPlayer, pickTrack, isSpotify, statusText, clip, appName, appLogo };

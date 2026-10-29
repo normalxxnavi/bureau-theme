@@ -550,9 +550,9 @@ async function run() {
   await step('Casa Inmemorial: activa un protocolo, vuelve a la Casa y Esc la cierra', async () => {
     const panel = vscode.commands.executeCommand('bureauTheme.openOldestHouse');
     await sleep(600);
-    // La primera opción es «Tema de color»; «Modo Clasificado» es la undécima (los
-    // separadores no cuentan): 7 de apariencia (con la terminal Bureau), sonidos, gramola, bandas sonoras.
-    for (let i = 0; i < 10; i++) await vscode.commands.executeCommand('workbench.action.quickOpenSelectNext');
+    // La primera opción es «Tema de color»; «Modo Clasificado» es la décima (los
+    // separadores no cuentan): 7 de apariencia (con el HUD y la terminal Bureau), sonidos y gramola.
+    for (let i = 0; i < 9; i++) await vscode.commands.executeCommand('workbench.action.quickOpenSelectNext');
     await vscode.commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
     await waitFor(() => classifiedCfg().get('enabled') === true, 'Modo Clasificado activado desde el panel');
     // El panel se vuelve a abrir solo; con Esc se cierra y el comando termina.

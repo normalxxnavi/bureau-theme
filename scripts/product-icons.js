@@ -426,7 +426,36 @@ const DEFS = {
     [R.steel, [rect(2, 13, 12, 2)]],
     [R.amber, [rect(7, 1, 2, 4), rect(2, 3, 2, 2), rect(12, 3, 2, 2), rect(0, 8, 2, 2), rect(14, 8, 2, 2)]],
   ],
+  // El lenguaje del archivo en la barra de estado (el {} de VS Code): las llaves de trazo recto con un Punto
+  // de Control en medio; con avisos, un rombo ámbar, y con errores, la cruz roja.
+  bracket: () => [[R.steel, braces()], [R.brass, [rect(7, 7, 2, 2)]]],
+  bracketDot: () => [[R.steel, braces()], [R.amber, [poly([8, 5.5], [10.5, 8], [8, 10.5], [5.5, 8])]]],
+  bracketError: () => [[R.steel, braces()], [R.red, [cross(8, 8, 2.2, 1.6)]]],
 };
+
+/** Las llaves del lenguaje ({}): trazo recto de 2 px, con el hueco de en medio para la marca. */
+function braces() {
+  return K.art(
+    `
+    ................
+    ....###..###....
+    ...####..####...
+    ...##......##...
+    ...##......##...
+    ...##......##...
+    ..##........##..
+    .##..........##.
+    .##..........##.
+    ..##........##..
+    ...##......##...
+    ...##......##...
+    ...##......##...
+    ...####..####...
+    ....###..###....
+    ................`,
+    16
+  );
+}
 
 /** Tamaño de rejilla de cada glifo (16 salvo los de la barra de actividad). */
 const GRID24 = new Set(['dossierBar', 'lensBar', 'branchBar', 'duckBar', 'blocksBar', 'hedronCheckBar', 'badgeBar', 'hexNutBar', 'thresholdBar']);
@@ -462,6 +491,8 @@ const MAPPING = {
   'settings-view-bar-icon': 'hexNutBar', 'settings-gear': 'hexNut', manage: 'hexNut', gear: 'hexNut', settings: 'hexNut',
   'chat-view-icon': 'polaris', 'chat-sparkle': 'polaris', copilot: 'polaris', 'copilot-logo': 'polaris', sparkle: 'polaris', 'sparkle-filled': 'polaris',
   law: 'board',
+  // El lenguaje del archivo (barra de estado): normal, con avisos y con errores.
+  bracket: 'bracket', json: 'bracket', 'bracket-dot': 'bracketDot', 'bracket-error': 'bracketError',
   bell: 'hotline', 'bell-dot': 'hotlineDot',
   package: 'cube', home: 'oldestHouse', save: 'floppy', 'save-all': 'floppy', 'save-as': 'floppy',
   shield: 'safe', 'workspace-trusted': 'safe', 'workspace-untrusted': 'safe', 'workspace-unknown': 'safe', archive: 'safe',
